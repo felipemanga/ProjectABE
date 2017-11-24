@@ -1,0 +1,17 @@
+<div id="simContainer" class="verticalContainer" data-inject="arduboy" poweroff-call="onEndSim">
+  <img src="Arduboy-off.png" />
+  <canvas data-inject="SCREEN" id="screen" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
+  </canvas>
+  <led data-inject="LED" style="background-color: #F00" pin-on="cpu.10"></led>
+  <led data-inject="LED" style="background-color: #0F0" pin-on="cpu.11"></led>
+  <led data-inject="LED" style="background-color: #00F" pin-on="cpu.9"></led>
+  
+  <btn data-inject="BTN" id="Up" active="low" pin-on="cpu.A0"></btn>
+  <btn data-inject="BTN" id="Down" active="low" pin-on="cpu.A3"></btn>
+  <btn data-inject="BTN" id="Left" active="low" pin-on="cpu.A2"></btn>
+  <btn data-inject="BTN" id="Right" active="low" pin-on="cpu.A1"></btn>
+  <btn data-inject="BTN" id="A" active="low" pin-on="cpu.7"></btn>
+  <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8"></btn>
+
+  <btn click-call="powerOff" id="PWR"></btn>
+</div>
