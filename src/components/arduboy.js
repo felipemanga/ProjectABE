@@ -1,7 +1,7 @@
 import { IController, Model, IView } from '../lib/mvc.js';
 import { getPolicy } from 'dry-di';
 import Atcore from '../atcore/Atcore.js';
-import Hex from '../atcore/hex.js';
+import Hex from '../atcore/Hex.js';
 
 class Arduboy {
 

@@ -111,7 +111,7 @@ function swallowError (error) {
   this.emit('end')
 }
 
-gulp.task('build', ["build-atcore-worker"], function () {
+gulp.task('build', function () {
 
   var b = browserify({
     entries: './src/pc.js',

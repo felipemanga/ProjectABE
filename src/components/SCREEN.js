@@ -202,15 +202,15 @@ class SCREEN {
     }
 
   // set display mode = horizontal addressing mode (0x00)
-    cmd20( v= 0x00 ){
+    cmd20( v ){
     }
 
   // set col address range
-    cmd21( v=0x00, e=COLUMN_ADDRESS_END ){
+    cmd21( v, e ){
     }
 
   // set page address range
-    cmd22( v=0x00, e=PAGE_ADDRESS_EN ){
+    cmd22( v, e ){
     }
 }
 

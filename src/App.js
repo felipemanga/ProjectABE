@@ -99,28 +99,52 @@ class App {
 
     appModelInit( model, cb ){
 
-	let repoURL = "http://www.crait.net/arduboy/repo2.json";
-	if( navigator.userAgent.indexOf("Electron") == -1 && typeof cordova == "undefined" ){
-	    // model.setItem("proxy", "https://crossorigin.me/");
-	    model.setItem("proxy", "https://cors-anywhere.herokuapp.com/");
-	    repoURL = model.getItem("proxy") + repoURL;
-	}else{
-	    model.setItem("proxy", "");
-	}
-	
-	fetch( repoURL )
-	    .then( rsp => {
-		return rsp.json();
-	    })
-	    .then( json => {
-		model.setItem("repo", json.items || []);
-		cb();
-	    })
-	    .catch( err => {
-		console.log( err );
-	    });	
+		let repoURL = [
+			"http://www.crait.net/arduboy/repo2.json",
+			"http://arduboy.ried.cl/repo.json"
+		];
 
-    }
+		if( navigator.userAgent.indexOf("Electron") == -1 && typeof cordova == "undefined" ){
+			// model.setItem("proxy", "https://crossorigin.me/");
+			model.setItem("proxy", "https://cors-anywhere.herokuapp.com/");
+			repoURL = repoURL.map( url => model.getItem("proxy") + url );
+		}else{
+			model.setItem("proxy", "");
+		}
+
+		let items = [];
+		let pending = 2;
+
+		repoURL.forEach( url =>	
+						 fetch( url )
+						 .then( rsp => rsp.json() )
+						 .then( 
+							 json => 
+								 json && 
+								 json.items && 
+								 json.items.forEach( item => items.push(item) ) || 
+								 done()
+						 )
+						 .catch( err => {
+							 console.log( err );
+							 done();
+						 })	
+		);
+
+		function done(){
+			pending--;
+
+			if( !pending ){
+				items = items.sort((a, b) => {
+					if( a > b ) return 1;
+					if( a < b ) return -1;
+					return 0;
+				});
+				model.setItem("repo", items);
+				cb();
+			}
+		}
+	}
 
     commit(){
 
