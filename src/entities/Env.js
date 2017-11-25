@@ -24,6 +24,31 @@ class Env extends IController {
 	this._show();
     }
 
+    onDropFile( dom, event ){
+	event.stopPropagation();
+	event.preventDefault();
+
+
+	var dt = event.dataTransfer;
+	var files = dt.files;
+
+	for (var i = 0; i < files.length; i++) {
+	    let file = files[i];
+	    if( /.*\.arduboy$|.*\.hex$/i.test(file.name) )
+		return loadFile.call( this, file );
+	}
+
+	function loadFile( file ){
+	    let fr = new FileReader();
+	    fr.onload = evt => {
+		this.model.setItem("app.AT32u4.hex", fr.result);
+		this.pool.call("runSim");
+	    };
+	    fr.readAsText(file);
+	}
+	
+    }
+
     play( opt ){
 	
 	let url = opt.element.dataset.url;

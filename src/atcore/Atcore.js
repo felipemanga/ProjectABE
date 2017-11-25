@@ -280,8 +280,10 @@ class Atcore {
         // console.log('CREATE BLOCK: ', (this.pc<<1).toString(16).toUpperCase() );
         code += 'switch( this.pc ){\n';
 
-        do{
+	let addrs = [];
 
+        do{
+	    
             var inst = this.identify();
             if( !inst ){
                 // inst = nop;
@@ -289,6 +291,8 @@ class Atcore {
                 (function(){debugger;})();
                 return;
             }
+
+	    addrs.push( this.pc );
             
             code += `\ncase ${this.pc}: // #` + (this.pc<<1).toString(16) + ": " + inst.name + ' [' + inst.decbytes.toString(2).padStart(16, "0") + ']' + '\n';
 
@@ -339,7 +343,8 @@ class Atcore {
 
         }while( this.pc < this.prog.length && (!inst.end || skip || prev) )
 
-        code += `\nthis.pc = ${this.pc};\n`
+        code += `\nthis.pc = ${this.pc};\n`;
+	code += `break;\ndefault: this.tick += 2; console.warn('fell through #' + (this.pc++<<1).toString(16));\n`;
         code += `\n\n}`;
         // code += cacheList.map(c=>`this.${c} = ${c};`).join('\n');
         code += 'this.sp = sp;\n';
@@ -354,8 +359,8 @@ class Atcore {
         try{
             var func = (new Function( code ))();
 
-            for( var i=startPC; i<endPC; ++i )
-                this.native[ i ] = func;
+            for( var i=0; i<addrs.length; ++i )
+                this.native[ addrs[i] ] = func;
 
             func.call( this );
         }catch(ex){
