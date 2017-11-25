@@ -41,6 +41,7 @@ class Env extends IController {
 	function loadFile( file ){
 	    let fr = new FileReader();
 	    fr.onload = evt => {
+		this.model.removeItem("app.AT32u4");		
 		this.model.setItem("app.AT32u4.hex", fr.result);
 		this.pool.call("runSim");
 	    };
