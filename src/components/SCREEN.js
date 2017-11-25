@@ -80,16 +80,15 @@ class SCREEN {
 
     createBuffer(){
 	let canvas = this.canvas;
-	/*
 	try{
             return new ImageData(
 		new Uint8ClampedArray(canvas.width*canvas.height*4),
 		canvas.width,
 		canvas.height
 	    );
-	}catch(e){*/
+	}catch(e){
 	    return this.ctx.createImageData(canvas.width, canvas.height);
-	//}
+	}
 	
     }
 
@@ -99,13 +98,24 @@ class SCREEN {
 	this.cmd = [];
 	this.pos = 0;
 	this.fb.data.fill(0);
+	this.colStart = 0;
+	this.colEnd = 128;
+	this.pageStart = 0;
+	this.pageEnd = 8;
     }
 
     state = function( data ){
 	// console.log( "DATA: " + data.toString(16) );
+	let cs = this.colStart;
+	let ce = this.colEnd;
+	let cd = ce - cs;
+	let ps = this.pageStart;
+	let pe = this.pageEnd;
+	let pd = pe - ps;
+	
 	let p = this.pos++;
-	let x = p % 128;
-	let y = ((p / 128)|0) * 8;
+	let x = cs + p % cd;
+	let y = (ps + (p / cd)|0) * 8;
 	for( let i=0; i<8; ++i ){
 	    let offset = ((y+i)*128 + x) * 4;
 	    let bit = ((data >>> i) & 1) * 0xE0;
@@ -115,7 +125,7 @@ class SCREEN {
 	    this.fb.data[ offset++ ] = bit;
 	}
 
-	if( this.pos >= 128*64/8 )
+	if( this.pos >= pd*cd )
 	    this.pos = 0;
 
 	this.dirty = true;
@@ -245,10 +255,15 @@ class SCREEN {
 
   // set col address range
     cmd21( v, e ){
+	this.colStart = v;
+	this.colEnd   = e+1;
     }
 
   // set page address range
     cmd22( v, e ){
+	this.pageStart = v;
+	this.pageEnd   = e+1;
+	this.pos = 0;
     }
 }
 

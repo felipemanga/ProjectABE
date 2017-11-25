@@ -1,0 +1,78 @@
+{
+    "tpl":
+    {
+	"title":"",
+	"author":"TeamARG",
+	"banner":"",
+	"arduboy":""
+    },
+
+    "items":[
+	{
+	    "title":"Blob-Attack",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-blba/images/banner-ID-28.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-28-Blob-Attack/releases/download/v1.8.1/BLBA_AB_v181.arduboy"
+	},
+	{
+	    "title":"Shadow Runner",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-shrun/images/banner-ID-15b.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-15-Shadow-Runner/releases/download/v1.6.1/SHRUN_AB_v161.arduboy"
+	},
+	{
+	    "title":"Reverse Mermaid Hockey",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-rmh/images/banner-ID-31.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-31-RMH/releases/download/v1.4/RMH_AB_v14.arduboy"
+	},	
+	{
+	    "title":"Begemmed",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-bgem/images/banner-ID-30.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-30-BEGEMMED/releases/download/v1.4.1/BGEM_AB_v14.arduboy"
+	},
+	{
+	    "title":"Epic Crates of Mass Destruction",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-ecomd/images/banner-ID-33.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-33-ECOMD/releases/download/v1.1.2/ECOMD_AB_v11.arduboy"
+	},
+	{
+	    "title":"Trolly Fish",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-fish/images/banner-ID-36.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-36-Trolly-Fish/releases/download/v1.1/FISH_AB_v11.arduboy"
+	},
+	{
+	    "title":"Dice of Fate",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-dice/images/banner-ID-37c.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-37-DICE-of-FATE/releases/download/v1.7.2/DICE_AB_v172.arduboy"
+	},
+	{
+	    "title":"VIRUS-LQP-79",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-vlqp/images/banner-ID-40.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-40-VIRUS-LQP-79/releases/download/v1.3/VLQP_AB_v13.arduboy"
+	},
+	{
+	    "title":"Mystic Balloon",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-mybl/images/banner-ID-34-b.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-34-Mystic-Balloon/releases/download/v1.6.1/MYBL_AB_v16.arduboy"
+	},
+	{
+	    "title":"Sirene",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-srn/images/banner-ID-42.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-42-Sirene/releases/download/v1.2.2/SRN_AB_v122.arduboy"
+	},
+	{
+	    "title":"Fantasy Rampage",
+	    "author":"TeamARG",
+	    "banner":"http://www.team-arg.org/masterfiles/team-arg-frmp/images/banner-ID-48.png",
+	    "arduboy":"https://github.com/TEAMarg/ID-48-Fantasy-Rampage/releases/download/v1.0.2/FRMP_AB_v102.arduboy"
+	}
+    ]
+}

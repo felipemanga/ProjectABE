@@ -195,6 +195,7 @@ class Atcore {
         var start = this.tick;
         this.endTick = this.startTick + cycles;
         this.execTime = time;
+	var lastUpdate = start;
 
         try{
 
@@ -211,7 +212,12 @@ class Atcore {
 		}else{
 		    this.tick += 100;
 		}
-                this.updatePeriferals();
+		
+		if( this.tick >= this.endTick || this.tick - lastUpdate > 1000 ){
+		    lastUpdate = this.tick;
+                    this.updatePeriferals();
+		}
+
 	    }
 
 		
@@ -840,6 +846,15 @@ const AtCODEC = [
         str:'111100kkkkkkksss',
         impl: [
             'if( SR@s ){',
+            '  PC ← PC + (k << 25 >> 25) + 1;',
+            '}'],
+        cycles: 2
+    },
+    {
+        name: 'BRBC',
+        str:'111101kkkkkkksss',
+        impl: [
+            'if( !SR@s ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
         cycles: 2

@@ -114,46 +114,61 @@ class App {
 
 	let repoURL = [
 	    "http://www.crait.net/arduboy/repo2.json",
-	    "http://arduboy.ried.cl/repo.json"
+	    "http://arduboy.ried.cl/repo.json",
+	    "repo.json"
 	];
 
 	if( navigator.userAgent.indexOf("Electron") == -1 && typeof cordova == "undefined" ){
 	    // model.setItem("proxy", "https://crossorigin.me/");
 	    model.setItem("proxy", "https://cors-anywhere.herokuapp.com/");
-	    repoURL = repoURL.map( url => model.getItem("proxy") + url );
+	    repoURL = repoURL.map( url => (/^https?.*/.test(url) ? model.getItem("proxy") : "") + url );
 	}else{
 	    model.setItem("proxy", "");
 	}
 
 	let items = [];
-	let pending = 2;
+	let pending = 3;
 
-	repoURL.forEach( url =>	
+	repoURL.forEach( url =>
 			 fetch( url )
 			 .then( rsp => rsp.json() )
-			 .then( 
-			     json => 
-				 json && 
-				 json.items && 
-				 json.items.forEach( item => {
-				     item.author = item.author || "<<unknown>>";
-				     if(
-					 item.banner && (
-					 !item.screenshots ||
-					 !item.screenshots[0] ||
-					 !item.screenshots[0].filename
-					 ))
-				 	 item.screenshots = [{filename:item.banner}];
-				     
-				     items.push(item);
-				 }) || 
-				 done()
-			 )
+			 .then( add )
 			 .catch( err => {
 			     console.log( err );
 			     done();
 			 })	
 		       );
+
+	function add( json ){
+	
+	    if( json && json.items ){
+	    
+		json.items.forEach( item => {
+		    
+		    item.author = item.author || "<<unknown>>";
+		    
+		    if(
+			item.banner && (
+			    !item.screenshots ||
+				!item.screenshots[0] ||
+				!item.screenshots[0].filename
+			))
+			item.screenshots = [{filename:item.banner}];
+		    
+		    if( item.arduboy && (
+			!item.binaries ||
+			    !item.binaries[0] ||
+			    !item.binaries[0].filename
+		    ))
+			item.binaries = [{filename:item.arduboy}]
+		    
+		    items.push(item);
+		});
+	    }
+	    
+	    done();
+	    
+	}
 
 	function done(){
 	    pending--;
