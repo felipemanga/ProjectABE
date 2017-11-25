@@ -28,6 +28,16 @@ class App {
 
     init(){
 
+	document.body.addEventListener("keydown", evt => {
+	    this.pool.call("onPress" + evt.code);
+	    // console.log(evt);
+	});
+
+	document.body.addEventListener("keyup", evt => {
+	    this.pool.call("onRelease" + evt.code);
+	    // console.log(evt);
+	});
+
         this.controllers.forEach((controller) => {
             this.pool.add( controller );
         });
@@ -83,11 +93,14 @@ class App {
 
             if( data ){
 		model.load( JSON.parse(data) );
-                model.dirty = false;
-		cb.call();
-            }else
-                this.pool.call( name + "ModelInit", model, cb );
-
+		if( model.getItem("expires") > (new Date()).getTime() ){
+                    model.dirty = false;
+		    cb.call();
+		    return;
+		}
+            }
+	    
+            this.pool.call( name + "ModelInit", model, cb );
 
         });
 
@@ -99,52 +112,65 @@ class App {
 
     appModelInit( model, cb ){
 
-		let repoURL = [
-			"http://www.crait.net/arduboy/repo2.json",
-			"http://arduboy.ried.cl/repo.json"
-		];
+	let repoURL = [
+	    "http://www.crait.net/arduboy/repo2.json",
+	    "http://arduboy.ried.cl/repo.json"
+	];
 
-		if( navigator.userAgent.indexOf("Electron") == -1 && typeof cordova == "undefined" ){
-			// model.setItem("proxy", "https://crossorigin.me/");
-			model.setItem("proxy", "https://cors-anywhere.herokuapp.com/");
-			repoURL = repoURL.map( url => model.getItem("proxy") + url );
-		}else{
-			model.setItem("proxy", "");
-		}
-
-		let items = [];
-		let pending = 2;
-
-		repoURL.forEach( url =>	
-						 fetch( url )
-						 .then( rsp => rsp.json() )
-						 .then( 
-							 json => 
-								 json && 
-								 json.items && 
-								 json.items.forEach( item => items.push(item) ) || 
-								 done()
-						 )
-						 .catch( err => {
-							 console.log( err );
-							 done();
-						 })	
-		);
-
-		function done(){
-			pending--;
-
-			if( !pending ){
-				items = items.sort((a, b) => {
-					if( a > b ) return 1;
-					if( a < b ) return -1;
-					return 0;
-				});
-				model.setItem("repo", items);
-				cb();
-			}
-		}
+	if( navigator.userAgent.indexOf("Electron") == -1 && typeof cordova == "undefined" ){
+	    // model.setItem("proxy", "https://crossorigin.me/");
+	    model.setItem("proxy", "https://cors-anywhere.herokuapp.com/");
+	    repoURL = repoURL.map( url => model.getItem("proxy") + url );
+	}else{
+	    model.setItem("proxy", "");
 	}
+
+	let items = [];
+	let pending = 2;
+
+	repoURL.forEach( url =>	
+			 fetch( url )
+			 .then( rsp => rsp.json() )
+			 .then( 
+			     json => 
+				 json && 
+				 json.items && 
+				 json.items.forEach( item => {
+				     item.author = item.author || "<<unknown>>";
+				     if(
+					 item.banner && (
+					 !item.screenshots ||
+					 !item.screenshots[0] ||
+					 !item.screenshots[0].filename
+					 ))
+				 	 item.screenshots = [{filename:item.banner}];
+				     
+				     items.push(item);
+				 }) || 
+				 done()
+			 )
+			 .catch( err => {
+			     console.log( err );
+			     done();
+			 })	
+		       );
+
+	function done(){
+	    pending--;
+
+	    if( !pending ){
+		items = items.sort((a, b) => {
+		    if( a.title > b.title ) return 1;
+		    if( a.title < b.title ) return -1;
+		    return 0;
+		});
+		model.removeItem("repo");
+		model.setItem("repo", items);
+		model.setItem("expires", (new Date()).getTime() + 60 * 60 * 1000 );
+		cb();
+	    }
+	}
+    }
 
     commit(){
 

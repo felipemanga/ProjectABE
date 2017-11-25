@@ -124,8 +124,18 @@ function Pool() {
 
         delete contents[obj.__uid];
 
-        for (var k in (obj.methods || obj.constructor.methods || obj))
-        this.mute(obj, k);
+	if( obj.methods || obj.constructor.methods ){
+            for (var k in (obj.methods || obj.constructor.methods) )
+		this.mute(obj, k);
+	}else{
+            var properties = {}, cobj = obj;
+            do{
+                Object.assign( properties, Object.getOwnPropertyDescriptors(cobj) );
+            }while( cobj = Object.getPrototypeOf(cobj) );
+
+            for ( var k in properties )
+		this.mute(obj, k);
+	}
     };
 
     this.poll = function(t) {

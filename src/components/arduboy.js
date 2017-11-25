@@ -6,12 +6,15 @@ import Hex from '../atcore/Hex.js';
 class Arduboy {
 
     static "@inject" = {
-        root: [Model, {scope:"root"}]
+        root: [Model, {scope:"root"}],
+	pool:"pool"
     }
 
     tick = []
 
     constructor( DOM ){
+
+	this.pool.add(this);
 
 	this.DOM = DOM;
 	this.parent = DOM.element.parentElement;
@@ -74,7 +77,16 @@ class Arduboy {
 	console.error("Nothing to load");
     }
 
+    onPressEscape(){
+	this.powerOff();
+    }
+
+    setActiveView(){
+	this.pool.remove(this);
+    }
+
     powerOff(){
+	this.pool.remove(this);
 	this.dead = true;
 	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }

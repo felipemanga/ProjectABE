@@ -1,9 +1,14 @@
 class SCREEN {
+    static "@inject" = {
+	pool:"pool"
+    }
     
     constructor( DOM ){
 	
 	let canvas = this.canvas = DOM.screen;
 	if( !canvas ) throw "No canvas in Arduboy element";
+
+	this.pool.add(this);
 	
 	canvas.width = 128;
 	canvas.height = 64;
@@ -33,6 +38,39 @@ class SCREEN {
 	
     }
 
+    setActiveView(){
+	this.pool.remove(this);
+    }
+
+    onPressKeyF(){
+	var docEl = this.canvas; // doc.documentElement;
+	
+	toggleFullScreen();
+
+	return;
+
+	function isFullScreen(){
+		var doc = window.document;
+		return doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement || false;
+	}
+
+	function toggleFullScreen(toggle) {
+		var doc = window.document;
+	        
+
+		var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+		var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+		var state = isFullScreen();
+
+		if( toggle == undefined ) toggle = !state;
+		else if( toggle == state ) return;
+
+		if( toggle ) requestFullScreen.call(docEl);
+		else cancelFullScreen.call(doc);
+	}
+    }
+    
+    
     tick(){
 	if( this.dirty ){
 	    this.ctx.putImageData( this.activeBuffer, 0, 0 );
