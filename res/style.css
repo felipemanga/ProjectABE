@@ -199,10 +199,15 @@ nav button {
     user-select: none;
 }
 
+#simContainer>*{
+    user-select: none;
+}
+
 #simContainer img{
     position: relative;
     height: 100%;
     width: 100%;
+    pointer-events: none;
     /* image-rendering: optimizeSpeed; */    
 }
 

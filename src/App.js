@@ -171,6 +171,9 @@ class App {
 			    !item.binaries[0].filename
 		    ))
 			item.binaries = [{filename:item.arduboy}]
+
+		    if( !item.sourceUrl && item.url )
+			item.sourceUrl = item.url;
 		    
 		    items.push(item);
 		});
