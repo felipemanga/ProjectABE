@@ -40,17 +40,51 @@ class Atcore {
 	this.i8a = new Int8Array(4);
 
         self.BREAKPOINTS = { 0:0 };
-        self.DUMP = () => {
-            console.log(
-                'PC: #'+(this.pc<<1).toString(16)+
-                '\nSR: ' + this.memory[0x5F].toString(2)+
-                '\nSP: #' + this.sp.toString(16) +
-                '\n' + 
-                Array.prototype.map.call( this.reg, 
-                    (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16) + '\t' + v 
-                ).join('\n') 
-            );
-        };
+	this.history = window.execHistory = [];
+	this.trace = {};
+	self.core = {
+	    history:this.history,
+	    errors:[],
+	    da: (a=null, l=20) => {
+		let opc = this.pc;
+		
+		if( a===null ) a = this.pc;
+		else a >>= 1;
+		this.pc = a;
+		
+		let out = [];		
+		for( let i=0; i<l; ++i ){
+		    
+		    let inst = this.identify();
+		    if( !inst ){
+			out.push( this.error );
+			break;
+		    }
+		    
+		    let op = "#"+(this.pc<<1).toString(16) + ": ";
+		    op += inst.name
+		    for( var k in inst.argv )
+			op += " " + k + "=#" + inst.argv[k].toString(16);
+		    
+		    out.push(op);
+		    this.pc += inst.bytes >> 1;
+			     
+		}
+		this.pc = opc;
+		return out;
+	    },
+	    dump: () => {
+		console.log(
+                    'PC: #'+(this.pc<<1).toString(16)+
+			'\nSR: ' + this.memory[0x5F].toString(2)+
+			'\nSP: #' + this.sp.toString(16) +
+			'\n' + 
+			Array.prototype.map.call( this.reg, 
+						  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16) + '\t' + v 
+						).join('\n') 
+		);
+            }
+	};
 
         /*
         The I/O memory space contains 64 addresses for CPU peripheral functions as control registers, SPI, and other I/O functions.
@@ -123,31 +157,13 @@ class Atcore {
             if( ret !== undefined ) value = ret;
         }
 
-        // if( !({
-        //     0x5d:1, // Stack Pointer Low
-        //     0x5e:1, // Stack Pointer High
-        //     0x5f:1, // status register
-        //     0x25:1, // PORTB
-        //     0x35:1, // TOV0
-        //     0x23:1,  // PINB
-        //     0x14B:1 // verbose USART stuff
-        // })[addr] )
-        // console.log( "READ: #", addr.toString(16) );
+	if( this.trace[addr] )
+	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " <- #" + addr.toString(16) );
 
         return value;
     }
 
     readBit( addr, bit, pc ){
-
-        // if( !({
-        //     0x5d:1, // Stack Pointer Low
-        //     0x5e:1, // Stack Pointer High
-        //     0x5f:1, // status register
-        //     0x25:1, // PORTB
-        //     0x35:1, // TOV0
-        //     0x23:1  // PINB
-        // })[addr] )
-        // console.log( "PC=" + (pc<<1).toString(16) + " READ #" + (addr !== undefined ? addr.toString(16) : 'undefined') + " @ " + bit );
 
         var value = this.memory[ addr ];
 
@@ -156,6 +172,9 @@ class Atcore {
             var ret = periferal( value );
             if( ret !== undefined ) value = ret;
         }
+
+	if( this.trace[addr] )
+	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " <- #" + addr.toString(16) );
 
         return (value >>> bit) & 1;
     }
@@ -169,6 +188,9 @@ class Atcore {
             if( ret === false ) return;
             if( ret !== undefined ) value = ret;
         }
+
+	if( this.trace[addr] )
+	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " -> #" + addr.toString(16) );
 
         return this.memory[ addr ] = value;
     }
@@ -186,6 +208,9 @@ class Atcore {
             if( ret !== undefined ) value = ret;
         }
 
+	if( this.trace[addr] )
+	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " -> #" + addr.toString(16) );
+
         return this.memory[ addr ] = value;
     }
 
@@ -200,6 +225,10 @@ class Atcore {
         try{
 
 	    while( this.tick < this.endTick ){
+
+		this.history.push( (this.pc << 1).toString(16) );
+		while( this.history.length > 1000 ) this.history.shift();
+		
 		if( !this.sleeping ){
 
 		    if( this.pc > 0xFFFF ) break;
@@ -472,6 +501,8 @@ class Atcore {
     interrupt( source ){
 
         // console.log("INTERRUPT " + source);
+
+	this.history.push( (this.pc<<1).toString(16) + " INT " + source );
 
         let addr = this.interruptMap[source];
         var pc = this.pc;
@@ -1360,7 +1391,9 @@ const AtCODEC = [
         end:true,
         impl:[
             'memory[0x5F] = (SR |= 1<<7);',
-            'PC ← (STACK2)'
+            't1 ← (STACK2)',
+	    'this.history.push( (this.pc<<1).toString(16) + " RETI " + (t1<<1).toString(16) );',
+	    'PC ← t1'
         ]
     },
     {

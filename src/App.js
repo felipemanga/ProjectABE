@@ -123,8 +123,8 @@ class App {
     appModelInit( model, cb ){
 
 	let repoURL = [
-	    // "http://www.crait.net/arduboy/repo2.json",
-	    // "http://arduboy.ried.cl/repo.json",
+	    "http://www.crait.net/arduboy/repo2.json",
+	    "http://arduboy.ried.cl/repo.json",
 	    "repo.json"
 	];
 
