@@ -123,8 +123,8 @@ class App {
     appModelInit( model, cb ){
 
 	let repoURL = [
-	    // "http://www.crait.net/arduboy/repo2.json",
-	    // "http://arduboy.ried.cl/repo.json",
+	    "http://www.crait.net/arduboy/repo2.json",
+	    "http://arduboy.ried.cl/repo.json",
 	    "repo.json"
 	];
 
@@ -171,6 +171,9 @@ class App {
 			    !item.binaries[0].filename
 		    ))
 			item.binaries = [{filename:item.arduboy}]
+
+		    if( !item.sourceUrl && item.url )
+			item.sourceUrl = item.url;
 		    
 		    items.push(item);
 		});
