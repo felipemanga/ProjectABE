@@ -92,12 +92,22 @@ class App {
         this.store.getTextItem( path, (data)=>{
 
             if( data ){
-		model.load( JSON.parse(data) );
+		try{
+		    data=JSON.parse(data);
+		}catch(ex){
+		    data=null;
+		}
+	    }
+
+	    if( data ){
+		
+		model.load( data );
 		if( model.getItem("expires") > (new Date()).getTime() ){
                     model.dirty = false;
 		    cb.call();
 		    return;
 		}
+		
             }
 	    
             this.pool.call( name + "ModelInit", model, cb );
@@ -113,8 +123,8 @@ class App {
     appModelInit( model, cb ){
 
 	let repoURL = [
-	    "http://www.crait.net/arduboy/repo2.json",
-	    "http://arduboy.ried.cl/repo.json",
+	    // "http://www.crait.net/arduboy/repo2.json",
+	    // "http://arduboy.ried.cl/repo.json",
 	    "repo.json"
 	];
 
@@ -127,7 +137,7 @@ class App {
 	}
 
 	let items = [];
-	let pending = 3;
+	let pending = repoURL.length;
 
 	repoURL.forEach( url =>
 			 fetch( url )

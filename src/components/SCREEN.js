@@ -33,7 +33,12 @@ class SCREEN {
 	this.res.connect = DOM.element.getAttribute("pin-res");
 	this.dc.connect = DOM.element.getAttribute("pin-dc");
 
-
+	for( let i=0; i<255; ++i ){
+	    let cmd = "cmd" + i.toString(16).toUpperCase();
+	    if( this[cmd] ) continue;
+	    this[cmd] = (()=>{ console.log("SSD1306 stub command " + i.toString(16) ); }).bind(null, i);
+	}
+	
 	this.reset();
 	
     }
@@ -209,7 +214,7 @@ class SCREEN {
     cmdA0(){ this.segmentRemap = 0; }
     cmdA1(){ this.segmentRemap = 1; }
 
-    cmdA5(){  }; // multiplex something or other
+    cmdA5(){ console.log("multiplex something or other");  }; // multiplex something or other
 
     cmd0(){ this.colStart = this.colStart&0xF0 | 0; }
     cmd1(){ this.colStart = this.colStart&0xF0 | 0x1; }
@@ -256,22 +261,27 @@ class SCREEN {
 
     // Set COM Output Scan Direction
     cmdC8(){
+	console.log("set com output scan direction");
     }
 
   // Set COM Pins v
     cmdDA( v ){
+	console.log("set com pins " + v.toString(16) );
     }
 
   // Set Contrast v = 0xCF
     cmd81( v ){
+	console.log("set contrast " + v.toString(16) );
     }
 
   // Set Precharge = 0xF1
     cmdD9( v ){
+	console.log("set precharge " + v.toString(16) );
     }
 
   // Set VCom Detect
     cmdDB( v ){
+	console.log("set vcom detect");
     }
 
   // Entire Display ON
@@ -281,6 +291,7 @@ class SCREEN {
     
   // Set normal/inverse display
     cmdA6( v ){
+	console.log( "INVERSE: " + v.toString(16) );
     }
     
   // Display On
@@ -290,6 +301,7 @@ class SCREEN {
 
   // set display mode = horizontal addressing mode (0x00)
     cmd20( v ){
+	console.log( "set display mode " + v.toString(16) );
     }
 
   // set col address range
