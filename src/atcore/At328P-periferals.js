@@ -7,22 +7,10 @@ module.exports = {
                 this.core.pins.DDRB = value;
             },
             [0x05 + 0x20]:function( value, oldValue ){
-
+		
                 if( oldValue == value ) return;
-
-		/*
-                if( typeof document != "undefined" ){
-                    if( value & 0x20 ) document.body.style.backgroundColor = "black";
-                    else document.body.style.backgroundColor = "white";
-                }else if( typeof WorkerGlobalScope == "undefined" ){
-                    if( value & 0x20 ) console.log( "LED ON #", (this.core.pc<<1).toString(16) );
-                    else console.log( "LED OFF #", (this.core.pc<<1).toString(16) );
-                }
-		*/
-
                 this.core.pins.PORTB = value;
-
-                // console.log("worker@" + this.core.pc.toString(16) + "[tick " + (this.core.tick / this.core.clock * 1000).toFixed(3) + "]", " PORTB = ", value.toString(2));
+		
             }
         },
         read:{
@@ -71,7 +59,18 @@ module.exports = {
         }
     },
 
-    TC:require('./At328P-TC.js'),
+    TC:require('./Timer8.js')({
+	TIFR:  0x35,
+	TCCR_A:0x44,
+	TCCR_B:0x45,
+	OCR_A: 0x47,
+	OCR_B: 0x48,
+	TIMSK: 0x6E,
+	TCNT:  0x46,
+	intOV: "TIMER0O",
+	cmpA:  "TIMER0A",
+	cmpB:  "TIMER0B"
+    }),
 
     USART:require('./At328P-USART.js')
 

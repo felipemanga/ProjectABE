@@ -55,7 +55,31 @@ module.exports = {
     PORTE:port({ PINE:0x2C, DDRE:0x2D, PORTE:0x2E }),
     PORTF:port({ PINF:0x2F, DDRF:0x30, PORTF:0x31 }),
 
-    TC:require('./At328P-TC.js'),
+    TC0:require('./Timer8.js')({
+	TIFR:  0x35,
+	TCCR_A:0x44,
+	TCCR_B:0x45,
+	OCR_A: 0x47,
+	OCR_B: 0x48,
+	TIMSK: 0x6E,
+	TCNT:  0x46,
+	intOV: "TIMER0O"
+    }),
+
+    TC1:require('./Timer16.js')({
+	TIFR:  0x36,
+	TCCR_A:0x80,
+	TCCR_B:0x81,
+	TCCR_C:0x82,
+	OCR_AH: 0x89,
+	OCR_AL: 0x88,
+	OCR_BH: 0x8B,
+	OCR_BL: 0x8A,
+	TIMSK: 0x6F,
+	TCNTH: 0x85,
+	TCNTL: 0x85,
+	intOV: "TIMER1O"
+    }),
 
     USART:require('./At328P-USART.js'),
 

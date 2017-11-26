@@ -61,19 +61,47 @@ class Atcore {
 			break;
 		    }
 		    
-		    let op = "#"+(this.pc<<1).toString(16) + ": ";
-		    op += inst.name
-		    for( var k in inst.argv )
-			op += " " + k + "=#" + inst.argv[k].toString(16);
+		    let op = (this.pc<<1).toString(16).padStart(4, " ") + ": ";
+		    op += inst.name.toLowerCase();
+
+		    let keys = Object.keys(inst.argv);
+		    keys = keys.sort( (a,b)=>{
+			a = a.toLowerCase();
+			b = b.toLowerCase();
+			if( a > b ) return 1;
+			if( a < b ) return -1;
+			return 0;
+		    });
+		    
+		    let sep = " ";
+		    for( var ki=0; ki<keys.length; ++ki ){
+			let k = keys[ki];
+			let v;
+			if( inst.print && inst.print[k] )
+			    v = inst.print[k]( inst.argv[k], this );
+			else if( k == "r" || k == "d" )
+			    v = "r" + inst.argv[k];
+			else if( k == "A" || k == "k" || k == "K" )
+			    v = "0x" + inst.argv[k].toString(16);
+			else if( k == "b" || k == "s" )
+			    v = inst.argv[k];
+			else
+			    v = k + "=" + inst.argv[k].toString(16);
+			    
+			op += sep + v;
+			sep = ", ";
+		    }
+
+		    op += "\t\t; " + inst.decbytes.toString(2).padStart( 8*inst.bytes ).split(/(....)/).join(" ");
 		    
 		    out.push(op);
 		    this.pc += inst.bytes >> 1;
 			     
 		}
 		this.pc = opc;
-		return out;
+		return out.join("\n");
 	    },
-	    dump: () => {
+	    state: () => {
 		console.log(
                     'PC: #'+(this.pc<<1).toString(16)+
 			'\nSR: ' + this.memory[0x5F].toString(2)+
@@ -471,6 +499,8 @@ class Atcore {
                     mask = mask >>> 1;
                     h++;
                 }
+		if( desc.shift && desc.shift[k] ) value <<= desc.shift[k];
+		if( desc.add && desc.add[k] ) value += desc.add[k];
                 desc.argv[k] = value;
                 // log += k + ":" + value + "  "
             }
@@ -814,9 +844,10 @@ const AtCODEC = [
         name: 'ANDI',
         str: '0111KKKKddddKKKK',
         impl: [
-            'Rd+16 ← Rd+16 • k;',
+            'Rd ← Rd • k;',
             'SR@3 ← 0'
         ],
+	add:{ d:16 },
         flags:'zns'
     },
     {
@@ -875,7 +906,11 @@ const AtCODEC = [
             'if( !SR@0 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 2
+        cycles: 2,
+	sex:{k:25},
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRBS',
@@ -884,7 +919,10 @@ const AtCODEC = [
             'if( SR@s ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 2
+        cycles: 2,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRBC',
@@ -893,7 +931,10 @@ const AtCODEC = [
             'if( !SR@s ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 2
+        cycles: 2,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRCS',
@@ -902,7 +943,10 @@ const AtCODEC = [
             'if( SR@0 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 2
+        cycles: 2,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BREQ',
@@ -911,7 +955,10 @@ const AtCODEC = [
             'if( SR@1 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 3
+        cycles: 3,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRLT',
@@ -920,7 +967,10 @@ const AtCODEC = [
             'if( SR@4 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 3
+        cycles: 3,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRGE',
@@ -929,7 +979,10 @@ const AtCODEC = [
             'if( !SR@4 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 3
+        cycles: 3,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRNE',
@@ -947,7 +1000,10 @@ const AtCODEC = [
             'if( !SR@2 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 2
+        cycles: 2,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRMI',
@@ -956,7 +1012,10 @@ const AtCODEC = [
             'if( SR@2 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 2
+        cycles: 2,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRTC',
@@ -965,7 +1024,10 @@ const AtCODEC = [
             'if( !SR@6 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 3
+        cycles: 3,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BST',
@@ -985,7 +1047,10 @@ const AtCODEC = [
         impl: [
             '(STACK2) ← PC + 2',
             'PC ← k'
-            ]
+            ],
+	print:{
+	    k: (k, core) => "#" + (k<<1).toString(16)
+	}
     },
     {
 	name: 'CBI',
@@ -1006,12 +1071,13 @@ const AtCODEC = [
 	name: 'FMUL',
 	str:'000000110ddd1rrr',
 	impl:[
-	    't1 = Rd+16 * Rr+16 << 1',
+	    't1 = Rd * Rr << 1',
             'R0 = t1',
             'R1 = t1 >> 8',
             'SR1 = !t1|0',
             'SR0 = (t1>>15)&1'
-	]
+	],
+	add:{d:16, r:16}
     },
     {
         name: 'NOP',
@@ -1044,12 +1110,13 @@ const AtCODEC = [
         name: 'CPI',
         str:'0011KKKKddddKKKK',
         impl: [
-            'R = ((Rd+16 - k) >>> 0) & 0xFF;',
-            'SR@5 ← (Rd+16@3 ¯ • ((k>>3)&1)) | (((k>>3)&1) • R@3) | (R@3 • Rd+16@3 ¯)',
-            'SR@0 ← (Rd+16@7 ¯ • ((k>>7)&1)) | (((k>>7)&1) • R@7) | (R@7 • Rd+16@7 ¯)',
-            'SR@3 ← (Rd+16@7 • ((k>>7)&1^1) • R@7 ¯) + (Rd+16@7 ¯ • ((k>>7)&1) • R@7)'
+            'R = ((Rd - k) >>> 0) & 0xFF;',
+            'SR@5 ← (Rd@3 ¯ • ((k>>3)&1)) | (((k>>3)&1) • R@3) | (R@3 • Rd@3 ¯)',
+            'SR@0 ← (Rd@7 ¯ • ((k>>7)&1)) | (((k>>7)&1) • R@7) | (R@7 • Rd@7 ¯)',
+            'SR@3 ← (Rd@7 • ((k>>7)&1^1) • R@7 ¯) + (Rd@7 ¯ • ((k>>7)&1) • R@7)'
         ],
-        flags: 'zns'
+        flags: 'zns',
+	add:{d:16}
     },
     {
         name: 'CPC',
@@ -1143,12 +1210,16 @@ const AtCODEC = [
         str:'1001010kkkkk110kkkkkkkkkkkkkkkkk',
         impl: `PC ← k`,
         cycles: 3,
-        end:true
+        end:true,
+	print:{
+	    k: (k, core) => "0x" + (k<<1).toString(16)
+	}
     },
     {
         name: 'LDI',
         str:'1110KKKKddddKKKK',
-        impl:'Rd+16 ← k'
+        impl:'Rd ← k',
+	add:{d:16}
     },
     {
         name: 'LDS',
@@ -1288,34 +1359,44 @@ const AtCODEC = [
         name: 'MOVW',
         str:'00000001ddddrrrr',
         impl:[
-            'Rd<<1 = Rr<<1',
-            'Rd<<1+1 = Rr<<1+1'
-        ]
+            'Rd = Rr',
+            'Rd+1 = Rr+1'
+        ],
+	shift:{
+	    d:1,
+	    r:1
+	},
+	print:{
+	    r:r=>"r" + r + ":r" + (r+1),
+	    d:d=>"r" + d + ":r" + (d+1)
+	}
     },
     {
 	name: 'MULSU',
 	str:'000000110ddd0rrr',
 	impl:[
-	    'i8a[0] = Rd+16',
-	    't1 = i8a[0] * Rr+16',
+	    'i8a[0] = Rd',
+	    't1 = i8a[0] * Rr',
             'R0 = t1',
             'R1 = t1 >> 8',
             'SR1 = !t1|0',
             'SR0 = (t1>>15)&1'
-	]
+	],
+	add:{d:16, r:16}
     },
     {
 	name: 'MULS',
 	str:'00000010ddddrrrr',
 	impl:[
-	    'i8a[0] = Rd+16',
-	    'i8a[1] = Rr+16',
+	    'i8a[0] = Rd',
+	    'i8a[1] = Rr',
 	    't1 = i8a[0] * i8a[1]',
             'R0 = t1',
             'R1 = t1 >> 8',
             'SR1 = !t1|0',
             'SR0 = (t1>>15)&1'
-	]
+	],
+	add:{d:16, r:16}
     },
     {
         name: 'OR',
@@ -1330,9 +1411,10 @@ const AtCODEC = [
         name: 'ORI',
         str: '0110KKKKddddKKKK',
         impl: [
-            'Rd+16 ← Rd+16 | k;',
+            'Rd ← Rd | k;',
             'SR@3 ← 0'
         ],
+	add:{d:16},
         flags:'zns'
     },
     {
@@ -1448,14 +1530,15 @@ const AtCODEC = [
 	name: 'SFMUL',
 	str:'000000111ddd0rrr',
 	impl:[
-	    'i8a[0] = Rd+16',
-	    'i8a[1] = Rr+16',
+	    'i8a[0] = Rd',
+	    'i8a[1] = Rr',
 	    't1 = i8a[0] * i8a[1] << 1',
             'R0 = t1',
             'R1 = t1 >> 8',
             'SR1 = !t1|0',
             'SR0 = (t1>>15)&1'
-	]
+	],
+	add:{d:16, r:16}
     },
     {
         name: 'STS',
@@ -1571,23 +1654,25 @@ const AtCODEC = [
         name: 'SBCI',
         str: '0100KKKKddddKKKK',
         impl: [
-            'Rd+16 ← (Rd+16 - k - SR@0)&0xFF;',
-            'SR@5 ← (Rd+16@3 ¯ • ((k>>3)&1)) | (((k>>3)&1) • R@3) | (R@3 • Rd+16@3 ¯)',
-            'SR@0 ← (Rd+16@7 ¯ • ((k>>7)&1)) | (((k>>7)&1) • R@7) | (R@7 • Rd+16@7 ¯)',
-            'SR@3 ← (Rd+16@7 • ((k>>7)&1^1) • R@7 ¯) | (Rd+16@7 ¯ • ((k>>7)&1) • R@7)',
+            'Rd ← (Rd - k - SR@0)&0xFF;',
+            'SR@5 ← (Rd@3 ¯ • ((k>>3)&1)) | (((k>>3)&1) • R@3) | (R@3 • Rd@3 ¯)',
+            'SR@0 ← (Rd@7 ¯ • ((k>>7)&1)) | (((k>>7)&1) • R@7) | (R@7 • Rd@7 ¯)',
+            'SR@3 ← (Rd@7 • ((k>>7)&1^1) • R@7 ¯) | (Rd@7 ¯ • ((k>>7)&1) • R@7)',
             'SR@1 ← (!R) & SR@1'
         ],
+	add:{d:16},
         flags:'ns'
     },
     {
         name: 'SUBI',
         str: '0101KKKKddddKKKK',
         impl: [
-            'Rd+16 ← Rd+16 - k;',
-            'SR@5 ← (Rd+16@3 ¯ • ((k>>3)&1)) | (((k>>3)&1) • R@3) | (R@3 • Rd+16@3 ¯)',
-            'SR@0 ← (Rd+16@7 ¯ • ((k>>7)&1)) | (((k>>7)&1) • R@7) | (R@7 • Rd+16@7 ¯)',
-            'SR@3 ← (Rd+16@7 • ((k>>7)&1^1) • R@7 ¯) | (Rd+16@7 ¯ • ((k>>7)&1) • R@7)'
+            'Rd ← Rd - k;',
+            'SR@5 ← (Rd@3 ¯ • ((k>>3)&1)) | (((k>>3)&1) • R@3) | (R@3 • Rd@3 ¯)',
+            'SR@0 ← (Rd@7 ¯ • ((k>>7)&1)) | (((k>>7)&1) • R@7) | (R@7 • Rd@7 ¯)',
+            'SR@3 ← (Rd@7 • ((k>>7)&1^1) • R@7 ¯) | (Rd@7 ¯ • ((k>>7)&1) • R@7)'
         ],
+	add:{d:16},
         flags:'zns'
     },
     {
