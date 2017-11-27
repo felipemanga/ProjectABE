@@ -92,7 +92,7 @@ class Atcore {
 			sep = ", ";
 		    }
 
-		    op += "\t\t; " + inst.decbytes.toString(2).padStart( 8*inst.bytes ).split(/(....)/).join(" ");
+		    op += "\t\t; " + inst.decbytes.toString(2).padStart( 8*inst.bytes, "0" ).split(/(....)/).join(" ");
 		    
 		    out.push(op);
 		    this.pc += inst.bytes >> 1;
@@ -1473,9 +1473,7 @@ const AtCODEC = [
         end:true,
         impl:[
             'memory[0x5F] = (SR |= 1<<7);',
-            't1 ← (STACK2)',
-	    'this.history.push( (this.pc<<1).toString(16) + " RETI " + (t1<<1).toString(16) );',
-	    'PC ← t1'
+            'PC ← (STACK2)'
         ]
     },
     {
