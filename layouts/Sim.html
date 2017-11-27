@@ -14,4 +14,44 @@
   <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8" bind-key="KeyB,KeyS,KeyX,AltLeft,AltRight"></btn>
 
   <btn click-call="powerOff" id="PWR"></btn>
+  <btn click-toggle="#debuggerContainer@hidden=false" id="DBG"></btn>
+
+  <div id="debuggerContainer" class="verticalContainer" data-inject="Debugger">
+    
+    <div class="horizontalContainer tabs">
+
+      <button click-toggle="#debuggerContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
+      <button click-toggle="#debuggerContainer@data-tab=history" click-call="refreshHistory">Log</button>
+      <button click-toggle="#debuggerContainer@data-tab=state" click-call="refreshState">CPU</button>
+      
+    </div>
+    
+    <div class="verticalContainer" id="historyContainer">
+      <div class="horizontalContainer tabs">
+	<button click-call="refreshHistory">Refresh</button>
+	<label>
+	  <input type="checkbox" id="autoRefreshHistory" change-call="refreshHistory"> auto
+	</label>
+      </div>
+      <ul id="history"></ul>
+    </div>
+    
+    <div class="verticalContainer" id="daContainer">
+      <div class="horizontalContainer tabs">
+	<label>Address:<input id="daAddress" value="0000" change-call="refreshDa"></label>
+      </div>
+      <ul id="da"></ul>
+    </div>
+
+    <div class="verticalContainer" id="stateContainer">
+      <div class="horizontalContainer tabs">
+	<button click-call="refreshState">Refresh</button>
+	<label>
+	  <input type="checkbox" id="autoRefreshState" change-call="refreshState"> auto
+	</label>
+      </div>
+      <ul id="state"></ul>
+    </div>
+
+  </div>
 </div>
