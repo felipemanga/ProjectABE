@@ -100,11 +100,16 @@ class App {
 	    if( data ){
 		
 		model.load( data );
+		if( model.getItem("color") === undefined )
+			model.setItem("color", Math.random()*10 | 0);
+
 		if( model.getItem("expires") > (new Date()).getTime() ){
                     model.dirty = false;
 		    cb.call();
 		    return;
 		}
+
+		model.setItem("color", Math.random()*10 | 0);
 		
             }
 	    
