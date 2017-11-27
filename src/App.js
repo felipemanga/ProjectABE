@@ -30,12 +30,10 @@ class App {
 
 	document.body.addEventListener("keydown", evt => {
 	    this.pool.call("onPress" + evt.code);
-	    // console.log(evt);
 	});
 
 	document.body.addEventListener("keyup", evt => {
 	    this.pool.call("onRelease" + evt.code);
-	    // console.log(evt);
 	});
 
         this.controllers.forEach((controller) => {

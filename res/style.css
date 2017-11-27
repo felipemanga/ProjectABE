@@ -317,3 +317,62 @@ canvas:-webkit-full-screen {
     top: 0;
     left: 18%;
 }
+
+#DBG {
+    width: 15%;
+    height: 10%;
+    bottom: 0;
+    left: 42%;
+}
+
+#debuggerContainer {
+    background: #789;
+    border-top: solid 1px #DEF;
+    position: fixed;
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    max-height: 25%;
+    overflow: auto;
+    display: none;
+}
+
+#debuggerContainer[hidden=false] {
+    display: flex;
+}
+
+#historyContainer, #daContainer, #stateContainer {
+    display: none;
+}
+
+#debuggerContainer[data-tab=history] #historyContainer,
+#debuggerContainer[data-tab=da] #daContainer,
+#debuggerContainer[data-tab=state] #stateContainer
+{
+    display: flex;
+}
+
+#history, #da, #state {
+    position: relative;
+    overflow: auto;
+    background: #123;
+    list-style: none;
+    padding: 0;
+}
+
+#history li, #da li, #state li {
+    cursor: pointer;
+    padding: 0 25px;
+}
+
+#history li:hover, #da li:hover {
+    background: #789;    
+}
+
+#history li:after {
+    content: attr(data-text);
+}
+
+#debuggerContainer .tabs {
+    min-height: 20px;
+}

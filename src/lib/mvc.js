@@ -450,7 +450,7 @@ function prepareDOM( dom, controller, _model ){
             var ctrl = getInstanceOf( element.dataset.inject, childDom );
             dom[element.dataset.inject] = ctrl;
 
-            prepareDOM( childDom, ctrl );
+            prepareDOM( childDom, ctrl, _model );
 
             return false;
         }
@@ -458,9 +458,15 @@ function prepareDOM( dom, controller, _model ){
     });
 
     function bindToggle( element, event, cmd ){
+	
         element.addEventListener( event, ()=>{
+	    
             [...dom.element.querySelectorAll(cmd[1])].forEach( target => target.setAttribute(cmd[2], cmd[3]) );
+	    if( dom.element.matches(cmd[1]) )
+		dom.element.setAttribute( cmd[2], cmd[3] );
+	    
         });
+	
     }
 
 

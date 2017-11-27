@@ -101,17 +101,14 @@ class Atcore {
 		this.pc = opc;
 		return out.join("\n");
 	    },
-	    state: () => {
-		console.log(
-                    'PC: #'+(this.pc<<1).toString(16)+
-			'\nSR: ' + this.memory[0x5F].toString(2)+
-			'\nSP: #' + this.sp.toString(16) +
-			'\n' + 
-			Array.prototype.map.call( this.reg, 
-						  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16) + '\t' + v 
-						).join('\n') 
-		);
-            }
+	    state: () =>
+		'PC: #'+(this.pc<<1).toString(16)+
+		'\nSR: ' + this.memory[0x5F].toString(2).padStart(8, '0')+
+		'\nSP: #' + this.sp.toString(16) +
+		'\n' + 
+		Array.prototype.map.call( this.reg, 
+					  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16) + '\t' + v 
+					).join('\n') 
 	};
 
         /*
@@ -255,7 +252,7 @@ class Atcore {
 	    while( this.tick < this.endTick ){
 
 		this.history.push( (this.pc << 1).toString(16) );
-		while( this.history.length > 1000 ) this.history.shift();
+		while( this.history.length > 100 ) this.history.shift();
 		
 		if( !this.sleeping ){
 

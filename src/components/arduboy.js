@@ -92,6 +92,8 @@ class Arduboy {
     }
 
     initCore(){
+	this.root.setItem("ram.core", self.core);
+	
 	let core = this.core, oldValues = {}, DDRB, serial0Buffer = "", callbacks = {
             DDRB:{},
             DDRC:{},
