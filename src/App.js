@@ -14,6 +14,15 @@ class App {
         root: [Model, {scope:"root"}]
     }
 
+	iemap = {
+		"Up":"ArrowUp",
+		"Down":"ArrowDown",
+		"Left":"ArrowLeft",
+		"Right":"ArrowRight",
+		"Alt":"AltLeft",
+		"CONTROL":"ControlLeft"
+	}
+
     mappings = {
     }
     
@@ -30,22 +39,26 @@ class App {
     }
 
     remapKey( i, o ){
-	if( i && typeof i == "object" ){
-	    for( let k in i )
-		this.mappings[k] = i[k];
-	    return;
-	}
-	this.mappings[i] = o;
+		if( i && typeof i == "object" ){
+			for( let k in i )
+				this.mappings[k] = i[k];
+			return;
+		}
+		this.mappings[i] = o;
     }
 
     init(){
 
 	document.body.addEventListener("keydown", evt => {
-	    this.pool.call("onPress" + (this.mappings[ evt.code ] || evt.code) );
+		let code = evt.code;
+		if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
+	    this.pool.call("onPress" + (this.mappings[ code ] || code) );
 	});
 
 	document.body.addEventListener("keyup", evt => {
-	    this.pool.call("onRelease" + (this.mappings[ evt.code ] || evt.code) );
+		let code = evt.code;
+		if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
+	    this.pool.call("onRelease" + (this.mappings[ code ] || code) );
 	});
 
         this.controllers.forEach((controller) => {
