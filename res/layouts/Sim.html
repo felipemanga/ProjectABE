@@ -14,6 +14,7 @@
   <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8" bind-key="KeyB,KeyS,KeyX,AltLeft,AltRight"></btn>
 
   <btn click-call="powerOff" id="PWR"></btn>
+  <btn click-toggle="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
   <btn click-toggle="#debuggerContainer@hidden=false" id="DBG"></btn>
 
   <div id="debuggerContainer" class="verticalContainer" data-inject="Debugger">

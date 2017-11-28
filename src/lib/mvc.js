@@ -418,6 +418,7 @@ function prepareDOM( dom, controller, _model ){
             if( parts.length == 2 )
                 switch( parts[1] ){
                 case "call":
+		    
                     var target = readMethod( value, controller, dom );
                     if( target )
                         element.addEventListener( parts[0], target );
@@ -427,12 +428,16 @@ function prepareDOM( dom, controller, _model ){
                     break;
 
                 case "toggle":
-                    var vparts = value.match(/^([^@]+)\@([^=]+)\=(.+)$/);
+		    
+                    value.split(";").forEach( sp => {
+			var vparts = sp.match(/^([^@]+)\@([^=]+)\=(.+)$/);
                     
-                    if( vparts )
-                        bindToggle( element, parts[0], vparts );
-                    else
-                        console.warn("Could not parse toggle: " + value);
+			if( vparts )
+                            bindToggle( element, parts[0], vparts );
+			else
+                            console.warn("Could not parse toggle: " + value);
+		    });
+		    
                     break;
 
                 }

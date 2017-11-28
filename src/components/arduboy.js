@@ -81,6 +81,15 @@ class Arduboy {
 	this.powerOff();
     }
 
+    microcardMode(){
+	this.pool.call("remapKey", {
+	    ArrowUp:"ArrowRight",
+	    ArrowRight:"ArrowDown",
+	    ArrowDown:"ArrowLeft",
+	    ArrowLeft:"ArrowUp"
+	});
+    }
+
     setActiveView(){
 	this.pool.remove(this);
     }
@@ -343,14 +352,18 @@ class Arduboy {
 	
 	let maxHeight = this.parent.clientHeight;
 	let maxWidth  = this.parent.clientWidth;
+	let mode = this.DOM.element.className;
 
-	if( this.width == maxWidth && this.height == maxHeight )
+	if( this.width == maxWidth && this.height == maxHeight && this.mode == mode )
 	    return;
 	
 	this.width = maxWidth;
 	this.height = maxHeight;
+	this.mode = mode;
 
-	let ratio = 393 / 624;
+	let ratio = 91/57;
+	if( mode != "microcard" )
+	    ratio = 626 / 1004;
 
 	if( this.height * ratio > this.width ){
 	    this.DOM.element.style.width = this.width + "px";
@@ -359,6 +372,7 @@ class Arduboy {
 	    this.DOM.element.style.width = (this.height * ratio) + "px";
 	    this.DOM.element.style.height = this.height + "px";
 	}
+
 	
     }
     

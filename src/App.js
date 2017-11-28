@@ -13,6 +13,9 @@ class App {
         controllers:[IController,[]],
         root: [Model, {scope:"root"}]
     }
+
+    mappings = {
+    }
     
     constructor(){
 
@@ -26,14 +29,23 @@ class App {
 
     }
 
+    remapKey( i, o ){
+	if( i && typeof i == "object" ){
+	    for( let k in i )
+		this.mappings[k] = i[k];
+	    return;
+	}
+	this.mappings[i] = o;
+    }
+
     init(){
 
 	document.body.addEventListener("keydown", evt => {
-	    this.pool.call("onPress" + evt.code);
+	    this.pool.call("onPress" + (this.mappings[ evt.code ] || evt.code) );
 	});
 
 	document.body.addEventListener("keyup", evt => {
-	    this.pool.call("onRelease" + evt.code);
+	    this.pool.call("onRelease" + (this.mappings[ evt.code ] || evt.code) );
 	});
 
         this.controllers.forEach((controller) => {
