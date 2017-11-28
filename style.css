@@ -213,10 +213,10 @@ nav button {
 
 #simContainer canvas {
     position: absolute;
-    top: 11%;
-    height: 18%;
-    left: 20%;
-    width: 58%;
+    top: 8.7%;
+    height: 22.5%;
+    left: 18%;
+    width: 64.5%;
     image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
 }
@@ -266,18 +266,19 @@ canvas:-webkit-full-screen {
 #simContainer btn {
     position: absolute;
     cursor: pointer;
+    --background: rgba(255,255,255,0.5);
 }
 
 #simContainer #Up {
-  top: 48%;
-  left: 20%;
+  top: 49%;
+  left: 16%;
   width: 14%;
   height: 10%;
 }
 
 #simContainer #Left {
   top: 57%;
-  left: 6%;
+  left: 2%;
   width: 15%;
   height: 9%;
 }
@@ -285,44 +286,53 @@ canvas:-webkit-full-screen {
 
 #simContainer #Down {
   top: 65%;
-  left: 20%;
+  left: 16%;
   width: 14%;
   height: 10%;
 }
 
 #simContainer #Right {
-  top: 57%;
-  left: 33%;
+  top: 58%;
+  left: 28%;
   width: 15%;
   height: 9%;
 }
 
 #simContainer #A {
-    top: 62%;
-    left: 60%;
+    top: 59%;
+    left: 64%;
     width: 14%;
-    height: 8%;    
+    height: 8%;
+    border-radius: 50%;
 }
 
 #simContainer #B {
-    top: 57%;
-    left: 76%;
+    top: 54%;
+    left: 79%;
     width: 15%;
     height: 9%;
+    border-radius: 50%;
 }
 
 #simContainer #PWR {
     width: 14%;
     height: 7%;
     top: 0;
-    left: 18%;
+    left: 15%;
+}
+
+#MCM {
+    width: 6%;
+    height: 9%;
+    top: 25%;
+    left: 89%;
 }
 
 #DBG {
-    width: 15%;
+    width: 21%;
     height: 10%;
     bottom: 0;
-    left: 42%;
+    left: 41%;
 }
 
 #debuggerContainer {
@@ -375,4 +385,76 @@ canvas:-webkit-full-screen {
 
 #debuggerContainer .tabs {
     min-height: 20px;
+}
+
+#simContainer.microcard {}
+
+#simContainer.microcard img {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+}
+
+#simContainer.microcard #screen {
+    transform: rotate(-90deg);
+    top: 32%;
+    height: 34%;
+    width: 38%;
+    left: 30.5%;
+}
+
+#simContainer.microcard #Left {
+    top: 20%;
+    left: 16%;
+    width: 9%;
+    height: 14%;
+}
+
+#simContainer.microcard #Right {
+    top: 46%;
+    left: 16%;
+    width: 9%;
+    height: 14%;
+}
+
+#simContainer.microcard #Up {
+    top: 31%;
+    width: 10%;
+    left: 7%;
+    height: 16%;
+}
+
+#simContainer.microcard #Down {
+    top: 31%;
+    width: 10%;
+    left: 24%;
+    height: 16%;
+}
+
+#simContainer.microcard #A {
+    top: 38%;
+    width: 9%;
+    left: 72%;
+    height: 15%;
+}
+
+#simContainer.microcard #B {
+    top: 28%;
+    width: 9%;
+    left: 82%;
+    height: 15%;
+}
+
+#simContainer.microcard #PWR {
+    left: 18%;
+    height: 14%;
+}
+
+#simContainer.microcard #MCM {
+    display: none;
+}
+
+#simContainer.microcard #DBG {
+    width: 11%;
+    left: 44%;
+    height: 14%;
 }
