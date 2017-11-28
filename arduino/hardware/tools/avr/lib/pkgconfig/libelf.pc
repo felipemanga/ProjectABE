@@ -1,0 +1,12 @@
+prefix=/home/jenkins/workspace/avrdude/label/debian7-x86_64/objdir
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libelf
+Description: ELF object file access library
+Version: 0.8.13
+Requires:
+Conflicts:
+Libs: -L${libdir} -lelf
+Cflags: -I${includedir}/libelf -I${includedir}
