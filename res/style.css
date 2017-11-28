@@ -402,14 +402,14 @@ canvas:-webkit-full-screen {
     left: 30.5%;
 }
 
-#simContainer.microcard #Left {
+#simContainer.microcard #Right {
     top: 20%;
     left: 16%;
     width: 9%;
     height: 14%;
 }
 
-#simContainer.microcard #Right {
+#simContainer.microcard #Left {
     top: 46%;
     left: 16%;
     width: 9%;
