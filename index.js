@@ -47,27 +47,37 @@ function Builder(){
 	this.state = "BUILDING";
 	busy = true;
 
-	const child = execFile(
-	    __dirname + '/arduino/arduino',
-	    [
-		'--board', 'arduino:avr:leonardo',
-		'--pref', 'build.path=' + __dirname + '/_build',
-		'--verify', __dirname + '/builds/test.ino'
-	    ],
-	    (error, stdout, stderr) => {
-	    
-		busy = false;
-		this.state = "DONE";
+	try{
 
-		if( error ){
-		    this.result = "ERROR: " + error;
-		}else if( stderr ){
-		    this.result = stderr;
-		}else{
-		    this.result = require('path').basename(__dirname); // stdout;
-		}
+	    const child = execFile(
+		__dirname + '/arduino/arduino',
+		[
+		    '--board', 'arduino:avr:leonardo',
+		    '--pref', 'build.path=' + __dirname + '/builds/test/_build',
+		    '--verify', __dirname + '/builds/test/test.ino'
+		],
+		(error, stdout, stderr) => {
+		    
+		    busy = false;
+		    this.state = "DONE";
+
+		    if( error ){
+			this.result = "ERROR: " + error;
+		    }else if( stderr ){
+			this.result = stderr;
+		    }else{
+			this.result = require('path').basename(__dirname); // stdout;
+		    }
+		    
+		});
 	    
-	});
+	}catch( ex ){
+	    
+	    this.result = "ERROR: " + ex;
+	    this.state = "DONE";
+	    busy = false;
+	    
+	}
 	
     };
     
@@ -85,7 +95,7 @@ setInterval( _ => {
     
 }, 1000 );
 
-execSync("chmod +x -R arduino");
+execSync("chmod +x -R " + __dirname + "/arduino/");
 
 express()
     .use(express.static(path.join(__dirname, 'public')))
