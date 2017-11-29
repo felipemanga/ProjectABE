@@ -35,12 +35,12 @@ function Builder(){
 	if( builders[ this.id ] == this )
 	    delete builders[ this.id ];
 	try{
-	    rimraf( __dirname + '/builds/' + this.id );
+	    rimraf( __dirname + '/builds/' + this.id, _ => {});
 	}catch( err ){
 	    console.error(err);
 	}
 	try{
-	    rimraf( __dirname + '/public/builds/' + this.id);
+	    rimraf( __dirname + '/public/builds/' + this.id, _ => {});
 	}catch( err ){
 	    console.error(err);
 	}
