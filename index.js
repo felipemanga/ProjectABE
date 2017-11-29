@@ -96,8 +96,6 @@ setInterval( _ => {
 }, 1000 );
 
 execSync("chmod +x -R " + __dirname + "/arduino/");
-execSync("chmod 666 -R " + __dirname + "/public/builds");
-execSync("chmod 666 -R " + __dirname + "/builds");
 
 express()
     .use(express.static(path.join(__dirname, 'public')))
