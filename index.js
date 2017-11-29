@@ -120,7 +120,7 @@ function Builder(){
 		    return;
 		}
 
-		fs.statFile( (e, s) => {
+		fs.fstat( (e, s) => {
 		    if( e ){
 			if( retry[ file ] ){
 			    this.state = 'DONE';
