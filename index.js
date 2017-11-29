@@ -133,7 +133,7 @@ function Builder(){
 			}
 		    }
 		    return this.pop(files);
-		}
+		});
 
 	    });
 	    
