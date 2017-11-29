@@ -47,18 +47,25 @@ function Builder(){
 	this.state = "BUILDING";
 	busy = true;
 
-	const child = execFile('node', ['--version'], (error, stdout, stderr) => {
+	const child = execFile(
+	    __dirname + '/arduino/arduino',
+	    [
+		'--board', 'arduino:avr:leonardo:cpu=atmega32u4',
+		'--pref', 'build.path=' + __dirname + '/_build',
+		'--verify', 'builds/test.ino'
+	    ],
+	    (error, stdout, stderr) => {
 	    
-	    busy = false;
-	    this.state = "DONE";
+		busy = false;
+		this.state = "DONE";
 
-	    if( error ){
-		this.result = "ERROR: " + error;
-	    }else if( stderr ){
-		this.result = stderr;
-	    }else{
-		this.result = stdout;
-	    }
+		if( error ){
+		    this.result = "ERROR: " + error;
+		}else if( stderr ){
+		    this.result = stderr;
+		}else{
+		    this.result = require('path').basename(__dirname); // stdout;
+		}
 	    
 	});
 	
