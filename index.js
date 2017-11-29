@@ -18,8 +18,8 @@ function Builder(){
 
     builders[ this.id ] = this;
 
-    fs.mkdirSync(__dirname + 'builds/' + this.id);
-    fs.mkdirSync(__dirname + 'public/builds/' + this.id);
+    fs.mkdirSync(__dirname + '/builds/' + this.id);
+    fs.mkdirSync(__dirname + '/public/builds/' + this.id);
 
     let data = '';
     
