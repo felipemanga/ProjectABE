@@ -120,7 +120,7 @@ function Builder(){
 		    return;
 		}
 
-		fs.fstat( (e, s) => {
+		fs.access( fullPath, (e) => {
 		    if( e ){
 			if( retry[ file ] ){
 			    this.state = 'DONE';
