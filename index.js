@@ -1,4 +1,4 @@
-const { execFile } = require('child_process');
+const { execFile, execSync } = require('child_process');
 const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
@@ -52,7 +52,7 @@ function Builder(){
 	    [
 		'--board', 'arduino:avr:leonardo:cpu=atmega32u4',
 		'--pref', 'build.path=' + __dirname + '/_build',
-		'--verify', 'builds/test.ino'
+		'--verify', __dirname + '/builds/test.ino'
 	    ],
 	    (error, stdout, stderr) => {
 	    
@@ -85,6 +85,8 @@ setInterval( _ => {
     
 }, 1000 );
 
+execSync("chmod +x -R arduino");
+
 express()
     .use(express.static(path.join(__dirname, 'public')))
     .set('views', path.join(__dirname, 'views'))
@@ -116,16 +118,14 @@ express()
 		
 		res.writeHead(200, {'Content-Type': 'text/plain'});
 		res.end( "DESTROYED" );
+		return;
 		
 	    }else if( builder.state != "DONE" ){
 		
 		res.writeHead(200, {'Content-Type': 'text/plain'});
 		res.end( builder.state );
+		return;
 		
-	    }else{
-		res.writeHead(200, {'Content-Type': 'text/plain'});
-		res.end(  );
-		return;		
 	    }
 		
 	}else
