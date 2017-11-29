@@ -35,8 +35,16 @@ function Builder(){
     this.destroy = _ => {	
 	if( builders[ this.id ] == this )
 	    delete builders[ this.id ];
-	rimraf( __dirname + '/builds/' + this.id, );
-	rimraf( __dirname + '/public/builds/' + this.id);
+	try{
+	    rimraf( __dirname + '/builds/' + this.id );
+	}catch( err ){
+	    console.error(err);
+	}
+	try{
+	    rimraf( __dirname + '/public/builds/' + this.id);
+	}catch( err ){
+	    console.error(err);
+	}
     };
     
     this.resetDestroy = _ => {
