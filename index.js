@@ -1,9 +1,10 @@
 const { execFile, execSync } = require('child_process');
 const fs = require('fs');
 const rimraf = require('rimraf');
-const express = require('express')
-const path = require('path')
-const PORT = process.env.PORT || 5000
+const mkdirp = require('mkdirp');
+const express = require('express');
+const path = require('path');
+const PORT = process.env.PORT || 5000;
 
 let nbid = 1;
 let queue = [], builders = {}, busy = false;
@@ -30,6 +31,8 @@ function Builder(){
     fs.mkdirSync(__dirname + '/public/builds/' + this.id);
 
     let data = '';
+
+    let main = null;
     
     this.destroy = _ => {	
 	if( builders[ this.id ] == this )
@@ -96,29 +99,47 @@ function Builder(){
 	if( !files.length )
 	    return this.compile();
 	
-	let file = files.shift();
-	fs.writeFile( __dirname + '/builds/' + this.id + '/' + file.replace(/\//g, ''), data[file], e => {
-	    
-	    if( !e )
-		return this.pop(files);
-
-	    this.state = 'DONE';
-	    busy = false;
-	    this.result = "ERROR: " + file + " - " + e.toString();
-		
-	});
+	let file = files.shift().replace(/\\/g, '/'); // convert \ to /
+	let fullPath = __dirname + '/builds/' + this.id + '/' + file.replace(/\/\.+\//g, '/'); // remove shenanigans
 	
+	if( /.*?\/?main.ino$/i.test(fullPath) )
+	    main = fullPath;
+
+	let parts = fullPath.split('/');
+	parts.pop();
+	mkdirp( parts.join('/'), e => {
+
+	    fs.writeFile( fullPath, data[file], e => {
+		
+		if( !e )
+		    return this.pop(files);
+
+		this.state = 'DONE';
+		busy = false;
+		this.result = "ERROR: " + file + " - " + e.toString();
+		
+	    });
+	    
+	});
     };
 
     this.compile = _ => {
-	try{
+	
+	if( main === null ){
+	    this.state = "DONE";
+	    this.result = "ERROR: main.ino not found";
+	    busy = false;
+	    return;
+	}
+	
+	try{	    
 
 	    const child = execFile(
 		__dirname + '/arduino/arduino',
 		[
 		    '--board', 'arduino:avr:leonardo',
 		    '--pref', 'build.path=' + __dirname + '/public/builds/' + this.id + '/',
-		    '--verify', __dirname + '/builds/' + this.id + '/main.ino'
+		    '--verify', main
 		],
 		(error, stdout, stderr) => {
 		    
