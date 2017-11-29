@@ -128,7 +128,13 @@ class Model {
                 this.raise( prop, false );
             }
 
-            return children[prop].setItem( k, v, doRaise );
+	    var klength = k.length;
+	    var child = children[prop].setItem( k, v, doRaise );
+
+	    if( klength == 1)
+		this.raise( prop, doRaise );
+
+	    return child;
 
         }
 
@@ -210,7 +216,7 @@ class Model {
 
     removeItem(k, cb){
 
-        var parent = k.split(".");
+        var parent = (k && k.split && k.split(".")) || k;
         var key = parent.pop();
 
         var model = this.getModel( parent );
@@ -244,15 +250,19 @@ class Model {
 
     raise(k, doRaise){
 
+	if( pending.find( p => p.model == this && p.key == k ) )
+	    return;
+
         pending[pending.length++] = {model:this, key:k};
 
         if( !doRaise )
             return;
 
-        for( var i = 0, l=pending.length; i<l; ++i ){
-
-            k = pending[i].key;
-            var model = pending[i].model;
+        while( pending.length ){
+	    
+	    var p = pending.shift();
+            k = p.key;
+            var model = p.model;
 
             if( k ){
 
@@ -394,22 +404,6 @@ function prepareDOM( dom, controller, _model, viewdom ){
 
     dom.forEach((element) => {
 
-        if( element.dataset.src && !element.dataset.inject ){
-            switch( element.tagName ){
-            case 'UL':
-            case 'OL':
-	    case 'SELECT':
-                var template = element.cloneNode(true);
-                _model.attach( element.dataset.src, renderList.bind( element, template ) );
-                renderList( element, template, _model.getItem( element.dataset.src ) );
-                break;
-
-            default:
-                break;
-            }
-            return false;
-        }
-
         for( var i=0; i<element.attributes.length; ++i ){
             var key = element.attributes[i].name;
             var value = element.attributes[i].value;
@@ -446,6 +440,22 @@ function prepareDOM( dom, controller, _model, viewdom ){
             var memo = { __src:value, __hnd:0 };
             value.replace(/\{\{([^\}]+)\}\}/g, bindAttribute.bind( null, element.attributes[i], memo ));
             updateAttribute( element.attributes[i], memo );
+        }
+
+        if( element.dataset.src && !element.dataset.inject ){
+            switch( element.tagName ){
+            case 'UL':
+            case 'OL':
+	    case 'SELECT':
+                var template = element.cloneNode(true);
+                _model.attach( element.dataset.src, renderList.bind( null, element, template ) );
+                renderList( element, template, _model.getItem( element.dataset.src ) );
+                break;
+
+            default:
+                break;
+            }
+            return false;
         }
 
 	for( var i=0; i<element.childNodes.length; ++i ){

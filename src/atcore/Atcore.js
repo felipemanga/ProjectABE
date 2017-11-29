@@ -251,7 +251,6 @@ class Atcore {
 
 	    while( this.tick < this.endTick ){
 
-		this.history.push( (this.pc << 1).toString(16) );
 		while( this.history.length > 100 ) this.history.shift();
 		
 		if( !this.sleeping ){
@@ -315,7 +314,8 @@ class Atcore {
     }
 
     getBlock(){
-
+	
+	this.history.push( "#" + (this.pc << 1).toString(16).padStart( 4, "0" ) );
 
         var startPC = this.pc;
 
@@ -531,14 +531,16 @@ class Atcore {
 
         // console.log("INTERRUPT " + source);
 
-	this.history.push( (this.pc<<1).toString(16) + " INT " + source );
-
         let addr = this.interruptMap[source];
         var pc = this.pc;
         this.memory[this.sp--] = pc>>8;
         this.memory[this.sp--] = pc;
         this.memory[0x5F] &= ~(1<<7); // disable interrupts
         this.pc = addr;
+	
+	let log = "#" + (this.pc<<1).toString(16).padStart(4, "0") + " INT " + source;
+	if( this.history[this.history.length-1] != log )
+	    this.history.push( log );
 
     }
 
@@ -1746,44 +1748,7 @@ const AtFlags = {
     s: 'SR4 = SR@2 ⊕ SR@3',
     S: 'SR4 = SR@2 ⊕ SR@3',
     c: 'SR0 = (Rd@7 • Rr@7) | (Rr@7 • R@7 ¯) | (R@7 ¯ • Rd@7)',
-    C: 'SR0 = (R@15 ¯ • WRd@15)',
-
-    /*
-    Bit 7 – I: Global Interrupt Enable
-    The global interrupt enable bit must be set for the interrupts to be enabled. The individual interrupt enable control is then
-    performed in separate control registers. If the global interrupt enable register is cleared, none of the interrupts are enabled
-    independent of the individual interrupt enable settings. The I-bit is cleared by hardware after an interrupt has occurred, and is
-    set by the RETI instruction to enable subsequent interrupts. The I-bit can also be set and cleared by the application with the
-    SEI and CLI instructions, as described in the instruction set reference    
-    */
-    SEI(){
-        this.sreg |= 1 << 7;
-    },
-
-    CLI(){
-        this.sreg &= ~(1<<7);
-    },
-
-
-
-    /*
-    Bit 6 – T: Bit Copy Storage
-    The bit copy instructions BLD (bit LoaD) and BST (Bit STore) use the T-bit as source or destination for the operated bit. A bit
-    from a register in the register file can be copied into T by the BST instruction, and a bit in T can be copied into a bit in a
-    register in the register file by the BLD instruction.
-    */
-    BLD( REG, BIT ){
-        if( this.reg & (1<<6) ) this.reg[REG] |= 1<<BIT;
-        else this.reg[REG] &= ~(1<<BIT);
-    },
-
-    BST( REG, BIT ){
-        let v = (this.reg[REG] >> BIT) & 1;
-        if( v ) this.sreg |= 1 << 6;
-        else this.sreg &= ~(1<<6);
-    }
-
-
+    C: 'SR0 = (R@15 ¯ • WRd@15)'
     
 };
 

@@ -52,9 +52,13 @@ class Env extends IController {
     play( opt ){
 	
 	let url = opt.element.dataset.url;
-	
 	this.model.removeItem("app.AT32u4");
-	
+	let source = this.model.getItem("app.source", null);
+	if( source ){
+	    for( let k in source )
+		this.model.removeItem(["app", "source", k]);
+	}
+		
 	if( /\.arduboy$/i.test(url) ){
 	    
 	    let zip = null;
@@ -76,6 +80,59 @@ class Env extends IController {
 	    this.pool.call("runSim");
 	}
 
+
+	let ghmatch = url.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+\/).*/);
+	if( ghmatch ){
+
+	    fetch( this.model.getItem("app.proxy") + ghmatch[1] + "archive/master.zip" )
+		.then( rsp => rsp.arrayBuffer() )
+		.then( buff => JSZip.loadAsync( buff ) )
+		.then( z => {
+		    
+		    for( let k in z.files ){
+			if( /.*\.(h|hpp|c|cpp|ino)$/i.test(k) ){
+			    addFile.call( this, k );
+			}
+			console.log(k);
+		    }
+
+		    function addFile( name ){
+			z.file(name)
+			    .async("text")
+			    .then( txt =>{
+				
+				if( txt.charCodeAt(0) == 0xFEFF )
+				    txt = txt.substr(1);
+				
+				this.model.setItem([
+				    "app",
+				    "source",
+				    name.replace(/\\/g, "/")
+				],txt );
+				
+			    })
+			    .catch( err => {
+				console.error( err.toString() );
+				this.model.setItem([
+				    "app",
+				    "source",
+				    name
+				], "// ERROR LOADING: " + err)
+			    });
+		    }
+		    
+		})
+		.catch(err => {
+		    console.error( err.toString() );
+		    this.model.setItem(
+			["app","source","main.ino"],
+			"// Could not load source: " + err
+		    );
+		});
+
+	}
+	
+	
 	function fixJSON( str ){
 	    
 	    if( str.charCodeAt(0) == 0xFEFF )

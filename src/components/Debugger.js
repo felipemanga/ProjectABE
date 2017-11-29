@@ -48,6 +48,14 @@ void loop() {
 	if( !this.editor ){
 	    this.code = ace.edit( this.DOM.ace );
 	    this.code.$blockScrolling = Infinity;
+	    this.code.on( "change", _ => this.commit );
+	    this.code.setTheme("ace/theme/monokai");
+	    this.code.getSession().setMode("ace/mode/c_cpp");
+            this.code.commands.addCommand({
+                name: "replace",
+                bindKey: {win: "Ctrl-Enter", mac: "Command-Option-Enter"},
+                exec: () => this.compile()
+            });	    
 	}
 
 	this.changeSourceFile();
@@ -58,7 +66,13 @@ void loop() {
 	this.code.setValue( this.model.getItem("app.source", {})[ this.DOM.currentFile.value ] || "" );
     }
 
+    commit(){
+	this.model.getItem("app.source", {})[ this.DOM.currentFile.value ] = this.code.getValue();
+    }
+
     compile(){
+	this.commit();
+	
 	this.DOM.compile.style.display = "none";
 	
 	fetch( compiler + "build", {
@@ -101,6 +115,14 @@ void loop() {
 		    this.model.setItem("app.AT32u4.url", compiler + data.path );
 		    core.history.push( data.stdout );
 		    this.pool.call("loadFlash");
+		    this.DOM.compile.style.display = "initial";
+		    
+		}else if( /^ERROR[\s\S]*/.test(txt) ){
+
+		    txt.split("\n").forEach( p => core.history.push(p) );
+
+		    this.DOM.element.setAttribute("data-tab", "history");
+		    this.refreshHistory();
 		    this.DOM.compile.style.display = "initial";
 		    
 		}else
@@ -167,9 +189,10 @@ void loop() {
 		    this.DOM.history,
 		    {
 			onclick: evt => {
-			    if( /^[0-9a-f]{4,}$/.test(evt.target.dataset.text) ){
+			    let m = evt.target.dataset.text.match( /^#([0-9a-f]{4,})\s?.*$/ );
+			    if( m ){
 				this.DOM.element.setAttribute("data-tab", "da");
-				this.DOM.daAddress.value = evt.target.dataset.text;
+				this.DOM.daAddress.value = m[1];
 				this.refreshDa();
 			    }
 			}

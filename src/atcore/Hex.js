@@ -4,16 +4,25 @@ const Hex = {
 
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = () => {
+	    
             if(  xhr.readyState === 4 ){
-                try{
-                    Hex.parse( xhr.responseText, buffer );
-                }catch(ex){
-                    cb(false);
-                    return;
-                }
-                cb( true );
+		
+		if( xhr.status == 200 || xhr.status == 0 ){
+		    
+                    try{
+			Hex.parse( xhr.responseText, buffer );
+                    }catch(ex){
+			cb(false);
+			return;
+                    }
+                    cb( true );
+		    
+		}else cb( false );
+		
             }
+	    
         };
+	
         xhr.open("GET", url, true);
         xhr.send();
         

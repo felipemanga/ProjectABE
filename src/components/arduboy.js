@@ -67,9 +67,10 @@ class Arduboy {
 	if( url ){
 
 	    this.core = Atcore.ATmega32u4();
-	    Hex.parseURL( url, this.core.flash, success => {
-		if( success ) this.initCore();
-	    });
+	    if( !/.*\/?null$/.test(url) )
+		Hex.parseURL( url, this.core.flash, success => {
+		    if( success ) this.initCore();
+		});
 	    return;
 	    
 	}
@@ -367,12 +368,17 @@ class Arduboy {
 	if( this.dead ) return;
 	
 	requestAnimationFrame( this.update );
-	if( this.paused ) return;
+	if( !this.paused ){
+	    
+	    this.core.update();
 	
-	this.core.update();
+	    for( let i=0, l=this.tick.length; i<l; ++i )
+		this.tick[i].tick();
+	    
+	}
+	
 	this.resize();
-	for( let i=0, l=this.tick.length; i<l; ++i )
-	    this.tick[i].tick();
+	
     }
 
     resize(){
