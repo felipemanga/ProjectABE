@@ -117,25 +117,6 @@ h2 {
     content: attr(data-filename);
 }
 
-#ideContainer {
-    position: relative;
-    flex-grow: 1;
-}
-
-#ideContainer>* {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    display: none;
-}
-
-#ideContainer.js .js,
-#ideContainer.empty .empty,
-#ideContainer.itch .itch
-{
-    display: block;
-}
-
 #consoleContainer {
     flex-grow: 0;
     /* max-height: 300px; */
@@ -186,6 +167,33 @@ nav button {
     font-family: inherit;
     text-transform: uppercase;
     font-size: inherit;
+}
+
+#simBox{
+    position: relative;
+    flex-grow: 1;
+}
+
+#fb {
+    display: flex;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    flex-direction: column-reverse;
+}
+#ideContainer {
+    max-height: 50%;
+}
+@media (min-aspect-ratio: 1/1) {
+    #fb{
+	flex-direction: row;
+    }
+    #ideContainer {
+	max-height: initial;
+    }
 }
 
 #simContainer {
@@ -335,31 +343,40 @@ canvas:-webkit-full-screen {
     left: 41%;
 }
 
-#debuggerContainer {
+#ideContainer {
+    position: relative;
+    flex-grow: 1;
     background: #789;
     border-top: solid 1px #DEF;
-    position: fixed;
-    left: 0;
-    width: 100%;
-    bottom: 0;
-    max-height: 25%;
+    /* position: fixed; */
+    /* left: 0; */
+    /* width: 100%; */
+    /* bottom: 0; */
+    /* max-height: 25%; */
     overflow: auto;
     display: none;
 }
 
-#debuggerContainer[hidden=false] {
+#ideContainer[hidden=false] {
     display: flex;
 }
 
-#historyContainer, #daContainer, #stateContainer {
+#sourceContainer, #daContainer, #stateContainer, #historyContainer {
     display: none;
+    height: 0;
+    flex-grow: 0;
+    flex-basis: 0;
 }
 
-#debuggerContainer[data-tab=history] #historyContainer,
-#debuggerContainer[data-tab=da] #daContainer,
-#debuggerContainer[data-tab=state] #stateContainer
+#ideContainer[data-tab=history] #historyContainer,
+#ideContainer[data-tab=da] #daContainer,
+#ideContainer[data-tab=source] #sourceContainer,
+#ideContainer[data-tab=state] #stateContainer
 {
     display: flex;
+    height: auto;
+    flex-grow: 1;
+    flex-basis: auto;
 }
 
 #history, #da, #state {
@@ -383,8 +400,9 @@ canvas:-webkit-full-screen {
     content: attr(data-text);
 }
 
-#debuggerContainer .tabs {
+#ideContainer .tabs {
     min-height: 20px;
+    max-height: 20px;
 }
 
 #simContainer.microcard {}
@@ -457,4 +475,16 @@ canvas:-webkit-full-screen {
     width: 11%;
     left: 44%;
     height: 14%;
+}
+
+#ideContainer #ace {
+    flex-grow: 1;
+}
+
+#compile {
+    background: none;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-left: auto;
 }

@@ -109,6 +109,8 @@ class SCREEN {
 	this.pageEnd = 7;
 	this.col = 0;
 	this.page = 0;
+	this.fb.data.fill(0);
+	this.dirty = true;
     }
 
     state = function( data ){
@@ -150,6 +152,9 @@ class SCREEN {
 
     sda = {
 	connect:null,
+	init:function(){
+	    this.reset();
+	},
 	MOSI:function( data ){
 
 	    if( this.mode == 0 ){ // data is a command

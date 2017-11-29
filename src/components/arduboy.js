@@ -29,6 +29,16 @@ class Arduboy {
 
 	this.update = this._update.bind( this );
 	this.resize();
+	this.loadFlash();
+
+	setTimeout( _ => this._update(), 5 );
+	
+    }
+
+    loadFlash(){
+
+	this.core = null;
+	this.paused = true;
 	
 	let url = this.root.getItem("app.AT328P.url", null);
 	if( url ){
@@ -75,6 +85,7 @@ class Arduboy {
 	}
 
 	console.error("Nothing to load");
+	
     }
 
     onPressEscape(){
@@ -96,11 +107,22 @@ class Arduboy {
 
     powerOff(){
 	this.pool.remove(this);
+	console.error = this._error;
 	this.dead = true;
 	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }
 
     initCore(){
+
+	window.onerror = evt => {
+	    self.core.history.push( "ERROR: " + evt.toString() );
+	};
+	this._error = console.error;
+	console.error = (...args) => {
+	    self.core.history.push( "ERROR: " + args.join(" ") );
+	    this._error.apply( console, args );
+	};
+	
 	this.root.setItem("ram.core", self.core);
 	
 	let core = this.core, oldValues = {}, DDRB, serial0Buffer = "", callbacks = {
@@ -231,9 +253,9 @@ class Arduboy {
 
 	});
 
-	setTimeout( _ => {
+	setTimeout( _ =>{
 	    this.setupPeriferals();
-	    this._update();
+	    this.paused = false;
 	}, 5);
 
 	function setDDR( name, cur ){   
@@ -278,6 +300,7 @@ class Arduboy {
     setupPeriferals(){
 	let pins = this.core.pins;
 	let map = { cpu:this.core.pins };
+	this.tick = [];
 	
 	this.periferals.forEach( ctrl => {
 
@@ -288,6 +311,8 @@ class Arduboy {
 
 		let v = ctrl[k];
 		if( !v || !v.connect ) continue;
+
+		v = ctrl[k] = Object.assign({}, v );
 
 		let target = v.connect;
 		if(typeof target == "number" )
@@ -342,6 +367,8 @@ class Arduboy {
 	if( this.dead ) return;
 	
 	requestAnimationFrame( this.update );
+	if( this.paused ) return;
+	
 	this.core.update();
 	this.resize();
 	for( let i=0, l=this.tick.length; i<l; ++i )
@@ -350,9 +377,13 @@ class Arduboy {
 
     resize(){
 	
-	let maxHeight = this.parent.clientHeight;
-	let maxWidth  = this.parent.clientWidth;
-	let mode = this.DOM.element.className;
+	let el = this.DOM.element;
+	el.parentElement.style.maxHeight = "";
+	el.parentElement.style.maxWidth = "";
+	
+	let maxHeight = el.parentElement.clientHeight;
+	let maxWidth  = el.parentElement.clientWidth;
+	let mode = el.className;
 
 	if( this.width == maxWidth && this.height == maxHeight && this.mode == mode )
 	    return;
@@ -365,12 +396,19 @@ class Arduboy {
 	if( mode != "microcard" )
 	    ratio = 626 / 1004;
 
-	if( this.height * ratio > this.width ){
-	    this.DOM.element.style.width = this.width + "px";
-	    this.DOM.element.style.height = (this.width / ratio) + "px";
+
+
+	if( this.height * ratio >= this.width ){
+	    
+	    el.parentElement.style.maxWidth = el.style.width = this.width + "px";
+	    el.style.height = (this.width / ratio) + "px";
+
+	    
 	}else{
-	    this.DOM.element.style.width = (this.height * ratio) + "px";
-	    this.DOM.element.style.height = this.height + "px";
+	    
+	    el.style.width = (this.height * ratio) + "px";
+	    el.parentElement.style.maxHeight = el.style.height = this.height + "px";
+	    
 	}
 
 	

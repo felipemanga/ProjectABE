@@ -385,12 +385,12 @@ class IView {
         var dom = new DOM( this.parentElement );
         this.dom = dom;
 
-        prepareDOM( dom, this.controller, this.model );
+        prepareDOM( dom, this.controller, this.model, dom );
     }
 
 }
 
-function prepareDOM( dom, controller, _model ){
+function prepareDOM( dom, controller, _model, viewdom ){
 
     dom.forEach((element) => {
 
@@ -398,6 +398,7 @@ function prepareDOM( dom, controller, _model ){
             switch( element.tagName ){
             case 'UL':
             case 'OL':
+	    case 'SELECT':
                 var template = element.cloneNode(true);
                 _model.attach( element.dataset.src, renderList.bind( element, template ) );
                 renderList( element, template, _model.getItem( element.dataset.src ) );
@@ -447,6 +448,16 @@ function prepareDOM( dom, controller, _model ){
             updateAttribute( element.attributes[i], memo );
         }
 
+	for( var i=0; i<element.childNodes.length; ++i ){
+	    
+	    var childNode = element.childNodes[i];
+	    if( childNode.nodeType != XMLDocument.TEXT_NODE ) continue;
+            var memo = { __src:childNode.nodeValue, __hnd:0 };
+	    childNode.nodeValue.replace(/\{\{([^\}]+)\}\}/g, bindNodeValue.bind( null, childNode, memo ));
+            updateNodeValue( childNode, memo );
+	    
+	}
+
         if( element.dataset.inject && element != dom.element ){
 
             let childDom = new DOM(element);
@@ -455,7 +466,7 @@ function prepareDOM( dom, controller, _model ){
             var ctrl = getInstanceOf( element.dataset.inject, childDom );
             dom[element.dataset.inject] = ctrl;
 
-            prepareDOM( childDom, ctrl, _model );
+            prepareDOM( childDom, ctrl, _model, viewdom );
 
             return false;
         }
@@ -466,9 +477,7 @@ function prepareDOM( dom, controller, _model ){
 	
         element.addEventListener( event, ()=>{
 	    
-            [...dom.element.querySelectorAll(cmd[1])].forEach( target => target.setAttribute(cmd[2], cmd[3]) );
-	    if( dom.element.matches(cmd[1]) )
-		dom.element.setAttribute( cmd[2], cmd[3] );
+            [...viewdom.element.querySelectorAll(cmd[1])].forEach( target => target.setAttribute(cmd[2], cmd[3]) );
 	    
         });
 	
@@ -491,7 +500,7 @@ function prepareDOM( dom, controller, _model ){
             [...template.cloneNode(true).children].forEach(child => {
 
                 element.appendChild( child );
-                prepareDOM( new DOM(child), controller, childModel );
+                prepareDOM( new DOM(child), controller, childModel, viewdom );
 
             });
 
@@ -525,6 +534,33 @@ function prepareDOM( dom, controller, _model ){
 	);
     }
 
+    function bindNodeValue( attr, memo, match, inner ){
+
+        if( inner in memo ) return "";
+
+        _model.attach( inner, (value)=>{
+            memo[inner] = value;
+            if( memo.__hnd ) return;
+            memo.__hnd = setTimeout( updateNodeValue.bind( null, attr, memo ), 1 );
+        });
+
+        memo[inner] = _model.getItem(inner);
+
+        return "";
+
+    }
+
+    function updateNodeValue( attr, memo ){
+        memo.__hnd = 0;
+        attr.nodeValue = memo.__src.replace(
+		/\{\{([^\}]+)\}\}/g,
+	    (match, path) => typeof memo[path] == "object" ?
+		JSON.stringify(memo[path])
+		: memo[path]
+	);
+    }
+
+    
 }
 
 var defaultModel = null;

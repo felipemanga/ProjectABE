@@ -341,8 +341,8 @@ class Atcore {
             var inst = this.identify();
             if( !inst ){
                 // inst = nop;
-                console.warn( this.error );
-                (function(){debugger;})();
+		this.history.push( this.error );
+		this.pc++;
                 return;
             }
 
@@ -418,6 +418,8 @@ class Atcore {
 
             func.call( this );
         }catch(ex){
+
+	    this.history.push( "Error on 0x" + startPC + ": " + ex.toString() );
             
             setTimeout(()=>{
                 debugger;
@@ -1504,7 +1506,10 @@ const AtCODEC = [
         name: 'RJMP',
         str:'1100kkkkkkkkkkkk',
         impl: `PC ← PC + (k << 20 >> 20) + 1`,
-        end:true
+        end:true,
+	print:{
+	    k:(k,core)=> "#" + ((core.pc + (k << 20 >> 20) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'SEC',

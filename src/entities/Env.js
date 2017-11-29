@@ -12,12 +12,11 @@ class Env extends IController {
     }
 
     exitSplash(){
-	/* */
-        this._show();
-	/*/
-	this.model.setItem("app.AT32u4.url", "HelloWorld32u4.hex");
-	this.pool.call("runSim");
-	/* */	
+	let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
+	if( match )
+	    this.play( {element:{dataset:{url:match[1]}}} );
+	else
+            this._show();
     }
 
     exitSim(){
