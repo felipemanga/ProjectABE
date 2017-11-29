@@ -167,6 +167,10 @@ express()
 	res.header('Access-Control-Allow-Origin', '*');
 	next();
     })
+    .post('/*',function(req,res,next){
+	res.header('Access-Control-Allow-Origin', '*');
+	next();
+    })
     .use(express.static(path.join(__dirname, 'public')))
     .set('views', path.join(__dirname, 'views'))
     .set('view engine', 'ejs')
