@@ -8,6 +8,15 @@ const PORT = process.env.PORT || 5000
 let nbid = 1;
 let queue = [], builders = {}, busy = false;
 
+function sendHeaders( res ){
+
+    res.writeHead(200, {
+	'Content-Type': 'text/plain'
+	'Access-Control-Allow-Origin': '*'
+    });
+    
+}
+
 function Builder(){
 
     this.id = nbid++;
@@ -113,7 +122,7 @@ function Builder(){
 			this.result = "ERROR: " + error + " " + stderr;
 		    }else{
 			this.result = JSON.stringify({
-			    path:'/builds/' + this.id + '/main.ino',
+			    path:'/builds/' + this.id + '/main.ino.hex',
 			    stdout
 			});
 		    }
@@ -155,7 +164,7 @@ express()
 
 	let builder = builders[ req.query.id ];
 	
-	res.writeHead(200, {'Content-Type': 'text/plain'});
+	sendHeaders( res );
 	if( builder ){
 	    
 	    if( builder.state !== "DONE" )
@@ -175,13 +184,13 @@ express()
 	    builder = builders[req.query.id];
 	    if( !builder ){
 		
-		res.writeHead(200, {'Content-Type': 'text/plain'});
+		sendHeaders( res );
 		res.end( "DESTROYED" );
 		return;
 		
 	    }else if( builder.state != "DONE" ){
 		
-		res.writeHead(200, {'Content-Type': 'text/plain'});
+		sendHeaders( res );
 		res.end( builder.state );
 		return;
 		
@@ -198,7 +207,7 @@ express()
 	req.on('end', function () {
 	    
 	    builder.start();
-	    res.writeHead(200, {'Content-Type': 'text/plain'});
+	    sendHeaders( res );
 	    res.end( builder.id.toString() );
 	    
 	});
