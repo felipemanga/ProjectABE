@@ -1,4 +1,6 @@
 const { execFile, execSync } = require('child_process');
+const fs = require('fs');
+const rimraf = requrire('rimraf');
 const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
@@ -15,10 +17,17 @@ function Builder(){
     this.state = "INIT";
 
     builders[ this.id ] = this;
+
+    fs.mkdirSync(__dirname + 'builds/' + this.id);
+    fs.mkdirSync(__dirname + 'public/builds/' + this.id);
+
+    let data = '';
     
     this.destroy = _ => {	
 	if( builders[ this.id ] == this )
 	    delete builders[ this.id ];
+	rimraf( __dirname + '/builds/' + this.id, );
+	rimraf( __dirname + '/public/builds/' + this.id);
     };
     
     this.resetDestroy = _ => {
@@ -27,16 +36,31 @@ function Builder(){
     
     this.resetDestroy();
     
-    this.addData = data => {
+    this.addData = _data => {
+	data += _data;
+	if( data.length > 3 * 1024 * 1024 ){
+	    data = '';
+	    return false;
+	}
 	this.resetDestroy();
-	console.log("DATA:{" + data + "}");
 	return true;
     };
 
     this.start = _ => {
+	
+	try{
+	    data = JSON.parse(data);
+	}catch( ex ){
+	    data = '';
+	    this.result = ex.toString();
+	    this.state = "DONE";
+	    return;
+	}
+	
 	this.resetDestroy();
 	queue.push( this );
 	this.state = "QUEUED";
+	
     };
 
     this.run = _ => {
@@ -47,14 +71,38 @@ function Builder(){
 	this.state = "BUILDING";
 	busy = true;
 
+	let files = Object.keys( data );
+	this.pop( files );
+    };
+
+    this.pop = files => {
+	
+	if( !files.length )
+	    return this.compile();
+	
+	let file = files.shift();
+	fs.writeFile( __dirname + '/builds/' + this.id + '/' + file.replace(/\//g, ''), data[file], e => {
+	    
+	    if( !e )
+		return this.pop(files);
+
+	    this.state = 'DONE';
+	    busy = false;
+	    this.result = "ERROR: " + file + " - " + e.toString();
+		
+	});
+	
+    };
+
+    this.compile = _ => {
 	try{
 
 	    const child = execFile(
 		__dirname + '/arduino/arduino',
 		[
 		    '--board', 'arduino:avr:leonardo',
-		    '--pref', 'build.path=' + __dirname + '/public/builds/',
-		    '--verify', __dirname + '/builds/test/test.ino'
+		    '--pref', 'build.path=' + __dirname + '/public/builds/' + this.id + '/',
+		    '--verify', __dirname + '/builds/' + this.id + '/main.ino'
 		],
 		(error, stdout, stderr) => {
 		    
@@ -63,10 +111,11 @@ function Builder(){
 
 		    if( error ){
 			this.result = "ERROR: " + error + " " + stderr;
-		    }else if( stderr ){
-			this.result = "ERROR: " + stderr + "\n" + stdout;
 		    }else{
-			this.result = require('path').basename(__dirname); // stdout;
+			this.result = JSON.stringify({
+			    path:'/builds/' + this.id + '/main.ino',
+			    stdout
+			});
 		    }
 		    
 		});
