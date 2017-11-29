@@ -11,8 +11,7 @@ let queue = [], builders = {}, busy = false;
 function sendHeaders( res ){
 
     res.writeHead(200, {
-	'Content-Type': 'text/plain',
-	'Access-Control-Allow-Origin': '*'
+	'Content-Type': 'text/plain'
     });
     
 }
@@ -164,6 +163,10 @@ setInterval( _ => {
 execSync("chmod +x -R " + __dirname + "/arduino/");
 
 express()
+    .get('/*',function(req,res,next){
+	res.header('Access-Control-Allow-Origin', '*');
+	next();
+    });
     .use(express.static(path.join(__dirname, 'public')))
     .set('views', path.join(__dirname, 'views'))
     .set('view engine', 'ejs')
