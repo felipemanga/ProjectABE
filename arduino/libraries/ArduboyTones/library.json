@@ -1,0 +1,14 @@
+{
+    "name": "ArduboyTones",
+    "keywords": "arduboy, game, sound, music",
+    "description": "A library for playing a sequence of tones, intended for use with the Arduboy game system",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/MLXXXp/ArduboyTones.git"
+    },
+    "version": "1.0.3",
+    "exclude": "extras",
+    "frameworks": "arduino",
+    "platforms": "atmelavr"
+}

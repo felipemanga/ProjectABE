@@ -1,0 +1,30 @@
+######################################
+# Syntax Coloring Map For ArduboyTones
+######################################
+
+######################################
+# Datatypes (KEYWORD1)
+######################################
+
+ArduboyTones	KEYWORD1
+
+######################################
+# Methods and Functions (KEYWORD2)
+######################################
+
+playing	KEYWORD2
+tone	KEYWORD2
+tones	KEYWORD2
+tonesInRAM	KEYWORD2
+volumeMode	KEYWORD2
+
+######################################
+# Constants (LITERAL1)
+######################################
+
+TONES_END	LITERAL1
+TONES_REPEAT	LITERAL1
+TONE_HIGH_VOLUME	LITERAL1
+VOLUME_ALWAYS_HIGH	LITERAL1
+VOLUME_ALWAYS_NORMAL	LITERAL1
+VOLUME_IN_TONE	LITERAL1

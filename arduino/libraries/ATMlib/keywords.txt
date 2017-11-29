@@ -1,0 +1,20 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+ATMsynth	KEYWORD1
+Oscillator	KEYWORD1
+Melody	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+play	KEYWORD2
+playPause	KEYWORD2
+stop	KEYWORD2
+toggleMute	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+osc	KEYWORD2
+pcm	KEYWORD2

@@ -1,0 +1,37 @@
+######################################
+# Syntax Coloring Map For ArdBitmap
+######################################
+
+######################################
+# Datatypes (KEYWORD1)
+######################################
+
+ArdBitmap	KEYWORD1
+
+######################################
+# Methods and Functions (KEYWORD2)
+######################################
+
+drawBitmap	KEYWORD2
+drawBitmapResized	KEYWORD2
+drawCompressed	KEYWORD2
+drawCompressedResized	KEYWORD2
+
+######################################
+# Constants (LITERAL1)
+######################################
+
+ALIGN_H_LEFT	LITERAL1
+ALIGN_H_RIGHT	LITERAL1
+ALIGN_H_CENTER	LITERAL1
+ALIGN_V_TOP	LITERAL1
+ALIGN_V_BOTTOM	LITERAL1
+ALIGN_V_CENTER	LITERAL1
+ALIGN_CENTER	LITERAL1
+ALIGN_NONE	LITERAL1
+
+MIRROR_NONE	LITERAL1
+MIRROR_HORIZONTAL	LITERAL1
+MIRROR_VERTICAL	LITERAL1
+MIRROR_HOR_VER	LITERAL1
+

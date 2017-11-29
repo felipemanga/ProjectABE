@@ -1,0 +1,14 @@
+{
+    "name": "ArduboyPlaytune",
+    "keywords": "arduboy, game, sound, music",
+    "description": "A library for playing musical scores and tones that is compatible with the Arduboy game system",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/Arduboy/ArduboyPlaytune.git"
+    },
+    "version": "1.0.3",
+    "exclude": "extras",
+    "frameworks": "arduino",
+    "platforms": "atmelavr"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Arduboy-Tinyfont",
+  "description": "Tiny 4x4 Font for Arduboy which contains the small ASCII Table from 32 to 127. The sprite for the font uses 192 bytes.",
+  "keywords": "arduboy, font, tiny, 4x4, text, display, print",
+  "authors":
+  {
+      "name": "Boti Kis",
+      "email": "not@available.com",
+      "url": "https://github.com/yinkou/Arduboy-TinyFont",
+      "maintainer": true
+  },
+
+  "repository":
+  {
+      "type": "git",
+      "url": "https://github.com/yinkou/Arduboy-TinyFont"
+  },
+  "version": "3.1.1",
+  "license": "BSD-3-Clause",
+  "examples": "examples/TinyfontSample/TinyfontSample.ino"
+}

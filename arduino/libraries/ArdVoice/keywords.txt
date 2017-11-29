@@ -1,0 +1,23 @@
+######################################
+# Syntax Coloring Map For ArdVoice
+######################################
+
+######################################
+# Datatypes (KEYWORD1)
+######################################
+
+ArdVoice	KEYWORD1
+
+######################################
+# Methods and Functions (KEYWORD2)
+######################################
+
+isVoicePlaying	KEYWORD2
+playVoice	KEYWORD2
+stopVoice	KEYWORD2
+
+######################################
+# Constants (LITERAL1)
+######################################
+
+# (none defined in this library)

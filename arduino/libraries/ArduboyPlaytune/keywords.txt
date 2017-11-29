@@ -1,0 +1,22 @@
+#########################################
+# Syntax Coloring Map For ArduboyPlaytune
+#########################################
+
+#########################################
+# Datatypes (KEYWORD1)
+#########################################
+
+ArduboyPlaytune	KEYWORD1
+
+#########################################
+# Methods and Functions (KEYWORD2)
+#########################################
+
+closeChannels	KEYWORD2
+initChannel	KEYWORD2
+playing	KEYWORD2
+playScore	KEYWORD2
+stopScore	KEYWORD2
+tone	KEYWORD2
+toneMutesScore	KEYWORD2
+
