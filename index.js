@@ -33,6 +33,8 @@ function Builder(){
     let data = '';
 
     let main = null;
+
+    let retry = {};
     
     this.destroy = _ => {	
 	if( builders[ this.id ] == this )
@@ -111,13 +113,28 @@ function Builder(){
 
 	    fs.writeFile( fullPath, data[file], e => {
 		
-		if( !e )
-		    return this.pop(files);
+		if( e ){
+		    this.state = 'DONE';
+		    busy = false;
+		    this.result = "ERROR: " + file + " - " + e.toString();
+		    return;
+		}
 
-		this.state = 'DONE';
-		busy = false;
-		this.result = "ERROR: " + file + " - " + e.toString();
-		
+		fs.statFile( (e, s) => {
+		    if( e ){
+			if( retry[ file ] ){
+			    this.state = 'DONE';
+			    busy = false;
+			    this.result = "ERROR: " + file + " - " + e.toString();
+			    return;
+			}else{
+			    retry[ file ] = 1;
+			    files.push( file );
+			}
+		    }
+		    return this.pop(files);
+		}
+
 	    });
 	    
 	});
