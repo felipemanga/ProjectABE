@@ -1,6 +1,6 @@
 const { execFile, execSync } = require('child_process');
 const fs = require('fs');
-const rimraf = requrire('rimraf');
+const rimraf = require('rimraf');
 const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
