@@ -11,7 +11,7 @@ let queue = [], builders = {}, busy = false;
 function sendHeaders( res ){
 
     res.writeHead(200, {
-	'Content-Type': 'text/plain'
+	'Content-Type': 'text/plain',
 	'Access-Control-Allow-Origin': '*'
     });
     
