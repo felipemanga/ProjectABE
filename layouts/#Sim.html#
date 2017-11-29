@@ -1,0 +1,80 @@
+<div id="fb">
+  
+  <div id="ideContainer" class="verticalContainer" data-inject="Debugger">
+
+    <div class="horizontalContainer tabs">
+
+      <button click-toggle="#ideContainer@data-tab=source" click-call="initSource">Source</button>
+      <button click-toggle="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
+      <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
+      <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
+      
+    </div>
+
+    <div class="verticalContainer" id="sourceContainer">
+      <div class="horizontalContainer tabs">
+	<label>
+	  File:
+	  <select id="currentFile" change-call="changeSourceFile">
+	    <option value="{{ke
+	  </select>
+	</label>
+	<button click-call="compile">&#10148;</button>
+      </div>
+      <div id="ace"></div>
+    </div>
+    
+    <div class="verticalContainer" id="historyContainer">
+      <div class="horizontalContainer tabs">
+	<button click-call="refreshHistory">Refresh</button>
+	<label>
+	  <input type="checkbox" id="autoRefreshHistory" change-call="refreshHistory"> auto
+	</label>
+      </div>
+      <ul id="history"></ul>
+    </div>
+    
+    <div class="verticalContainer" id="daContainer">
+      <div class="horizontalContainer tabs">
+	<label>Address:<input id="daAddress" value="0000" change-call="refreshDa"></label>
+      </div>
+      <ul id="da"></ul>
+    </div>
+
+    <div class="verticalContainer" id="stateContainer">
+      <div class="horizontalContainer tabs">
+	<button click-call="refreshState">Refresh</button>
+	<label>
+	  <input type="checkbox" id="autoRefreshState" change-call="refreshState"> auto
+	</label>
+      </div>
+      <ul id="state"></ul>
+    </div>
+
+  </div>
+  <div id="simBox">
+    
+    <div id="simContainer" class="verticalContainer" data-inject="arduboy" poweroff-call="onEndSim">
+      <img src="Arduboy ({{app.color}}).png" />
+      <canvas data-inject="SCREEN" id="screen" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
+      </canvas>
+      <led data-inject="LED" style="background-color: #F00" pin-on="cpu.10"></led>
+      <led data-inject="LED" style="background-color: #0F0" pin-on="cpu.11"></led>
+      <led data-inject="LED" style="background-color: #00F" pin-on="cpu.9"></led>
+      
+      <btn data-inject="BTN" id="Up" active="low" pin-on="cpu.A0" bind-key="ArrowUp"></btn>
+      <btn data-inject="BTN" id="Down" active="low" pin-on="cpu.A3" bind-key="ArrowDown"></btn>
+      <btn data-inject="BTN" id="Left" active="low" pin-on="cpu.A2" bind-key="ArrowLeft"></btn>
+      <btn data-inject="BTN" id="Right" active="low" pin-on="cpu.A1" bind-key="ArrowRight"></btn>
+      <btn data-inject="BTN" id="A" active="low" pin-on="cpu.7" bind-key="KeyZ,KeyA,ControlLeft"></btn>
+      <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8" bind-key="KeyB,KeyS,KeyX,AltLeft,AltRight"></btn>
+
+      <btn click-call="powerOff" id="PWR"></btn>
+      <btn click-toggle="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
+      <btn click-toggle="#ideContainer@hidden=false" id="DBG"></btn>
+      
+    </div>
+    
+  </div>
+
+</div>
