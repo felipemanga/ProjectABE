@@ -53,7 +53,7 @@ function Builder(){
 		__dirname + '/arduino/arduino',
 		[
 		    '--board', 'arduino:avr:leonardo',
-		    '--pref', 'build.path=' + __dirname + '/builds/test/_build',
+		    '--pref', 'build.path=' + __dirname + '/public/builds/',
 		    '--verify', __dirname + '/builds/test/test.ino'
 		],
 		(error, stdout, stderr) => {
@@ -62,9 +62,9 @@ function Builder(){
 		    this.state = "DONE";
 
 		    if( error ){
-			this.result = "ERROR: " + error;
+			this.result = "ERROR: " + error + " " + stderr;
 		    }else if( stderr ){
-			this.result = stderr;
+			this.result = "ERROR: " + stderr + "\n" + stdout;
 		    }else{
 			this.result = require('path').basename(__dirname); // stdout;
 		    }
@@ -96,6 +96,8 @@ setInterval( _ => {
 }, 1000 );
 
 execSync("chmod +x -R " + __dirname + "/arduino/");
+execSync("chmod 666 -R " + __dirname + "/public/builds");
+execSync("chmod 666 -R " + __dirname + "/builds");
 
 express()
     .use(express.static(path.join(__dirname, 'public')))
