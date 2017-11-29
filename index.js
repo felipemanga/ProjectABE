@@ -41,7 +41,7 @@ function Builder(){
 	}
 	try{
 	    rimraf( __dirname + '/public/builds/' + this.id, _ => {});
-	}atch( err ){
+	}catch( err ){
 	    console.error(err);
 	}
     };
