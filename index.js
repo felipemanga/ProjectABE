@@ -104,7 +104,7 @@ function Builder(){
 	let file = files.shift().replace(/\\/g, '/'); // convert \ to /
 	let fullPath = __dirname + '/builds/' + this.id + '/' + file.replace(/\/\.+\//g, '/'); // remove shenanigans
 	
-	if( /.*?\/?main.ino$/i.test(fullPath) )
+	if( /.*?[^\/]+.ino$/i.test(fullPath) )
 	    main = fullPath;
 
 	let parts = fullPath.split('/');
@@ -167,7 +167,7 @@ function Builder(){
 			this.result = "ERROR: " + error + " " + stderr;
 		    }else{
 			this.result = JSON.stringify({
-			    path:'/builds/' + this.id + '/main.ino.hex',
+			    path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
 			    stdout
 			});
 		    }
