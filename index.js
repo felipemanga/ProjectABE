@@ -50,7 +50,7 @@ function Builder(){
 	const child = execFile(
 	    __dirname + '/arduino/arduino',
 	    [
-		'--board', 'arduino:avr:leonardo:cpu=atmega32u4',
+		'--board', 'arduino:avr:leonardo',
 		'--pref', 'build.path=' + __dirname + '/_build',
 		'--verify', __dirname + '/builds/test.ino'
 	    ],
