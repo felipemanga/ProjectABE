@@ -35,16 +35,21 @@ class Atcore {
         this.startTick = 0;
         this.endTick = 0;
         this.execTime = 0;
+	this.debuggerEnabled = false;
         this.time = performance.now();
 
 	this.i8a = new Int8Array(4);
 
-        self.BREAKPOINTS = { 0:0 };
+        this.breakpoints = {};
 	this.history = window.execHistory = [];
 	this.trace = {};
 	self.core = {
+	    
 	    history:this.history,
 	    errors:[],
+	    breakpoints: this.breakpoints,
+	    enableDebugger:() => { this.enableDebugger(); },
+	    
 	    da: (a=null, l=20) => {
 		let opc = this.pc;
 		
@@ -162,8 +167,9 @@ class Atcore {
             sram:{ value: new Uint8Array( this.memory.buffer, 0x100 ), enumerable:false },
             io:{ value: new Uint8Array( this.memory.buffer, 0x20, 0xFF - 0x20 ), enumerable:false },
             prog:{ value: new Uint16Array( this.flash.buffer ), enumerable:false },
-            native:{ value:{}, enumerable:false }
         });
+
+	this.native = {};
 
         this.codec.forEach( op =>{
             if( op.str ) parse( op );
@@ -172,7 +178,7 @@ class Atcore {
             op.cycles = op.cycles || 1;
         });
     }
-
+    
     read( addr, pc ){
         var value = this.memory[ addr ];
 
@@ -239,7 +245,18 @@ class Atcore {
         return this.memory[ addr ] = value;
     }
 
+    enableDebugger(){
+	
+	if( this.debuggerEnabled )
+	    return;
+	
+	this.debuggerEnabled = true;
+	this.native = {};
+	
+    }
+
     exec( time ){
+	
         var cycles = (time * this.clock)|0;
         
         var start = this.tick;
@@ -247,7 +264,33 @@ class Atcore {
         this.execTime = time;
 	var lastUpdate = start;
 
-        try{
+	if( this.debuggerEnabled ){
+
+	    while( this.tick < this.endTick && !this.paused ){
+
+		while( this.history.length > 100 ) this.history.shift();
+		this.history.push("#" + (this.pc<<1).toString(16));
+		
+		if( !this.sleeping ){
+
+		    if( this.pc > 0xFFFF ) break;
+
+		    var func = this.native[ this.pc ];
+		    if( func ) func.call(this);
+		    else if( !this.getBlock() )
+			break;
+		}else{
+		    this.tick += 100;
+		}
+		
+		if( this.tick >= this.endTick || this.tick - lastUpdate > 1000 ){
+		    lastUpdate = this.tick;
+		    this.updatePeriferals();
+		}
+
+	    }
+	    
+	}else{
 
 	    while( this.tick < this.endTick ){
 
@@ -257,10 +300,10 @@ class Atcore {
 
 		    if( this.pc > 0xFFFF ) break;
 
-                    var func = this.native[ this.pc ];
+		    var func = this.native[ this.pc ];
 		    // if( !func ) 		    console.log( this.pc );
-                    if( func ) func.call(this);
-                    else if( !this.getBlock() )
+		    if( func ) func.call(this);
+		    else if( !this.getBlock() )
 			break;
 		}else{
 		    this.tick += 100;
@@ -268,17 +311,14 @@ class Atcore {
 		
 		if( this.tick >= this.endTick || this.tick - lastUpdate > 1000 ){
 		    lastUpdate = this.tick;
-                    this.updatePeriferals();
+		    this.updatePeriferals();
 		}
 
 	    }
-
-		
-        }finally{
-
-	    this.startTick = this.endTick;
-
+	    
 	}
+
+	this.startTick = this.endTick;
 
     }
 
@@ -306,7 +346,10 @@ class Atcore {
         var now = performance.now();
         var delta = now - this.time;
 
-        delta = Math.max( 0, Math.min( 33, delta ) );
+	if( this.debuggerEnabled )
+	    delta = 16;
+	else
+            delta = Math.max( 0, Math.min( 33, delta ) );
 
         this.exec( delta/1000 );
 
@@ -319,9 +362,13 @@ class Atcore {
 
         var startPC = this.pc;
 
-        var skip = false, prev = false;
-        var nop = {name:'NOP', cycles:1, end:true, argv:{}};
+        var skip = false, prev = false, dbg = this.debuggerEnabled;
         var cacheList = ['reg', 'wreg', 'io', 'memory', 'sram', 'flash']
+	
+	
+	if( dbg )
+	    cacheList.push("breakpoints");
+	    
         var code = '"use strict";\nvar sp=this.sp, r, t1, i8a=this.i8a, SKIP=false, ';
         code += cacheList.map(c=> `${c} = this.${c}`).join(', ');
         code += ';\n';
@@ -330,8 +377,6 @@ class Atcore {
             code += `, sr${i} = (sr>>${i})&1`;
         code += ';\n';
 
-        // code += "console.log('\\nENTER BLOCK: " + (this.pc<<1).toString(16).toUpperCase() + " @ ', (this.pc<<1).toString(16).toUpperCase() );\n";
-        // console.log('CREATE BLOCK: ', (this.pc<<1).toString(16).toUpperCase() );
         code += 'switch( this.pc ){\n';
 
 	let addrs = [];
@@ -347,6 +392,13 @@ class Atcore {
             }
 
 	    addrs.push( this.pc );
+
+	    if( dbg && this.pc !== startPC ){
+		code += `\nif( breakpoints[${this.pc}] ){\n`;
+		code += `\tthis.paused = true;\n`;
+		code += `\tthis.pc = ${this.pc};\n`;
+		code += `\tbreak;\n}`;
+	    }
             
             code += `\ncase ${this.pc}: // #` + (this.pc<<1).toString(16) + ": " + inst.name + ' [' + inst.decbytes.toString(2).padStart(16, "0") + ']' + '\n';
 
@@ -356,12 +408,6 @@ class Atcore {
                 if( (this.tick += ${inst.cycles}) >= this.endTick ) break;
                 `;
             
-            // BREAKPOINTS
-            if( (self.BREAKPOINTS && self.BREAKPOINTS[ this.pc<<1 ]) || inst.debug ){
-                chunk += "console.log('PC: #'+(this.pc<<1).toString(16)+'\\nSR: ' + memory[0x5F].toString(2) + '\\nSP: #' + sp.toString(16) + '\\n' + Array.prototype.map.call( reg, (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\\t#'+v.toString(16) + '\\t' + v ).join('\\n') );\n";
-                chunk += '  debugger;\n';
-            }
-
             var op = this.getOpcodeImpl( inst, inst.impl );
             var srDirty = op.srDirty;
             var line = op.begin, endline = op.end;

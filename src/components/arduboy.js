@@ -37,6 +37,8 @@ class Arduboy {
 
     loadFlash(){
 
+	let debuggerEnabled = this.core && this.core.debuggerEnabled;
+
 	this.core = null;
 	this.paused = true;
 	
@@ -47,7 +49,7 @@ class Arduboy {
 	    
 	    Hex.parseURL( url, this.core.flash, (success) => {
 		if( success )
-		    this.initCore();
+		    this.initCore( debuggerEnabled );
 	    });
 	    return;
 	    
@@ -58,7 +60,7 @@ class Arduboy {
 		
 	    this.core = Atcore.ATmega328P();
 	    Hex.parse( hex, this.core.flash );
-	    this.initCore();
+	    this.initCore( debuggerEnabled );
 	    return;
 	    
 	}
@@ -69,8 +71,11 @@ class Arduboy {
 	    this.core = Atcore.ATmega32u4();
 	    if( !/.*\/?null$/.test(url) )
 		Hex.parseURL( url, this.core.flash, success => {
-		    if( success ) this.initCore();
+		    if( success ) this.initCore( debuggerEnabled );
 		});
+	    else
+		this.core.enableDebugger();
+	    
 	    return;
 	    
 	}
@@ -80,7 +85,7 @@ class Arduboy {
 	    
 	    this.core = Atcore.ATmega32u4();
 	    Hex.parse( hex, this.core.flash );
-	    this.initCore();
+	    this.initCore( debuggerEnabled );
 	    return;
 	    
 	}
@@ -113,8 +118,8 @@ class Arduboy {
 	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }
 
-    initCore(){
-
+    initCore( debuggerEnabled ){
+	
 	window.onerror = evt => {
 	    self.core.history.push( "ERROR: " + evt.toString() );
 	};
@@ -136,6 +141,11 @@ class Arduboy {
             PORTE:{},
             PORTF:{}
 	};
+	
+	if( debuggerEnabled ){
+	    core.enableDebugger();
+	    core.paused = true;
+	}
 
 	Object.keys(callbacks).forEach( k =>
 					Object.assign(callbacks[k],{

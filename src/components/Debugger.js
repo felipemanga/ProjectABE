@@ -169,7 +169,13 @@ void loop() {
 	    this.DOM.da.removeChild( this.da.shift() );
 	
 	while( this.da.length < src.length )
-	    this.da.push( this.DOM.create( "li", this.DOM.da, [["code"]]) );
+	    this.da.push( this.DOM.create( "li", this.DOM.da, [["code"]], {
+		onclick:evt=>{
+		    let addr = parseInt( evt.target.children[0].textContent, 16 ) || 0;
+		    core.breakpoints[ addr>>1 ] = true;
+		    core.enableDebugger();
+		}
+	    }) );
 
 	this.da.forEach( (li, idx) => {
 	    li.children[0].innerHTML = src[idx];
