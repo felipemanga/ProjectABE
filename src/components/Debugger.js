@@ -199,7 +199,7 @@ void loop() {
     }
 
     onHitBreakpoint( pc ){
-	this.DOM.daAddress.value = (pc<<1).toString(16);
+	this.DOM.daAddress.value = (Math.max(pc-5,0)<<1).toString(16);
 	this.refreshDa( pc );
 	this.DOM.element.setAttribute("data-tab", "da");
 	this.DOM.element.setAttribute("paused", "true");

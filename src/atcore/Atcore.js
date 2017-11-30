@@ -106,14 +106,15 @@ class Atcore {
 		
 		let out = [];		
 		for( let i=0; i<l; ++i ){
+		    let op = (this.pc<<1).toString(16).padStart(4, " ") + ": ";
 		    
 		    let inst = this.identify();
 		    if( !inst ){
-			out.push( this.error );
-			break;
+			out.push( op + this.error );
+			this.pc++;
+			continue;
 		    }
-		    
-		    let op = (this.pc<<1).toString(16).padStart(4, " ") + ": ";
+
 		    op += inst.name.toLowerCase();
 
 		    let keys = Object.keys(inst.argv);
@@ -570,7 +571,7 @@ class Atcore {
         }
 
 
-        this.error = "#" + (this.pc<<1).toString(16).toUpperCase() + ` opcode: ` + bin(bytes2, 16);
+        this.error = `UNKNOWN OPCODE: ` + bin(bytes2, 16);
 
         return null;
 
