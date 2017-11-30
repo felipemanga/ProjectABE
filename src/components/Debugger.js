@@ -10,6 +10,8 @@ class Debugger {
     }
 
     constructor( DOM ){
+
+	this.pool.add(this);
 	
 	this.DOM = DOM;
 	this.history = [];
@@ -20,6 +22,10 @@ class Debugger {
 	this.compileId = 0;
 	
     }
+
+    setActiveView(){
+	this.pool.remove(this);
+    }    
 
     initSource(){
 	
@@ -158,7 +164,7 @@ void loop() {
 	
     }
 
-    refreshDa(){
+    refreshDa( pc ){
 	
 	let addr = parseInt( this.DOM.daAddress.value.replace(/^.*[x#]/, ""), 16 ) | 0;
 	this.DOM.daAddress.value = addr.toString(16).padStart( 4, "0" );
@@ -174,9 +180,29 @@ void loop() {
 	    }) );
 
 	this.da.forEach( (li, idx) => {
+	    
+	    let addr = parseInt( src[idx].replace(/&nbsp;/g, ''), 16 ) >> 1;
+	    if( core.breakpoints[addr] )
+		li.setAttribute('breakpoint', 'true');
+	    else
+		li.setAttribute('breakpoint', 'false');
+
+	    if( addr === pc )
+		li.setAttribute('pc', 'true');
+	    else
+		li.setAttribute('pc', 'false');
+	    
 	    li.children[0].innerHTML = src[idx];
+	    
 	});
 	    
+    }
+
+    onHitBreakpoint( pc ){
+	this.DOM.daAddress.value = (pc<<1).toString(16);
+	this.refreshDa( pc );
+	this.DOM.element.setAttribute("data-tab", "da");
+	this.DOM.element.setAttribute("paused", "true");
     }
 
     onClickDAItem( item ){
@@ -184,18 +210,13 @@ void loop() {
 	if( item.getAttribute("breakpoint") !== "true" ){
 	    item.setAttribute("breakpoint", "true");
 	    
-	    core.breakpoints[ addr>>1 ] = (pc,sp) => {
-		this.DOM.daAddress.value = pc.toString(16);
-		this.refreshDa();
-		this.DOM.element.setAttribute("paused", "true");
-		return true;
-	    };
+	    core.breakpoints[ addr>>1 ] = (pc,sp) => true;;
 	    
 	    core.enableDebugger();
 	    
 	} else {
 
-	    item.removeAttribute("breakpoint");
+	    item.setAttribute("breakpoint", "false");
 	    core.breakpoints[ addr>>1 ] = null;
 	    
 	}
@@ -203,6 +224,7 @@ void loop() {
     }
 
     reqResume(){
+	this.DOM.element.setAttribute("paused", "false");
 	this.pool.call("resume");
     }
 

@@ -485,8 +485,19 @@ canvas:-webkit-full-screen {
     flex-grow: 1;
 }
 
+#da li {
+    border-radius: 5px;
+}
+
 #da li[breakpoint=true] {
-    background: red;
+    border-left: solid 10px red;
+    margin-left: 10px;
+    padding-left: 5px;
+}
+
+#da li[pc=true] {
+    background-color: aquamarine;
+    color: #123;
 }
 
 #compile {

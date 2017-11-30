@@ -41,6 +41,7 @@ class Atcore {
 	this.i8a = new Int8Array(4);
 
         this.breakpoints = {};
+	this.breakpointHit = false;
 	this.history = window.execHistory = [];
 	this.trace = {};
         /*
@@ -269,6 +270,7 @@ class Atcore {
         var start = this.tick;
         this.endTick = this.startTick + cycles;
         this.execTime = time;
+	this.breakpointHit = false;
 	var lastUpdate = start;
 
 	if( this.debuggerEnabled ){
@@ -400,22 +402,27 @@ class Atcore {
 
 	    addrs.push( this.pc );
 
-	    if( dbg && this.pc !== startPC ){
-		code += `\nif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
-		code += '{\n\tthis.endTick = this.tick;\n';
-		code += `\tthis.pc = ${this.pc};\n`;
-		code += `\tbreak;\n`;
-		code += '}';
-	    }
-            
             code += `\ncase ${this.pc}: // #` + (this.pc<<1).toString(16) + ": " + inst.name + ' [' + inst.decbytes.toString(2).padStart(16, "0") + ']' + '\n';
 
+            var chunk = `\n\tthis.pc = ${this.pc};\n`;
+	    
+	    if( dbg ){
+		chunk += '\nif( !breakpoints.disableFirst ){\n';
+		chunk += `\n\tif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
+		chunk += '{\n\t\tthis.endTick = this.tick;\n';
+		chunk += '\t\tthis.breakpointHit = true;\n';
+		chunk += '\t\tbreak;\n\t}\n';
+	    }
+	    
+	    chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
 
-            var chunk = `
-                this.pc = ${this.pc};
-                if( (this.tick += ${inst.cycles}) >= this.endTick ) break;
-                `;
-            
+	    if( dbg ){
+		chunk += '\n}else{\n';
+		chunk += '\tthis.tick += ' + inst.cycles + ';\n';
+		chunk += '\tbreakpoints.disableFirst = false;\n';
+		chunk += '}\n';
+	    }
+	                
             var op = this.getOpcodeImpl( inst, inst.impl );
             var srDirty = op.srDirty;
             var line = op.begin, endline = op.end;
@@ -488,8 +495,6 @@ class Atcore {
     }
 
     identify(){
-
-        // if( this.pc<<1 == 0x966 ) debugger;
 
         let prog = this.prog, 
             codec = this.codec, 
@@ -698,7 +703,7 @@ class Atcore {
         str = str.replace(/io\[([0-9+<]+)@([0-9]+)\]/g, 'this.readBit( 32+$1, $2, this.pc )');
         str = str.replace(/io\[([0-9+<]+)\]/g, 'this.read( 32+$1, this.pc )');
         str = str.replace(/SP/g, 'sp');
-        str = str.replace(/PC\s*←(.*)$/g, 't1 = $1;\nif( !t1 ) (function(){debugger;})(); this.pc = t1; break;\n');
+        str = str.replace(/PC\s*←(.*)$/g, 't1 = $1;\n this.pc = t1; break;\n');
         str = str.replace(/PC/g, 'this.pc');
         str = str.replace(/←/g, '=');
 
