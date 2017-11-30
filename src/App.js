@@ -50,15 +50,24 @@ class App {
     init(){
 
 	document.body.addEventListener("keydown", evt => {
-		let code = evt.code;
-		if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
-	    this.pool.call("onPress" + (this.mappings[ code ] || code) );
+	    let code = evt.code;
+	    if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
+	    let ret = this.pool.call("onPress" + (this.mappings[ code ] || code) );
+	    if( ret === true ){
+		evt.preventDefault();
+		evt.stopPropagation();
+	    }
+		
 	});
 
 	document.body.addEventListener("keyup", evt => {
-		let code = evt.code;
-		if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
-	    this.pool.call("onRelease" + (this.mappings[ code ] || code) );
+	    let code = evt.code;
+	    if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
+	    let ret = this.pool.call("onRelease" + (this.mappings[ code ] || code) );
+	    if( ret === true ){
+		evt.preventDefault();
+		evt.stopPropagation();
+	    }
 	});
 
         this.controllers.forEach((controller) => {

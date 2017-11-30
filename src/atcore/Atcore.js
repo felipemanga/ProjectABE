@@ -43,12 +43,58 @@ class Atcore {
         this.breakpoints = {};
 	this.history = window.execHistory = [];
 	this.trace = {};
+        /*
+        The I/O memory space contains 64 addresses for CPU peripheral functions as control registers, SPI, and other I/O functions.
+        The I/O memory can be accessed directly, or as the data space locations following those of the register file, 0x20 - 0x5F. In
+        addition, the ATmega328P has extended I/O space from 0x60 - 0xFF in SRAM where only the ST/STS/STD and
+        LD/LDS/LDD instructions can be used.        
+        */
+        this.memory = new Uint8Array( 
+            32 // register file
+            + (0xFF - 0x1F) // io
+            + desc.sram
+            );
+        
+        this.flash = new Uint8Array( desc.flash );
+        this.eeprom = new Uint8Array( desc.eeprom );
+
+        this.initMapping();
+        this.instruction = null;
+        this.periferals = {};
+        this.pins = {};
+
+        for( var periferalName in desc.periferals ){
+
+            let addr, periferal = desc.periferals[ periferalName ];
+            let obj = this.periferals[ periferalName ] = { core:this };
+
+            for( addr in periferal.write )
+                this.writeMap[ addr ] = periferal.write[ addr ].bind( obj );
+
+            for( addr in periferal.read )
+                this.readMap[ addr ] = periferal.read[ addr ].bind( obj );
+
+            if( periferal.update )
+                this.updateList.push( periferal.update.bind( obj ) );
+            
+            if( periferal.init )
+                periferal.init.call( obj );
+
+        }
+
+	this.initInterface();
+
+    }
+
+    initInterface(){
+	
 	self.core = {
 	    
 	    history:this.history,
 	    errors:[],
 	    breakpoints: this.breakpoints,
 	    enableDebugger:() => { this.enableDebugger(); },
+	    memory: this.memory,
 	    
 	    da: (a=null, l=20) => {
 		let opc = this.pc;
@@ -115,45 +161,6 @@ class Atcore {
 					  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16) + '\t' + v 
 					).join('\n') 
 	};
-
-        /*
-        The I/O memory space contains 64 addresses for CPU peripheral functions as control registers, SPI, and other I/O functions.
-        The I/O memory can be accessed directly, or as the data space locations following those of the register file, 0x20 - 0x5F. In
-        addition, the ATmega328P has extended I/O space from 0x60 - 0xFF in SRAM where only the ST/STS/STD and
-        LD/LDS/LDD instructions can be used.        
-        */
-        this.memory = new Uint8Array( 
-            32 // register file
-            + (0xFF - 0x1F) // io
-            + desc.sram
-            );
-        
-        this.flash = new Uint8Array( desc.flash );
-        this.eeprom = new Uint8Array( desc.eeprom );
-
-        this.initMapping();
-        this.instruction = null;
-        this.periferals = {};
-        this.pins = {};
-
-        for( var periferalName in desc.periferals ){
-
-            let addr, periferal = desc.periferals[ periferalName ];
-            let obj = this.periferals[ periferalName ] = { core:this };
-
-            for( addr in periferal.write )
-                this.writeMap[ addr ] = periferal.write[ addr ].bind( obj );
-
-            for( addr in periferal.read )
-                this.readMap[ addr ] = periferal.read[ addr ].bind( obj );
-
-            if( periferal.update )
-                this.updateList.push( periferal.update.bind( obj ) );
-            
-            if( periferal.init )
-                periferal.init.call( obj );
-
-        }
 
     }
 
@@ -266,7 +273,7 @@ class Atcore {
 
 	if( this.debuggerEnabled ){
 
-	    while( this.tick < this.endTick && !this.paused ){
+	    while( this.tick < this.endTick ){
 
 		while( this.history.length > 100 ) this.history.shift();
 		this.history.push("#" + (this.pc<<1).toString(16));
@@ -394,10 +401,11 @@ class Atcore {
 	    addrs.push( this.pc );
 
 	    if( dbg && this.pc !== startPC ){
-		code += `\nif( breakpoints[${this.pc}] ){\n`;
-		code += `\tthis.paused = true;\n`;
+		code += `\nif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
+		code += '{\n\tthis.endTick = this.tick;\n';
 		code += `\tthis.pc = ${this.pc};\n`;
-		code += `\tbreak;\n}`;
+		code += `\tbreak;\n`;
+		code += '}';
 	    }
             
             code += `\ncase ${this.pc}: // #` + (this.pc<<1).toString(16) + ": " + inst.name + ' [' + inst.decbytes.toString(2).padStart(16, "0") + ']' + '\n';

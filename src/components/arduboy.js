@@ -3,6 +3,11 @@ import { getPolicy } from 'dry-di';
 import Atcore from '../atcore/Atcore.js';
 import Hex from '../atcore/Hex.js';
 
+const LOADING = 0;
+const RUNNING = 1;
+const PAUSED  = 2;
+const STEP    = 3;
+
 class Arduboy {
 
     static "@inject" = {
@@ -38,9 +43,8 @@ class Arduboy {
     loadFlash(){
 
 	let debuggerEnabled = this.core && this.core.debuggerEnabled;
-
 	this.core = null;
-	this.paused = true;
+	this.state = LOADING;
 	
 	let url = this.root.getItem("app.AT328P.url", null);
 	if( url ){
@@ -69,11 +73,12 @@ class Arduboy {
 	if( url ){
 
 	    this.core = Atcore.ATmega32u4();
-	    if( !/.*\/?null$/.test(url) )
+	    if( !/.*\/?null$/.test(url) ){
+		core.history.push("Loading hex from URL");
 		Hex.parseURL( url, this.core.flash, success => {
 		    if( success ) this.initCore( debuggerEnabled );
 		});
-	    else
+	    }else
 		this.core.enableDebugger();
 	    
 	    return;
@@ -92,6 +97,40 @@ class Arduboy {
 
 	console.error("Nothing to load");
 	
+    }
+
+    reset(){
+	let oldCore = this.core, dbg = false;
+	let oldCoreIF = core;
+	this.core = new Atcore.ATmega32u4();
+	if( oldCore ){
+	    this.core.flash.set( oldCore.flash );
+	    dbg = oldCore.debuggerEnabled;
+	    Object.assign( core.breakpoints, oldCoreIF.breakpoints );
+	}
+	this.initCore( dbg );
+    }
+
+    resume(){
+	if( this.state != LOADING )
+	    this.state = RUNNING;
+    }
+
+    step(){
+	if( this.state == PAUSED )
+	    this.state = STEP;
+    }
+
+    onPressF5(){
+	if( this.core.debuggerEnabled ){
+	    this.resume();
+	    return true;
+	}
+    }
+
+    onPressF6(){
+	this.step();
+	return true;
     }
 
     onPressEscape(){
@@ -119,6 +158,8 @@ class Arduboy {
     }
 
     initCore( debuggerEnabled ){
+
+	self.core.history.push("Initializing core" + (debuggerEnabled?" with debugger enabled":"") );
 	
 	window.onerror = evt => {
 	    self.core.history.push( "ERROR: " + evt.toString() );
@@ -142,10 +183,8 @@ class Arduboy {
             PORTF:{}
 	};
 	
-	if( debuggerEnabled ){
+	if( debuggerEnabled )
 	    core.enableDebugger();
-	    core.paused = true;
-	}
 
 	Object.keys(callbacks).forEach( k =>
 					Object.assign(callbacks[k],{
@@ -266,7 +305,7 @@ class Arduboy {
 
 	setTimeout( _ =>{
 	    this.setupPeriferals();
-	    this.paused = false;
+	    this.state = RUNNING;
 	}, 5);
 
 	function setDDR( name, cur ){   
@@ -378,14 +417,22 @@ class Arduboy {
 	if( this.dead ) return;
 	
 	requestAnimationFrame( this.update );
-	if( !this.paused ){
-	    
-	    this.core.update();
 	
-	    for( let i=0, l=this.tick.length; i<l; ++i )
-		this.tick[i].tick();
-	    
+	switch( this.state ){
+	case RUNNING:
+	    this.core.update();
+	    break;
+	case STEP:
+	    this.core.exec(1);
+	    this.state = PAUSED;
+	    break;
+	default:
+	    this.resize();
+	    return;
 	}
+	
+	for( let i=0, l=this.tick.length; i<l; ++i )
+	    this.tick[i].tick();	
 	
 	this.resize();
 	

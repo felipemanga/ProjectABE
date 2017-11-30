@@ -170,17 +170,44 @@ void loop() {
 	
 	while( this.da.length < src.length )
 	    this.da.push( this.DOM.create( "li", this.DOM.da, [["code"]], {
-		onclick:evt=>{
-		    let addr = parseInt( evt.target.children[0].textContent, 16 ) || 0;
-		    core.breakpoints[ addr>>1 ] = true;
-		    core.enableDebugger();
-		}
+		onclick:evt=>this.onClickDAItem(evt.currentTarget)
 	    }) );
 
 	this.da.forEach( (li, idx) => {
 	    li.children[0].innerHTML = src[idx];
 	});
 	    
+    }
+
+    onClickDAItem( item ){
+	let addr = parseInt( item.children[0].textContent, 16 ) || 0;
+	if( item.getAttribute("breakpoint") !== "true" ){
+	    item.setAttribute("breakpoint", "true");
+	    
+	    core.breakpoints[ addr>>1 ] = (pc,sp) => {
+		this.DOM.daAddress.value = pc.toString(16);
+		this.refreshDa();
+		this.DOM.element.setAttribute("paused", "true");
+		return true;
+	    };
+	    
+	    core.enableDebugger();
+	    
+	} else {
+
+	    item.removeAttribute("breakpoint");
+	    core.breakpoints[ addr>>1 ] = null;
+	    
+	}
+	
+    }
+
+    reqResume(){
+	this.pool.call("resume");
+    }
+
+    reqStep(){
+	this.pool.call("step");
     }
 
     refreshHistory(){

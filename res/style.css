@@ -40,6 +40,10 @@ html, body {
     /* height: 100%; */
 }
 
+.expand {
+    flex-grow: 1;
+}
+
 #envContainer {
     width: 100%;
     height: 100%;
@@ -479,6 +483,10 @@ canvas:-webkit-full-screen {
 
 #ideContainer #ace {
     flex-grow: 1;
+}
+
+#da li[breakpoint=true] {
+    background: red;
 }
 
 #compile {
