@@ -8,7 +8,9 @@
       <button click-toggle="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
       <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
       <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
-      
+      <div class="expand"> </div>
+      <button click-call="reqResume" title="resume (F8)">&#10148;</button>
+      <button click-call="reqStep" title="step (F6)">&#8628;</button>
     </div>
 
     <div class="verticalContainer" id="sourceContainer">
@@ -19,7 +21,7 @@
 	    <option value="{{key}}">{{key}}</option>
 	  </select>
 	</label>
-	<button click-call="compile" id="compile">&#10148;</button>
+	<button click-call="compile" id="compile" title="Ctrl+Enter">Build</button>
       </div>
       <div id="ace"></div>
     </div>
