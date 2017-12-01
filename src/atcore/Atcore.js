@@ -271,10 +271,10 @@ class Atcore {
         var start = this.tick;
         this.endTick = this.startTick + cycles;
         this.execTime = time;
-	this.breakpointHit = false;
 	var lastUpdate = start;
 
 	if( this.debuggerEnabled ){
+	    this.breakpointHit = false;
 
 	    while( this.tick < this.endTick ){
 
@@ -986,18 +986,6 @@ const AtCODEC = [
 	}
     },
     {
-        name: 'BRBC',
-        str:'111101kkkkkkksss',
-        impl: [
-            'if( !SR@s ){',
-            '  PC ← PC + (k << 25 >> 25) + 1;',
-            '}'],
-        cycles: 2,
-	print:{
-	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
-	}
-    },
-    {
         name: 'BRCS',
         str:'111100kkkkkkk000',
         impl: [
@@ -1086,6 +1074,18 @@ const AtCODEC = [
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
         cycles: 3,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
+    },
+    {
+        name: 'BRBC',
+        str:'111101kkkkkkksss',
+        impl: [
+            'if( !SR@s ){',
+            '  PC ← PC + (k << 25 >> 25) + 1;',
+            '}'],
+        cycles: 2,
 	print:{
 	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
 	}

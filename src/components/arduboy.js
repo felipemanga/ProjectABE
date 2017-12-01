@@ -100,23 +100,31 @@ class Arduboy {
     }
 
     reset(){
+	// prevent from running without a hex
+	if( this.state == LOADING )
+	    return;
+	
 	let oldCore = this.core, dbg = false;
 	let oldCoreIF = core;
 	this.core = new Atcore.ATmega32u4();
 	if( oldCore ){
 	    this.core.flash.set( oldCore.flash );
 	}
-	this.initCore( oldCoreIF && oldCoreIf.breakpoints );
+	this.initCore( oldCoreIF && oldCoreIF.breakpoints );
     }
 
     resume(){
+	if( this.state == PAUSED )
+	    this.core.breakpoints.disableFirst = true;
 	if( this.state != LOADING )
 	    this.state = RUNNING;
     }
 
     step(){
-	if( this.state == PAUSED )
+	if( this.state == PAUSED ){
 	    this.state = STEP;
+	    this.core.breakpoints.disableFirst = true;
+	}
     }
 
     pause(){
@@ -132,6 +140,10 @@ class Arduboy {
     }
 
     onPressF6(){
+	this.reset();
+    }
+
+    onPressF7(){
 	this.step();
 	return true;
     }
@@ -428,7 +440,6 @@ class Arduboy {
 	    this.core.update();
 	    break;
 	case STEP:
-	    core.breakpoints.disableFirst = true;
 	    this.core.exec( (this.core.tick-this.core.endTick+1) / this.core.clock);
 	    this.state = PAUSED;
 	    this.core.breakpointHit = true;

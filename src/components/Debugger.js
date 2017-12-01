@@ -1,5 +1,8 @@
 import { IController, Model, IView } from '../lib/mvc.js';
 
+import DOM from '../lib/dry-dom.js';
+
+
 const compiler = "https://projectabe.herokuapp.com/";
 
 class Debugger {
@@ -17,6 +20,9 @@ class Debugger {
 	this.history = [];
 	this.da = [];
 	this.state = [];
+	this.hints = {};
+	this.comments = {};
+	this.currentPC = null;
 
 	this.code = null;
 	this.compileId = 0;
@@ -72,6 +78,22 @@ void loop() {
 	this.code.setValue( this.model.getItem("app.source", {})[ this.DOM.currentFile.value ] || "" );
     }
 
+    initHints( txt ){
+	
+	this.hints = {};
+	txt = txt.replace(/\n([0-9a-f]+)\s+(<[^>]+>:)(?:\n\s+[0-9a-f]+:[^\n]+|\n+\s+\.\.\.[^\n]*)+/g, (txt, addr, lbl) =>{
+	    this.hints[ parseInt(addr, 16)>>1 ] = (lbl).trim();
+	    return '';
+	});
+	
+	txt.replace(/([\s\S]*?\n)\s+([0-9a-f]+):\t[ a-f0-9]+\t([^\n\r]+)/g, (txt, before, addr, after) => {
+	    this.hints[ parseInt(addr, 16)>>1 ] = (before + after).trim();
+	    return '';
+	    
+	});
+	
+    }
+
     commit(){
 	this.model.getItem("app.source", {})[ this.DOM.currentFile.value ] = this.code.getValue();
     }
@@ -119,6 +141,7 @@ void loop() {
 		    let data = JSON.parse( txt );
 		    this.model.removeItem("app.AT32u4");
 		    this.model.setItem("app.AT32u4.url", compiler + data.path );
+		    this.initHints( data.disassembly );
 		    core.history.push( data.stdout );
 		    this.pool.call("loadFlash");
 		    this.DOM.compile.style.display = "initial";
@@ -164,24 +187,37 @@ void loop() {
 	
     }
 
-    refreshDa( pc ){
+    refreshDa(){
+	let pc = this.currentPC;
 	
 	let addr = parseInt( this.DOM.daAddress.value.replace(/^.*[x#]/, ""), 16 ) | 0;
 	this.DOM.daAddress.value = addr.toString(16).padStart( 4, "0" );
 	
-	let src = core.da( addr, 50 ).replace(/\t/g, "    ").replace(/ /g, "&nbsp;").split("\n");
+	let src = core.da( addr, 50 )/*.replace(/\t/g, "    ").replace(/ /g, "&nbsp;")*/.split("\n");
 	
 	while( this.da.length > src.length )
 	    this.DOM.da.removeChild( this.da.shift() );
 	
-	while( this.da.length < src.length )
-	    this.da.push( this.DOM.create( "li", this.DOM.da, [["code"]], {
+	while( this.da.length < src.length ){
+	    let el = this.DOM.create( "li", this.DOM.da, [
+		["pre",{className:"opContainer"},[
+		    ["div", {className:"breakpoint"}],
+		    ["code", {className:"op"}]]
+		],
+		["pre",{className:"commentContainer"},[["code", {className:"comment"}]]]
+	    ], {
 		onclick:evt=>this.onClickDAItem(evt.currentTarget)
-	    }) );
+	    });
+	    el.dom = (new DOM(el)).index(["id", "className"]);
+	    this.da.push( el );
+	}
 
 	this.da.forEach( (li, idx) => {
 	    
 	    let addr = parseInt( src[idx].replace(/&nbsp;/g, ''), 16 ) >> 1;
+	    
+	    li.address = addr;
+	    
 	    if( core.breakpoints[addr] )
 		li.setAttribute('breakpoint', 'true');
 	    else
@@ -192,35 +228,55 @@ void loop() {
 	    else
 		li.setAttribute('pc', 'false');
 	    
-	    li.children[0].innerHTML = src[idx];
+
+	    let srcparts = src[idx].split(';');
+	    li.dom.op.textContent = srcparts.shift();	    
+
+	    let hint = this.hints[ addr ];
+	    if( hint ){
+		li.dom.comment.textContent = hint;
+	    }else{
+		li.dom.comment.textContent = srcparts.join(';');
+	    }
 	    
 	});
 	    
     }
 
     onHitBreakpoint( pc ){
+	this.currentPC = pc;
 	this.DOM.daAddress.value = (Math.max(pc-5,0)<<1).toString(16);
-	this.refreshDa( pc );
+	this.refreshDa();
 	this.DOM.element.setAttribute("data-tab", "da");
 	this.DOM.element.setAttribute("paused", "true");
     }
 
+    onScrollDA( DOM, evt ){
+	let off = (evt.deltaY > 0 ? -2 : 2) * 4;
+	this.DOM.daAddress.value = Math.max( 0, parseInt( this.DOM.daAddress.value, 16 ) - off ).toString(16);
+	this.refreshDa();
+    }
+
     onClickDAItem( item ){
-	let addr = parseInt( item.children[0].textContent, 16 ) || 0;
+	let addr = item.address || 0;
 	if( item.getAttribute("breakpoint") !== "true" ){
 	    item.setAttribute("breakpoint", "true");
 	    
-	    core.breakpoints[ addr>>1 ] = (pc,sp) => true;;
+	    core.breakpoints[ addr ] = (pc,sp) => true;
 	    
 	    core.enableDebugger();
 	    
 	} else {
 
 	    item.setAttribute("breakpoint", "false");
-	    core.breakpoints[ addr>>1 ] = null;
+	    core.breakpoints[ addr ] = null;
 	    
 	}
 	
+    }
+
+    reqReset(){
+	this.pool.call("reset");
     }
 
     reqResume(){

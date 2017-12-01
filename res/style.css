@@ -347,6 +347,13 @@ canvas:-webkit-full-screen {
     left: 41%;
 }
 
+#RESET {
+    width: 7%;
+    height: 4%;
+    bottom: 3%;
+    left: 20%;
+}
+
 #ideContainer {
     position: relative;
     flex-grow: 1;
@@ -391,6 +398,10 @@ canvas:-webkit-full-screen {
     padding: 0;
 }
 
+#da {
+    overflow: hidden;
+}
+
 #history li, #da li, #state li {
     cursor: pointer;
     padding: 0 25px;
@@ -405,8 +416,9 @@ canvas:-webkit-full-screen {
 }
 
 #ideContainer .tabs {
-    min-height: 20px;
-    max-height: 20px;
+    min-height: 30px;
+    max-height: 30px;
+    align-items: center;    
 }
 
 #simContainer.microcard {}
@@ -487,12 +499,18 @@ canvas:-webkit-full-screen {
 
 #da li {
     border-radius: 5px;
+    position: relative;
 }
 
-#da li[breakpoint=true] {
-    border-left: solid 10px red;
+#da li[breakpoint=true] .breakpoint {
+    border-radius: 5px;
     margin-left: 10px;
-    padding-left: 5px;
+    margin-top: 2px;
+    width: 11px;
+    height: 11px;
+    background-color: red;
+    position: absolute;
+    left: 0px;
 }
 
 #da li[pc=true] {
@@ -501,9 +519,42 @@ canvas:-webkit-full-screen {
 }
 
 #compile {
-    background: none;
-    color: white;
-    border: none;
-    cursor: pointer;
     margin-left: auto;
+}
+
+.dbgbtn {
+    background: #AEF;
+    border: 0;
+    border-radius: 15px;
+    margin: 3px;
+    font-size: 18px;
+}
+
+#da li .commentContainer {    
+    position: absolute;
+    background-color: #111;
+    color: #456;
+    right: 0;
+    top: 0;
+    margin: 0;
+    height: 100%;
+    padding: 0px 10px 18px 10px;
+    overflow: hidden;
+    box-sizing: border-box;
+    opacity: 0.5;
+}
+
+#da li:hover {
+    overflow: initial;
+    z-index: 1;
+}
+
+#da li:hover .commentContainer {
+    height: auto;
+    opacity: 1;
+}
+
+#da li .opContainer {
+    padding-left: 20px;
+    margin: 3px;
 }
