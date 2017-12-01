@@ -9,8 +9,12 @@
       <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
       <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
       <div class="expand"> </div>
-      <button click-call="reqResume" title="resume (F8)">&#10148;</button>
-      <button click-call="reqStep" title="step (F6)">&#8628;</button>
+
+      <button click-call="reqReset" title="reset (F6)" class="dbgbtn">&#8635;</button>
+      <button click-call="reqStep" title="step (F7)" class="dbgbtn">&#8677;</button>
+      <button click-call="reqResume" title="resume (F8)" class="dbgbtn">&#8594;</button>
+      
+      <div class="expand"> </div>
     </div>
 
     <div class="verticalContainer" id="sourceContainer">
@@ -40,7 +44,7 @@
       <div class="horizontalContainer tabs">
 	<label>Address:<input id="daAddress" value="0000" change-call="refreshDa"></label>
       </div>
-      <ul id="da"></ul>
+      <ul id="da" mousewheel-call="onScrollDA"></ul>
     </div>
 
     <div class="verticalContainer" id="stateContainer">
@@ -74,6 +78,7 @@
       <btn click-call="powerOff" id="PWR"></btn>
       <btn click-toggle="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
       <btn click-toggle="#ideContainer@hidden=false" id="DBG"></btn>
+      <btn click-call="reset" id="RESET"></btn>
       
     </div>
     
