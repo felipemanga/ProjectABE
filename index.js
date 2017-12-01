@@ -30,7 +30,7 @@ function Builder(){
     fs.mkdirSync(__dirname + '/builds/' + this.id);
     fs.mkdirSync(__dirname + '/public/builds/' + this.id);
 
-    let data = '', stdout = '';
+    let data = '', stdout = '', disassembly = '';
 
     let main = null;
 
@@ -196,10 +196,8 @@ function Builder(){
 			    '-dl',
 			    __dirname + '/public/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.elf'
 			],
-			{
-			    stdio:['ignore', out, 'ignore']
-			},
-			() => {
+			( error, da, stderr ) => {
+			    disassembly = da + stderr;
 			    this.complete();
 			    try{
 				fs.close(out);
@@ -232,7 +230,7 @@ function Builder(){
 			
 	this.result = JSON.stringify({
 	    path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
-	    disassembly: hasDA === false ? 'nope' : '/builds/' + this.id + '/disassembly.s',
+	    disassembly: disassembly,
 	    stdout
 	});
 	
