@@ -186,20 +186,26 @@ function Builder(){
 
 	try{
 	    
-	    fs.open( __dirname + '/public/builds/' + this.id + '/disassembly.s', 'w', out => {
+	    fs.open( __dirname + '/public/builds/' + this.id + '/disassembly.s', 'w', (err, out) => {
 
 		try{
 
 		    execFile(
 			__dirname + '/arduino/hardware/tools/avr/bin/avr-objdump',
 			[
-			    '-S',
+			    '-dl',
 			    __dirname + '/public/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.elf'
 			],
 			{
 			    stdio:['ignore', out, 'ignore']
 			},
-			() => this.complete()
+			() => {
+			    this.complete();
+			    try{
+				fs.close(out);
+			    }catch(ex){
+			    }
+			}
 		    );
 		    
 		}catch( ex ){
