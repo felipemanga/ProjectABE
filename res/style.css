@@ -421,6 +421,7 @@ canvas:-webkit-full-screen {
     overflow: hidden;
     float: left;
     box-sizing: border-box;
+    font-size: 12px;
 }
 
 #history, #da, #state {

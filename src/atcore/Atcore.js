@@ -898,6 +898,9 @@ const AtCODEC = [
         impl: [
             'WRd ← WRd + k;',
         ],
+	print:{
+	    d:d=>"WXYZ"[d]
+	},
         flags:'ZVNSC'
     },
     {
@@ -1759,6 +1762,9 @@ const AtCODEC = [
         impl: [
             'WRd ← WRd - k;',
         ],
+	print:{
+	    d:d=>"WXYZ"[d]
+	},
         flags:'ZVNS'
     },
     {
