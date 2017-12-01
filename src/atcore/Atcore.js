@@ -42,14 +42,12 @@ class Atcore {
 
         this.breakpoints = {};
 	this.breakpointHit = false;
+	this.lastReadValue = 0;
+	this.lastReadAddr = 0;
+	this.lastWriteValue = 0;
+	this.lastWriteAddr = 0;
 	this.history = window.execHistory = [];
-	this.trace = {};
-        /*
-        The I/O memory space contains 64 addresses for CPU peripheral functions as control registers, SPI, and other I/O functions.
-        The I/O memory can be accessed directly, or as the data space locations following those of the register file, 0x20 - 0x5F. In
-        addition, the ATmega328P has extended I/O space from 0x60 - 0xFF in SRAM where only the ST/STS/STD and
-        LD/LDS/LDD instructions can be used.        
-        */
+
         this.memory = new Uint8Array( 
             32 // register file
             + (0xFF - 0x1F) // io
@@ -160,8 +158,18 @@ class Atcore {
 		'\nSP: #' + this.sp.toString(16) +
 		'\n' + 
 		Array.prototype.map.call( this.reg, 
-					  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16) + '\t' + v 
-					).join('\n') 
+					  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16).padStart(2,"0") + '\t' + v 
+					).join('\n') +
+		'\n' + 
+		Array.from(this.wreg).slice(1).map(
+		    (v,i) => "XYZ"[i]+'   =\t#'+v.toString(16).padStart(2,"0") + '\t' + v 
+		).join('\n') +
+		'\n' + 
+		'#' + this.lastReadAddr.toString(16).padStart(4,"0") + " => #" + this.lastReadValue.toString(16).padStart(2, "0") +
+		'\n' +
+		'#' + this.lastWriteAddr.toString(16).padStart(4,"0") + " <= #" + this.lastWriteValue.toString(16).padStart(2, "0") +
+		'\n'
+	    
 	};
 
     }
@@ -197,8 +205,8 @@ class Atcore {
             if( ret !== undefined ) value = ret;
         }
 
-	if( this.trace[addr] )
-	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " <- #" + addr.toString(16) );
+	this.lastReadValue = value;
+	this.lastReadAddr = addr;
 
         return value;
     }
@@ -213,8 +221,8 @@ class Atcore {
             if( ret !== undefined ) value = ret;
         }
 
-	if( this.trace[addr] )
-	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " <- #" + addr.toString(16) );
+	this.lastReadValue = value;
+	this.lastReadAddr = addr;
 
         return (value >>> bit) & 1;
     }
@@ -229,8 +237,8 @@ class Atcore {
             if( ret !== undefined ) value = ret;
         }
 
-	if( this.trace[addr] )
-	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " -> #" + addr.toString(16) );
+	this.lastWriteValue = value;
+	this.lastWriteAddr = addr;
 
         return this.memory[ addr ] = value;
     }
@@ -248,8 +256,8 @@ class Atcore {
             if( ret !== undefined ) value = ret;
         }
 
-	if( this.trace[addr] )
-	    this.history.push( "#" + (this.pc<<1).toString() + ": " + value + " -> #" + addr.toString(16) );
+	this.lastWriteValue = value;
+	this.lastWriteAddr = addr;
 
         return this.memory[ addr ] = value;
     }
@@ -1040,7 +1048,10 @@ const AtCODEC = [
             'if( !SR@1 ){',
             '  PC ← PC + (k << 25 >> 25) + 1;',
             '}'],
-        cycles: 3
+        cycles: 3,
+	print:{
+	    k: (k, core) => "#" + ((core.pc + (k << 25 >> 25) + 1)<<1).toString(16)
+	}
     },
     {
         name: 'BRPL',

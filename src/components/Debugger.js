@@ -168,9 +168,9 @@ void loop() {
 	    });
     }
 
-    refreshState(){
+    refreshState( ignoreAuto ){
 
-	if( this.DOM.autoRefreshState.checked )
+	if( !ignoreAuto && this.DOM.autoRefreshState.checked )
 	    setTimeout( _ => this.refreshState(), 1000 );
 	
 	let src = core.state().replace(/\t/g, "    ").replace(/ /g, "&nbsp;").split("\n");
@@ -188,6 +188,7 @@ void loop() {
     }
 
     refreshDa(){
+	this.refreshState( true );
 	let pc = this.currentPC;
 	
 	let addr = parseInt( this.DOM.daAddress.value.replace(/^.*[x#]/, ""), 16 ) | 0;

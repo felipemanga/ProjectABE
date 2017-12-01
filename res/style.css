@@ -389,6 +389,39 @@ canvas:-webkit-full-screen {
     flex-grow: 1;
     flex-basis: auto;
 }
+#ideContainer[data-tab=da] #stateContainer {
+    display: flex;
+    position: fixed;
+    top: 0;
+    right: 0;
+    background: #789;
+    width: 260px;
+    height: 300px;
+    z-index: 1;
+}
+
+@media (min-aspect-ratio: 1/1) {
+    #ideContainer[data-tab=da] #stateContainer {
+	top: auto;
+	bottom: 0;	
+    }
+}
+
+#ideContainer[data-tab=da] #stateContainer .tabs {
+  display: none;
+}
+#ideContainer[data-tab=da] #stateContainer ul {
+  margin: 0;
+  height: 100%;
+  padding: 10px 0;
+}
+
+#ideContainer[data-tab=da] #state li {
+    width: 50%;
+    overflow: hidden;
+    float: left;
+    box-sizing: border-box;
+}
 
 #history, #da, #state {
     position: relative;
