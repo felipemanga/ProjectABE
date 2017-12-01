@@ -30,7 +30,7 @@ function Builder(){
     fs.mkdirSync(__dirname + '/builds/' + this.id);
     fs.mkdirSync(__dirname + '/public/builds/' + this.id);
 
-    let data = '';
+    let data = '', stdout = '';
 
     let main = null;
 
@@ -158,18 +158,16 @@ function Builder(){
 		    '--pref', 'build.path=' + __dirname + '/public/builds/' + this.id + '/',
 		    '--verify', main
 		],
-		(error, stdout, stderr) => {
-		    
-		    busy = false;
-		    this.state = "DONE";
+		(error, _stdout, stderr) => {
 
+		    stdout = _stdout;
+		    
 		    if( error ){
+			busy = false;
+			this.state = "DONE";
 			this.result = "ERROR: " + error + " " + stderr;
 		    }else{
-			this.result = JSON.stringify({
-			    path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
-			    stdout
-			});
+			this.disassemble();
 		    }
 		    
 		});
@@ -181,6 +179,56 @@ function Builder(){
 	    busy = false;
 	    
 	}
+	
+    };
+
+    this.disassemble = _ =>{
+
+	try{
+	    
+	    fs.open( __dirname + '/public/builds/' + this.id + '/disassembly.s', 'w', out => {
+
+		try{
+
+		    execFile(
+			__dirname + '/arduino/hardware/tools/avr/bin/avr-objdump',
+			[
+			    '-S',
+			    __dirname + '/public/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.elf'
+			],
+			{
+			    stdio:['ignore', out, 'ignore']
+			},
+			() => this.complete()
+		    );
+		    
+		}catch( ex ){
+		    this.complete(false);
+		}
+		
+	    });
+		
+	    
+	}catch( ex ){
+	    
+	    this.result = "ERROR: " + ex;
+	    this.state = "DONE";
+	    busy = false;
+	    
+	}
+	
+    };
+
+    this.complete = hasDA => {
+	
+	busy = false;
+	this.state = "DONE";
+			
+	this.result = JSON.stringify({
+	    path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
+	    disassembly: hasDA === false ? 'nope' : '/builds/' + this.id + '/disassembly.s',
+	    stdout
+	});
 	
     };
     
