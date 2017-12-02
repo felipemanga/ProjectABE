@@ -19,10 +19,12 @@ class Debugger {
 	this.DOM = DOM;
 	this.history = [];
 	this.da = [];
+	this.RAM = [];
 	this.state = [];
 	this.hints = {};
 	this.comments = {};
 	this.currentPC = null;
+	this.ramComments = {};
 
 	this.code = null;
 	this.compileId = 0;
@@ -102,10 +104,13 @@ void loop() {
 	this.commit();
 	
 	this.DOM.compile.style.display = "none";
+
+	let src = Object.assign({}, this.model.getItem("app.source"));
+	delete src["disassembly.s"];
 	
 	fetch( compiler + "build", {
 	    method:"POST",
-	    body:JSON.stringify( this.model.getItem("app.source") )
+	    body:JSON.stringify( src )
 	})
 	    .then( rsp => rsp.text() )
 	    .then( txt => {
@@ -145,6 +150,7 @@ void loop() {
 		    core.history.push( data.stdout );
 		    this.pool.call("loadFlash");
 		    this.DOM.compile.style.display = "initial";
+		    this.model.setItem(["app","source", "disassembly.s"], data.disassembly);
 		    
 		}else if( /^ERROR[\s\S]*/.test(txt) ){
 
@@ -166,6 +172,86 @@ void loop() {
 		this.DOM.compile.style.display = "initial";
 		
 	    });
+    }
+    
+    refreshRAM( ignoreAuto ){
+
+	if( !ignoreAuto && this.DOM.autoRefreshRAM.checked )
+	    setTimeout( _ => this.refreshRAM(), 1000 );
+	
+	let src = core.memory;
+	
+	while( this.RAM.length > src.length )
+	    this.DOM.RAM.removeChild( this.RAM.pop() );
+	
+	while( this.RAM.length < src.length )
+	    this.RAM.push( this.DOM.create( "li", this.DOM.RAM, {
+		title:"0x" + this.RAM.length.toString(16).padStart(4,"0")
+	    }) );
+
+	this.RAM.forEach( (li, idx) => {
+	    li.textContent = src[idx].toString(16).padStart(2, "0");
+	});
+	
+    }
+
+    openRAMTT( _, evt ){
+	let tt = this.DOM.RAMTT;
+	
+	let addr = parseInt( evt.target.title, 16 ) || 0;
+
+	this.ttAddr = addr;
+
+	Object.assign(tt.style, {
+	    top: evt.target.offsetTop + "px",
+	    left: evt.target.offsetLeft + "px",
+	    display: "block"
+	});
+
+	this.DOM.RAMTTvalue.value = core.memory[ addr ].toString(16).padStart(2, "0");
+	this.DOM.RAMTTread.checked = !!core.readBreakpoints[ addr ];
+	this.DOM.RAMTTwrite.checked = !!core.writeBreakpoints[ addr ];
+	this.DOM.comment.value = this.ramComments[ addr ] || "";
+	this.DOM.RAMTTaddr.textContent = "0x" + addr.toString(16).padStart(4, "0");
+	
+    }
+
+    toggleRAMReadBP(){
+	let addr = this.ttAddr || 0;
+	core.readBreakpoints[ addr ] = !core.readBreakpoints[ addr ];
+	this.updateRAMColor();
+    }
+
+    toggleRAMWriteBP(){
+	let addr = this.ttAddr || 0;
+	core.writeBreakpoints[ addr ] = !core.writeBreakpoints[ addr ];
+	this.updateRAMColor();
+    }
+
+    updateRAMColor(){
+	let color = [0,0,0];
+	if( core.readBreakpoints[ this.ttAddr ] ) color[0] = 255;
+	if( core.writeBreakpoints[ this.ttAddr ] ) color[1] = 255;
+	if( this.ramComments[ this.ttAddr ] ) color[2] = 255;
+	color = color.join(",");
+	if( color == "0,0,0" ) color = '';
+	else color = "rgba(" + color + ",0.5)";
+	this.RAM[ this.ttAddr ].style.backgroundColor = color;
+    }
+
+    closeRAMTT(){
+	this.DOM.RAMTT.style.display = "none";
+    }
+
+    setTTvalue(){
+	core.memory[ this.ttAddr ] = parseInt( this.DOM.RAMTTvalue.value.trim().replace(/^#|^0x/, ''), 16 ) || 0;
+	this.RAM[ this.ttAddr ].textContent = core.memory[ this.ttAddr ];
+    }
+
+    setTTComment(){
+	this.ramComments[ this.ttAddr ] = this.DOM.comment.value.trim();
+	this.RAM[ this.ttAddr || 0 ].title = "0x" + this.ttAddr.toString(16).padStart(4, "0") + " " + this.ramComments[ this.ttAddr ];
+	this.updateRAMColor();
     }
 
     refreshState( ignoreAuto ){

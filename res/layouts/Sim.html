@@ -8,6 +8,7 @@
       <button click-toggle="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
       <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
       <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
+      <button click-toggle="#ideContainer@data-tab=ram" click-call="refreshRAM">RAM</button>
       <div class="expand"> </div>
 
       <button click-call="reqReset" title="reset (F6)" class="dbgbtn">&#8635;</button>
@@ -38,6 +39,29 @@
 	</label>
       </div>
       <ul id="history"></ul>
+    </div>
+    
+    <div class="verticalContainer" id="ramContainer">
+      <div class="horizontalContainer tabs">
+	<button click-call="refreshRAM">Refresh</button>
+	<label>
+	  <input type="checkbox" id="autoRefreshRAM" change-call="refreshRAM"> auto
+	</label>
+      </div>
+      <div>
+	<ul id="RAM" click-call="openRAMTT"></ul>
+	<div id="RAMTT">
+	  <div id="RAMTTclose" click-call="closeRAMTT">X</div>
+	  <div id="RAMTTaddr"></div>
+	  <div>Value:</div>
+	  <input id="RAMTTvalue" change-call="setTTvalue">
+	  <div>Comment:</div>
+	  <input id="comment" change-call="setTTComment">
+	  <div>Break after:</div>
+	  <label><input type="checkbox" change-call="toggleRAMReadBP" id="RAMTTread"> read</label>
+	  <label><input type="checkbox" change-call="toggleRAMWriteBP" id="RAMTTwrite"> write</label>
+	</div>
+      </div>
     </div>
     
     <div class="verticalContainer" id="daContainer">

@@ -41,6 +41,8 @@ class Atcore {
 	this.i8a = new Int8Array(4);
 
         this.breakpoints = {};
+	this.readBreakpoints = {};
+	this.writeBreakpoints = {};
 	this.breakpointHit = false;
 	this.lastReadValue = 0;
 	this.lastReadAddr = 0;
@@ -92,6 +94,8 @@ class Atcore {
 	    history:this.history,
 	    errors:[],
 	    breakpoints: this.breakpoints,
+	    readBreakpoints: this.readBreakpoints,
+	    writeBreakpoints: this.writeBreakpoints,
 	    enableDebugger:() => { this.enableDebugger(); },
 	    memory: this.memory,
 	    
@@ -208,6 +212,11 @@ class Atcore {
 	this.lastReadValue = value;
 	this.lastReadAddr = addr;
 
+	if( this.debuggerEnabled && this.readBreakpoints[addr] ){
+	    this.endTick = this.tick;
+	    this.breakpointHit = true;
+	}
+
         return value;
     }
 
@@ -224,6 +233,11 @@ class Atcore {
 	this.lastReadValue = value;
 	this.lastReadAddr = addr;
 
+	if( this.debuggerEnabled && this.readBreakpoints[addr] ){
+	    this.endTick = this.tick;
+	    this.breakpointHit = true;
+	}
+
         return (value >>> bit) & 1;
     }
 
@@ -239,6 +253,11 @@ class Atcore {
 
 	this.lastWriteValue = value;
 	this.lastWriteAddr = addr;
+	
+	if( this.debuggerEnabled && this.writeBreakpoints[addr] ){
+	    this.endTick = this.tick;
+	    this.breakpointHit = true;
+	}
 
         return this.memory[ addr ] = value;
     }
@@ -259,7 +278,15 @@ class Atcore {
 	this.lastWriteValue = value;
 	this.lastWriteAddr = addr;
 
-        return this.memory[ addr ] = value;
+        this.memory[ addr ] = value;
+
+	if( this.debuggerEnabled && this.writeBreakpoints[ addr ] ){
+	    this.endTick = this.tick;
+	    this.breakpointHit = true;
+	}
+
+	return this.memory[ addr ];
+	
     }
 
     enableDebugger(){
@@ -286,8 +313,13 @@ class Atcore {
 
 	    while( this.tick < this.endTick ){
 
-		while( this.history.length > 100 ) this.history.shift();
-		this.history.push("#" + (this.pc<<1).toString(16));
+		if( !this.breakpointHit && (this.tick >= this.endTick || this.tick - lastUpdate > 1000) ){
+		    lastUpdate = this.tick;
+		    this.updatePeriferals();
+		}
+		
+		// while( this.history.length > 100 ) this.history.shift();
+		// this.history.push("#" + (this.pc<<1).toString(16));
 		
 		if( !this.sleeping ){
 
@@ -300,11 +332,7 @@ class Atcore {
 		}else{
 		    this.tick += 100;
 		}
-		
-		if( this.tick >= this.endTick || this.tick - lastUpdate > 1000 ){
-		    lastUpdate = this.tick;
-		    this.updatePeriferals();
-		}
+
 
 	    }
 	    
@@ -699,10 +727,17 @@ class Atcore {
         str = str.replace(/\(([XYZ])(\+[0-9]+)?\)\s*←(.*);?$/g, (m, n, off, v) => 'this.write( wreg[' + (n.charCodeAt(0)-87) + ']' + (off||'') + ', ' + v + ');');
         str = str.replace(/\(([XYZ])(\+[0-9]+)?\)/g, (m, n, off) => 'this.read( wreg[' + (n.charCodeAt(0)-87) + ']' + (off||'') + ', this.pc )');
 
-        str = str.replace(/\(STACK\)\s*←/g, (m, n) => 'memory[sp--] =');
-        str = str.replace(/\((STACK)\)/g, (m, n) => 'memory[++sp]');
-        str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nmemory[sp--] = t1>>8;\nmemory[sp--] = t1;\n');
-        str = str.replace(/\((STACK2)\)/g, '(memory[++sp] + (memory[++sp]<<8))');
+	if( !this.debuggerEnabled ){
+            str = str.replace(/\(STACK\)\s*←/g, 'memory[sp--] =');
+            str = str.replace(/\((STACK)\)/g, 'memory[++sp]');
+            str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nmemory[sp--] = t1>>8;\nmemory[sp--] = t1;\n');
+            str = str.replace(/\((STACK2)\)/g, '(memory[++sp] + (memory[++sp]<<8))');
+	}else{
+            str = str.replace(/\(STACK\)\s*←(.*)/g, 'this.write(sp--, $1)');
+            str = str.replace(/\((STACK)\)/g, 'this.read(++sp)');
+            str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nthis.write(sp--, t1>>8);\nthis.write(sp--, t1);\n');
+            str = str.replace(/\((STACK2)\)/g, '(this.read(++sp) + (this.read(++sp)<<8))');
+	}
 
         str = str.replace(/⊕/g, '^');
         str = str.replace(/•/g, '&');

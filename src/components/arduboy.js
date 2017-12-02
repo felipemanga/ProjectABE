@@ -42,7 +42,16 @@ class Arduboy {
 
     loadFlash(){
 
-	let breakpoints = this.core && core.breakpoints;
+	let preserve = null;
+
+	if( this.core && this.core.breakpointsEnabled ){
+	    preserve = {
+		breakpoints: core.breakpoints,
+		readBreakpoints: core.readBreakpoints,
+		writeBreakpoints: core.writeBreakpoints
+	    };
+	}
+
 	this.core = null;
 	this.state = LOADING;
 	
@@ -53,7 +62,7 @@ class Arduboy {
 	    
 	    Hex.parseURL( url, this.core.flash, (success) => {
 		if( success )
-		    this.initCore( breakpoints );
+		    this.initCore( preserve );
 	    });
 	    return;
 	    
@@ -64,7 +73,7 @@ class Arduboy {
 		
 	    this.core = Atcore.ATmega328P();
 	    Hex.parse( hex, this.core.flash );
-	    this.initCore( breakpoints );
+	    this.initCore( preserve );
 	    return;
 	    
 	}
@@ -76,7 +85,7 @@ class Arduboy {
 	    if( !/.*\/?null$/.test(url) ){
 		core.history.push("Loading hex from URL");
 		Hex.parseURL( url, this.core.flash, success => {
-		    if( success ) this.initCore( breakpoints );
+		    if( success ) this.initCore( preserve );
 		});
 	    }else
 		this.core.enableDebugger();
@@ -90,7 +99,7 @@ class Arduboy {
 	    
 	    this.core = Atcore.ATmega32u4();
 	    Hex.parse( hex, this.core.flash );
-	    this.initCore( breakpoints );
+	    this.initCore( preserve );
 	    return;
 	    
 	}
@@ -110,7 +119,11 @@ class Arduboy {
 	if( oldCore ){
 	    this.core.flash.set( oldCore.flash );
 	}
-	this.initCore( oldCoreIF && oldCoreIF.breakpoints );
+	this.initCore( oldCoreIF && {
+	    breakpoints:oldCoreIF.breakpoints,
+	    readBreakpoints:oldCoreIF.readBreakpoints,
+	    writeBreakpoints:oldCoreIF.writeBreakpoints
+	});
     }
 
     resume(){
@@ -172,9 +185,9 @@ class Arduboy {
 	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }
 
-    initCore( breakpoints ){
+    initCore( preserve ){
 
-	self.core.history.push("Initializing core" + (breakpoints?" with debugger enabled":"") );
+	self.core.history.push("Initializing core" + (preserve?" with debugger enabled":"") );
 	
 	window.onerror = evt => {
 	    self.core.history.push( "ERROR: " + evt.toString() );
@@ -198,9 +211,10 @@ class Arduboy {
             PORTF:{}
 	};
 	
-	if( breakpoints ){
+	if( preserve ){
 	    core.enableDebugger();
-	    Object.assign( core.breakpoints, breakpoints );
+	    for( let k in preserve )
+		Object.assign( core[k], preserve[k] );
 	}
 
 	Object.keys(callbacks).forEach( k =>
