@@ -185,40 +185,28 @@ function Builder(){
     this.disassemble = _ =>{
 
 	try{
-	    
-	    fs.open( __dirname + '/public/builds/' + this.id + '/disassembly.s', 'w', (err, out) => {
 
-		try{
-
-		    execFile(
-			__dirname + '/arduino/hardware/tools/avr/bin/avr-objdump',
-			[
-			    '-dl',
-			    __dirname + '/public/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.elf'
-			],
-			( error, da, stderr ) => {
-			    disassembly = da + stderr;
-			    this.complete();
-			    try{
-				fs.close(out);
-			    }catch(ex){
-			    }
-			}
-		    );
-		    
-		}catch( ex ){
-		    this.complete(false);
+	    execFile(
+		__dirname + '/arduino/hardware/tools/avr/bin/avr-objdump',
+		[
+		    '-dl',
+		    __dirname + '/public/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.elf'
+		],
+		{
+		    maxbuffer:3*1024*1024
+		},
+		( error, da, stderr ) => {
+		    disassembly = da + stderr;
+		    this.complete();
+		    try{
+			fs.close(out);
+		    }catch(ex){
+		    }
 		}
-		
-	    });
-		
-	    
+	    );
+		    
 	}catch( ex ){
-	    
-	    this.result = "ERROR: " + ex;
-	    this.state = "DONE";
-	    busy = false;
-	    
+	    this.complete(false);
 	}
 	
     };
