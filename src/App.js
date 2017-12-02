@@ -14,14 +14,20 @@ class App {
         root: [Model, {scope:"root"}]
     }
 
-	iemap = {
-		"Up":"ArrowUp",
-		"Down":"ArrowDown",
-		"Left":"ArrowLeft",
-		"Right":"ArrowRight",
-		"Alt":"AltLeft",
-		"CONTROL":"ControlLeft"
-	}
+    iemap = {
+	"Up":"ArrowUp",
+	"Down":"ArrowDown",
+	"Left":"ArrowLeft",
+	"Right":"ArrowRight",
+	"Alt":"AltLeft",
+	"CONTROL":"ControlLeft"
+    }
+
+    unblockable = {
+	"F6":true,
+	"F7":true,
+	"F8":true
+    }
 
     mappings = {
     }
@@ -50,8 +56,13 @@ class App {
     init(){
 
 	document.body.addEventListener("keydown", evt => {
+
 	    let code = evt.code;
 	    if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
+
+	    if( (evt.target.tagName == "INPUT" || evt.target.tagName == "TEXTAREA") && !this.unblockable[code] )
+		return;
+
 	    let ret = this.pool.call("onPress" + (this.mappings[ code ] || code) );
 	    if( ret === true ){
 		evt.preventDefault();
@@ -61,8 +72,13 @@ class App {
 	});
 
 	document.body.addEventListener("keyup", evt => {
+
 	    let code = evt.code;
 	    if( code === undefined ) code = this.iemap[ evt.key ] || ("Key" + evt.key.toUpperCase());
+
+	    if( (evt.target.tagName == "INPUT" || evt.target.tagName == "TEXTAREA") && !this.unblockable[code] )
+		return;
+
 	    let ret = this.pool.call("onRelease" + (this.mappings[ code ] || code) );
 	    if( ret === true ){
 		evt.preventDefault();

@@ -389,7 +389,7 @@ canvas:-webkit-full-screen {
     right: 0;
     background: #789;
     width: 260px;
-    height: 300px;
+    height: 316px;
     z-index: 1;
 }
 
@@ -630,3 +630,17 @@ canvas:-webkit-full-screen {
     color: white;
     cursor: pointer;
 }
+
+.unconditional{ 
+    border-radius: 20px 0px 0px 20px; 
+    box-shadow: 0px 0px 1px 1px red inset; 
+}
+
+.paused{
+    background: aquamarine;
+}
+
+.invalid{ 
+    border-radius: 20px 0px 0px 20px; 
+    box-shadow: 0px 0px 1px 1px yellow inset; 
+} 

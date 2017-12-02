@@ -165,8 +165,8 @@ class Atcore {
 					  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16).padStart(2,"0") + '\t' + v 
 					).join('\n') +
 		'\n' + 
-		Array.from(this.wreg).slice(1).map(
-		    (v,i) => "XYZ"[i]+'   =\t#'+v.toString(16).padStart(2,"0") + '\t' + v 
+		Array.from(this.wreg).map(
+		    (v,i) => "WXYZ"[i]+'   =\t#'+v.toString(16).padStart(2,"0") + '\t' + v 
 		).join('\n') +
 		'\n' + 
 		'#' + this.lastReadAddr.toString(16).padStart(4,"0") + " => #" + this.lastReadValue.toString(16).padStart(2, "0") +
@@ -685,8 +685,14 @@ class Atcore {
         str = str.replace(/SR@([0-9]+)\s*/g, '(sr$1) ');
         str = str.replace(/SR/g, 'sr');
 
-        str = str.replace(/WR([0-9]+)\s*←/g, 'r = wreg[$1] =');
-        str = str.replace(/WR([0-9]+)@([0-9]+)\s*←(.*)$/g, (m, num, bit, assign)=>`r = wreg[${num}] = (wreg[${num}] & ~(1<<${bit})) | (((!!(${assign}))|0)<<${bit});`);
+        str = str.replace(/WR([0-9]+)\s*←/g, (m, num) =>{
+	    op.end += `wreg[${num}] = r;\n`;
+	    return 'r = ';
+	});
+        str = str.replace(/WR([0-9]+)@([0-9]+)\s*←(.*)$/g, (m, num, bit, assign)=>{
+	    op.end += `wreg[${num}] = r;\n`;
+	    return `r = (wreg[${num}] & ~(1<<${bit})) | (((!!(${assign}))|0)<<${bit});`
+	});
         str = str.replace(/WR([0-9]+)\s*¯/g, '(~wreg[$1]) ');
         str = str.replace(/WR([0-9]+)@([0-9]+)\s*¯/g, '(~(wreg[$1]>>>$2)&1) ');
         str = str.replace(/WR([0-9]+)@([0-9]+)\s*/g, '((wreg[$1]>>>$2)&1) ');
@@ -936,6 +942,7 @@ const AtCODEC = [
 	print:{
 	    d:d=>"WXYZ"[d]
 	},
+	debug: true,
         flags:'ZVNSC'
     },
     {
@@ -962,7 +969,7 @@ const AtCODEC = [
         str: '1001010ddddd0101',
         impl: [
             'SR@0 ← Rd • 1',
-            'Rd ← Rd >> 1;'
+            'Rd ← Rd ^ 0 >> 1;' // xor zero converts to signed
         ],
         flags:'zns'
     },
@@ -1269,7 +1276,7 @@ const AtCODEC = [
         str:'1001010100001001',
         cycles:3,
         impl: [
-            '(STACK2) ← PC + 2',
+            '(STACK2) ← PC + 1',
             'PC ← WR3'
             ]
         // end:true

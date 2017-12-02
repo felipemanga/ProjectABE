@@ -23,6 +23,8 @@ class Debugger {
 	this.state = [];
 	this.hints = {};
 	this.comments = {};
+	this.srcmap = [];
+	this.rsrcmap = {};
 	this.currentPC = null;
 	this.ramComments = {};
 
@@ -59,28 +61,135 @@ void loop() {
 	    });
 	}
 
-	if( !this.editor ){
-	    this.code = ace.edit( this.DOM.ace );
-	    this.code.$blockScrolling = Infinity;
-	    this.code.on( "change", _ => this.commit );
-	    this.code.setTheme("ace/theme/monokai");
-	    this.code.getSession().setMode("ace/mode/c_cpp");
-            this.code.commands.addCommand({
-                name: "replace",
-                bindKey: {win: "Ctrl-Enter", mac: "Command-Option-Enter"},
-                exec: () => this.compile()
-            });	    
-	}
+	this.initEditor();
 
 	this.changeSourceFile();
 	
     }
 
+    initEditor(){
+	if( this.code )
+	    return;
+	
+	this.code = ace.edit( this.DOM.ace );
+	this.code.$blockScrolling = Infinity;
+	this.code.setTheme("ace/theme/monokai");
+	this.code.getSession().setMode("ace/mode/c_cpp");
+	this.code.resize(true);
+	
+	this.code.on( "change", _ => this.commit );
+	
+	this.code.on("guttermousedown", e => {
+	    let target = e.domEvent.target; 
+	    if (target.className.indexOf("ace_gutter-cell") == -1) 
+		return; 
+	    if (!this.code.isFocused()) 
+		return;
+	    /*
+	    if (e.clientX > 25 + target.getBoundingClientRect().left) 
+		return; 
+	    */
+
+	    e.stop();
+	    
+	    var line = e.getDocumentPosition().row+1;
+	    var file = this.DOM.currentFile.value;
+	    var addr = this.rsrcmap[file+":"+line];
+	    if( addr !== undefined ){
+		if( core.breakpoints[addr] )
+		    core.breakpoints[addr] = false;
+		else
+		    core.breakpoints[addr] = () => true;
+		
+		core.enableDebugger();
+		this.changeBreakpoints();
+	    }else{
+		this.code.session.setBreakpoint( line-1, "invalid");
+	    }
+	    
+	});
+		
+        this.code.commands.addCommand({
+            name: "replace",
+            bindKey: {win: "Ctrl-Enter", mac: "Command-Option-Enter"},
+            exec: () => this.compile()
+        });	    
+
+    }
+
+    changeBreakpoints(){
+	this.code.ignoreBreakpointChanges = true;
+	this.code.session.clearBreakpoints();
+	let paused = null;
+	for( let addr in core.breakpoints ){
+	    
+	    if( addr in this.srcmap && core.breakpoints[addr] ){
+		
+		let c = "unconditional";
+		if( addr == this.currentPC ){
+		    c += " paused";
+		    paused = true;
+		}
+		this.code.session.setBreakpoint( this.srcmap[addr].line-1, c );
+	    }
+	    
+	}
+	
+	if( !paused && this.srcmap[ this.currentPC ] ){
+	    this.code.session.setBreakpoint( this.srcmap[this.currentPC].line-1, "paused" );
+	}
+	
+	this.code.ignoreBreakpointChanges = false;
+	
+    }
+
     changeSourceFile(){
 	this.code.setValue( this.model.getItem("app.source", {})[ this.DOM.currentFile.value ] || "" );
+	this.changeBreakpoints();
     }
 
     initHints( txt ){
+	let source = this.model.getItem("app.source");
+	this.srcmap = [];
+	this.rsrcmap = {};
+	txt.replace(
+		/\n([\/a-zA-Z0-9._\- ]+):([0-9]+)\n([\s\S]+?)(?=$|\n[0-9a-f]+ <[^>]+>:|\n(?:[\/a-zA-Z0-9._\-<> ]+:[0-9]+\n))/g,
+	    (m, file, line, code)=>{
+		 
+		file = file.replace(/^\/app\/builds\/[0-9]+\//, '');
+		
+		file = file.replace(/^\/app\/public\/builds\/[0-9]+\/sketch\/(.*)/, (match,name) => {
+		    for( let candidate in source ){
+			candidate = '/' + candidate;
+			if( candidate.substr(candidate.length-name.length-1) == "/" + name ){
+			    return candidate.substr(1);
+			}			  
+		    }
+		    
+		});
+		
+		if( !(file in source) )
+		    return '';
+		
+		code = '\n' + code;
+		let pos = 0;
+		code.replace(
+			/(?:[\s\S]*?\n)\s+([0-9a-f]+):\t[ a-f0-9]+\t(?:[^\n\r]+)/g,
+		    (m, addr) => {
+			
+			addr = parseInt(addr, 16)>>1;
+			
+			if( !pos )
+			    this.rsrcmap[ file+":"+line ] = addr;
+			
+			this.srcmap[ addr ] = {file, line, offset:pos++};
+
+			return '';
+		    }
+		);
+		
+		return '';
+	    });
 	
 	this.hints = {};
 	txt = txt.replace(/\n([0-9a-f]+)\s+(<[^>]+>:)(?:\n\s+[0-9a-f]+:[^\n]+|\n+\s+\.\.\.[^\n]*)+/g, (txt, addr, lbl) =>{
@@ -150,7 +259,10 @@ void loop() {
 		    core.history.push( data.stdout );
 		    this.pool.call("loadFlash");
 		    this.DOM.compile.style.display = "initial";
+		    
+		    let currentFile = this.DOM.currentFile.value;
 		    this.model.setItem(["app","source", "disassembly.s"], data.disassembly);
+		    this.DOM.currentFile.value = currentFile;
 		    
 		}else if( /^ERROR[\s\S]*/.test(txt) ){
 
@@ -332,9 +444,29 @@ void loop() {
 
     onHitBreakpoint( pc ){
 	this.currentPC = pc;
+	let srcref = this.srcmap[pc];
+	
+	if(
+	    srcref &&
+		srcref.offset &&
+		!(pc in core.breakpoints || pc in core.readBreakpoints || pc in core.writeBreakpoints) &&
+		this.DOM.element.getAttribute("data-tab") == "source"
+	){
+	    this.reqStep();
+	    return;
+	}
+	
 	this.DOM.daAddress.value = (Math.max(pc-5,0)<<1).toString(16);
 	this.refreshDa();
-	this.DOM.element.setAttribute("data-tab", "da");
+	if( srcref && !srcref.offset && this.model.getItem(["app", "source", srcref.file]) ){
+	    this.DOM.element.setAttribute("data-tab", "source");
+	    this.DOM.currentFile.value = srcref.file;
+	    this.changeSourceFile();
+	    this.code.scrollToLine( srcref.line, true, true, _=>{} );
+	    this.code.gotoLine( srcref.line, 0, true );
+	}else{
+	    this.DOM.element.setAttribute("data-tab", "da");
+	}
 	this.DOM.element.setAttribute("paused", "true");
     }
 

@@ -464,9 +464,9 @@ class Arduboy {
 	}
 
 	if( this.core.breakpointHit ){
-	    this.pool.call("onHitBreakpoint", this.core.pc);
 	    this.core.breakpointHit = false;
 	    this.state = PAUSED;
+	    this.pool.call("onHitBreakpoint", this.core.pc);
 	}
 	
 	for( let i=0, l=this.tick.length; i<l; ++i )

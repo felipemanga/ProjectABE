@@ -7,7 +7,9 @@ import Pool from './pool.js';
 
 function read( str, ctx ){
 
-    var parts = str.split("."), i=0;
+    var parts, i=0;
+    if( typeof str == "string" ) parts = str.split(".");
+    else parts = str;    
 
     while( i<parts.length && ctx )
         ctx = ctx[ parts[i++] ];
