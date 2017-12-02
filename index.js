@@ -193,7 +193,7 @@ function Builder(){
 		    __dirname + '/public/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.elf'
 		],
 		{
-		    maxbuffer:3*1024*1024
+		    maxBuffer:3*1024*1024
 		},
 		( error, da, stderr ) => {
 		    disassembly = da + stderr;
