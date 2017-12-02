@@ -134,7 +134,7 @@ class Atcore {
 			let v;
 			if( inst.print && inst.print[k] )
 			    v = inst.print[k]( inst.argv[k], this );
-			else if( k == "r" || k == "d" )
+			else if( k == "r" || k == "d" || k == "x" )
 			    v = "r" + inst.argv[k];
 			else if( k == "A" || k == "k" || k == "K" )
 			    v = "0x" + inst.argv[k].toString(16);
