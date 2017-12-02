@@ -142,14 +142,6 @@ h2 {
     flex-grow: 0;
 }
 
-#consoleContainer[data-current=fileList] #fileList,
-#consoleContainer[data-current=build] #build,
-#consoleContainer[data-current=debug] #debug,
-#consoleContainer[data-current=config] #config
-{
-    display:block;
-}
-
 #fileList>ul {
     background: #345;
     list-style: none;
@@ -372,7 +364,7 @@ canvas:-webkit-full-screen {
     display: flex;
 }
 
-#sourceContainer, #daContainer, #stateContainer, #historyContainer {
+#sourceContainer, #daContainer, #stateContainer, #historyContainer, #ramContainer {
     display: none;
     height: 0;
     flex-grow: 0;
@@ -382,7 +374,8 @@ canvas:-webkit-full-screen {
 #ideContainer[data-tab=history] #historyContainer,
 #ideContainer[data-tab=da] #daContainer,
 #ideContainer[data-tab=source] #sourceContainer,
-#ideContainer[data-tab=state] #stateContainer
+#ideContainer[data-tab=state] #stateContainer,
+#ideContainer[data-tab=ram] #ramContainer
 {
     display: flex;
     height: auto;
@@ -591,4 +584,49 @@ canvas:-webkit-full-screen {
 #da li .opContainer {
     padding-left: 20px;
     margin: 3px;
+}
+
+#RAM {
+    font-family: monospace;
+    font-size: 16px;
+    padding: 10px 0px 10px 10px;
+    margin: 0;
+    position: absolute;
+    width: 740px;
+    background: #234;
+    margin-left: 15px;    
+}
+
+#RAM li {
+    float: left;
+    padding:3px;
+    margin:0px;
+    width:16px;
+    height:16px;
+    overflow:hidden;
+}
+
+#RAM li:nth-child(16n){
+    margin-right: 10px;
+}
+
+#RAMTT {
+    position: absolute;
+    background: #ABC;
+    padding: 10px;
+    color: #123;
+    display: none;
+}
+
+#RAMTTclose {
+    float: right;
+    background: red;
+    width: 16px;
+    height: 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: center;
+    padding-top: 3px;
+    color: white;
+    cursor: pointer;
 }
