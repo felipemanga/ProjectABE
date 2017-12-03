@@ -165,7 +165,7 @@ nav button {
     font-size: inherit;
 }
 
-#envContainer .newProject {
+#envContainer .newProject, .FileSaver {
     text-decoration: none;
     color: white;
     background: #567;
@@ -175,6 +175,11 @@ nav button {
     top: 0;
     right: 0;
     margin: 10px;
+}
+
+.FileSaver {
+    top: auto;
+    bottom: 0;
 }
 
 #simBox{
@@ -656,3 +661,4 @@ canvas:-webkit-full-screen {
     border-radius: 20px 0px 0px 20px; 
     box-shadow: 0px 0px 1px 1px yellow inset; 
 } 
+

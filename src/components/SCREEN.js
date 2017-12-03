@@ -4,6 +4,7 @@ class SCREEN {
     }
     
     constructor( DOM ){
+	this.DOM = DOM;
 	
 	let canvas = this.canvas = DOM.screen;
 	if( !canvas ) throw "No canvas in Arduboy element";
@@ -16,6 +17,11 @@ class SCREEN {
 	this.ctx = canvas.getContext("2d");
         this.ctx.imageSmoothingEnabled = false;
 	this.ctx.msImageSmoothingEnabled = false;
+
+	this.gif = null;
+	this.isRecording = false;
+	this.recordingSkip = 0;
+	this.saver = null;
 
 	this.fb = this.createBuffer();
 	this.fbON = this.createBuffer();
@@ -43,8 +49,44 @@ class SCREEN {
 	
     }
 
+    toggleGIFRecording(){
+	
+	let gif = this.gif;
+	if( !gif ){
+	    
+	    gif = this.gif = new GIF({
+		workerScript:"gif.worker.js",
+		width: this.canvas.width,
+		height: this.canvas.height
+	    });
+	    
+	    gif.on('finished', (blob, data) => {
+		
+		if( !this.saver )
+		    this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"Save Recording"}, document.body);
+		else
+		    URL.revokeObjectURL( this.saver.href );
+		
+		this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
+		
+	    });
+
+	}
+	
+	
+	if( this.isRecording )	    
+	    gif.render();
+	
+	this.isRecording = !this.isRecording;
+	
+    }
+
     setActiveView(){
 	this.pool.remove(this);
+    }
+
+    onPressKeyR(){
+	this.toggleGIFRecording();
     }
 
     onPressKeyF(){
@@ -77,10 +119,20 @@ class SCREEN {
     
     
     tick(){
-	if( this.dirty ){
-	    this.ctx.putImageData( this.activeBuffer, 0, 0 );
-	    this.dirty = false;
+	if( !this.dirty )
+	    return;
+
+	this.ctx.putImageData( this.activeBuffer, 0, 0 );
+	this.dirty = false;
+	
+//	let now = performance.now();
+//	let delta = now - this.lastFrameTime;
+	if( this.isRecording && this.recordingSkip-- <= 0 ){
+	    this.recordingSkip = 5;
+//	    this.lastFrameTime = now;
+	    this.gif.addFrame( this.canvas, { delay:1/60 } );
 	}
+	    
     }
 
     createBuffer(){
