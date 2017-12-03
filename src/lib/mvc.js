@@ -498,6 +498,8 @@ function prepareDOM( dom, controller, _model, viewdom ){
 
     function renderList( element, template, arr ){
 
+	let value = element.value;
+
         while( element.children.length )
             element.removeChild( element.children[0] );
         
@@ -517,6 +519,8 @@ function prepareDOM( dom, controller, _model, viewdom ){
             });
 
         }
+
+	element.value = value;
 
     }
 

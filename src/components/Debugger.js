@@ -61,6 +61,17 @@ void loop() {
 	    });
 	}
 
+	let main = null;
+	for( let k in this.model.getItem("app.source") ){
+	    if( /.*\.ino$/.test(k) ){
+		main = k;
+		break;
+	    }		
+	}
+
+	if( main !== null )
+	    this.DOM.currentFile.value = main;
+
 	this.initEditor();
 
 	this.changeSourceFile();
@@ -269,9 +280,7 @@ void loop() {
 		    this.pool.call("loadFlash");
 		    this.DOM.compile.style.display = "initial";
 		    
-		    let currentFile = this.DOM.currentFile.value;
 		    this.model.setItem(["app","source", "disassembly.s"], data.disassembly);
-		    this.DOM.currentFile.value = currentFile;
 		    
 		}else if( /^ERROR[\s\S]*/.test(txt) ){
 
