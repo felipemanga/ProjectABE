@@ -165,6 +165,18 @@ nav button {
     font-size: inherit;
 }
 
+#envContainer .newProject {
+    text-decoration: none;
+    color: white;
+    background: #567;
+    padding: 10px;
+    border: solid 1px #89A;
+    position: fixed;
+    top: 0;
+    right: 0;
+    margin: 10px;
+}
+
 #simBox{
     position: relative;
     flex-grow: 1;

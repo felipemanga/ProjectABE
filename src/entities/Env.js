@@ -53,12 +53,16 @@ class Env extends IController {
 	
 	let url = opt.element.dataset.url;
 	let srcurl = opt.element.dataset.source;
+
+	if( url == 'new' ) url = 'null';
 	
 	this.model.removeItem("app.AT32u4");
 	let source = this.model.getItem("app.source", null);
-	if( source ){
+	
+	if( source && ((url == 'null' && !source['main.ino']) || this.model.getItem('app.sourceUrl') !== url) ){
 	    for( let k in source )
 		this.model.removeItem(["app", "source", k]);
+	    source = null;
 	}
 		
 	if( /\.arduboy$/i.test(url) ){
@@ -79,11 +83,13 @@ class Env extends IController {
 
 	}else{
 	    this.model.setItem("app.AT32u4.url", this.model.getItem("app.proxy") + url );
-	    this.pool.call("runSim");
+	    setTimeout( _ => this.pool.call("runSim"), 10 );
 	}
 
+	this.model.setItem('app.sourceUrl', url);
 
-	let ghmatch = srcurl.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/) || url.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/);
+	let ghmatch = srcurl && srcurl.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/) || url.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/);
+	
 	if( ghmatch ){
 
 	    fetch( this.model.getItem("app.proxy") + ghmatch[1] + "/archive/master.zip" )
@@ -132,7 +138,7 @@ class Env extends IController {
 		    );
 		});
 
-	}else{
+	}else if( !source ){
 	    this.model.setItem(
 		["app","source","main.ino"],
 `

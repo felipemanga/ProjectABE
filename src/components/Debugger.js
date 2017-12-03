@@ -67,6 +67,12 @@ void loop() {
 	
     }
 
+    showDebugger(){
+	this.DOM.element.setAttribute("hidden", "false");
+	this.DOM.element.setAttribute("data-tab", "source");
+	this.initSource();
+    }
+
     initEditor(){
 	if( this.code )
 	    return;
@@ -77,7 +83,7 @@ void loop() {
 	this.code.getSession().setMode("ace/mode/c_cpp");
 	this.code.resize(true);
 	
-	this.code.on( "change", _ => this.commit );
+	this.code.session.on( "change", _ => this.commit() );
 	
 	this.code.on("guttermousedown", e => {
 	    let target = e.domEvent.target; 
@@ -206,7 +212,7 @@ void loop() {
     }
 
     commit(){
-	this.model.getItem("app.source", {})[ this.DOM.currentFile.value ] = this.code.getValue();
+	this.model.setItem( ["app","source",this.DOM.currentFile.value], this.code.getValue() );
     }
 
     compile(){
