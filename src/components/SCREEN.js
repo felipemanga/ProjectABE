@@ -101,7 +101,6 @@ class SCREEN {
 	this.mode = 0;
 	this.clockDivisor = 0x80;
 	this.cmd = [];
-	this.pos = 0;
 	this.fb.data.fill(0);
 	this.colStart = 0;
 	this.colEnd = 127;
@@ -300,7 +299,7 @@ class SCREEN {
     }
     
   // Display On
-    cmdAF( v ){
+    cmdAF(){
 	this.activeBuffer = this.fb;
     }
 

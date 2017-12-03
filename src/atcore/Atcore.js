@@ -969,7 +969,7 @@ const AtCODEC = [
         str: '1001010ddddd0101',
         impl: [
             'SR@0 ← Rd • 1',
-            'Rd ← Rd ^ 0 >> 1;' // xor zero converts to signed
+            'Rd ← Rd << 24 >> 25;'
         ],
         flags:'zns'
     },
@@ -1696,14 +1696,14 @@ const AtCODEC = [
         str:'1001001rrrrr1001',
         impl: [
             `(Y) ← Rr`,
-            `WR1 ++;`
+            `WR2 ++;`
         ]
     },
     {
         name: 'STY-',
         str:'1001001rrrrr1010',
         impl: [
-            `WR1 --;`,
+            `WR2 --;`,
             `(Y) ← Rr`
         ]
     },
@@ -1859,7 +1859,7 @@ const AtFlags = {
     h: 'SR@5 ← (Rd@3 • Rr@3) + (Rr@3 • R@3 ¯) | (R@3 ¯ • Rd@3)',
     H: '',
     z: 'SR1 = !(R&0xFF)|0',
-    Z: 'SR1 = !(R&0xFF)|0',
+    Z: 'SR1 = !(R&0xFFFF)|0',
     v: 'SR3 = (Rd@7 • Rr@7 • R@7 ¯) | (Rd@7 ¯ • Rr@7 ¯ • R@7)',
     V: 'SR3 = WRd@15 ¯ • R@15',
     n: 'SR2 = R@7',
