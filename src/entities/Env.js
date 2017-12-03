@@ -52,6 +52,8 @@ class Env extends IController {
     play( opt ){
 	
 	let url = opt.element.dataset.url;
+	let srcurl = opt.element.dataset.source;
+	
 	this.model.removeItem("app.AT32u4");
 	let source = this.model.getItem("app.source", null);
 	if( source ){
@@ -81,10 +83,10 @@ class Env extends IController {
 	}
 
 
-	let ghmatch = url.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+\/).*/);
+	let ghmatch = srcurl.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/) || url.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/);
 	if( ghmatch ){
 
-	    fetch( this.model.getItem("app.proxy") + ghmatch[1] + "archive/master.zip" )
+	    fetch( this.model.getItem("app.proxy") + ghmatch[1] + "/archive/master.zip" )
 		.then( rsp => rsp.arrayBuffer() )
 		.then( buff => JSZip.loadAsync( buff ) )
 		.then( z => {
