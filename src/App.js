@@ -161,7 +161,9 @@ class App {
 
 		model.setItem("color", Math.random()*10 | 0);
 		
-            }
+            }else if( model.getItem("color") === undefined )
+		model.setItem("color", Math.random()*10 | 0);
+
 	    
             this.pool.call( name + "ModelInit", model, cb );
 
