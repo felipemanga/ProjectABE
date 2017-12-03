@@ -216,9 +216,12 @@ void loop() {
     }
 
     compile(){
-	this.commit();
+	if( this.DOM.compile.style.display == "none" )
+	    return;
 	
 	this.DOM.compile.style.display = "none";
+
+	this.commit();
 
 	let src = Object.assign({}, this.model.getItem("app.source"));
 	delete src["disassembly.s"];
