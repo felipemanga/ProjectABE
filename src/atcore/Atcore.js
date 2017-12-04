@@ -1380,7 +1380,7 @@ const AtCODEC = [
         str:'1001000ddddd1001',
         impl: [
             `Rd ← (Y);`,
-            `WR3 ++;`
+            `WR2 ++;`
         ],
         cycles: 2
     },
@@ -1388,7 +1388,7 @@ const AtCODEC = [
         name: 'LDY-',
         str:'1001000ddddd1010',
         impl: [
-            `WR3 --;`,
+            `WR2 --;`,
             `Rd ← (Y);`
         ],
         cycles: 2
@@ -1803,11 +1803,13 @@ const AtCODEC = [
         str: '10010111KKddKKKK',
         impl: [
             'WRd ← WRd - k;',
+	    'SR@0 ← WRd@15 ¯ • R@15',
+	    'SR@3 ← WRd@15 • R@15 ¯'
         ],
 	print:{
 	    d:d=>"WXYZ"[d]
 	},
-        flags:'ZVNS'
+        flags:'ZNS'
     },
     {
         name: 'SBIC',

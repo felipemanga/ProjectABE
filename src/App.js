@@ -179,7 +179,7 @@ class App {
 
 	let repoURL = [
 	    "http://www.crait.net/arduboy/repo2.json",
-	    "http://arduboy.ried.cl/repo.json",
+	    "repo-eried.json",
 	    "repo.json"
 	];
 

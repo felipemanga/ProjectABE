@@ -60,7 +60,7 @@ class Env extends IController {
 	let source = this.model.getItem("app.source", null);
 	
 	if( source && ((url == 'null' && !source['main.ino']) || this.model.getItem('app.sourceUrl') !== url) ){
-	    for( let k in source )
+    	    for( let k in source )
 		this.model.removeItem(["app", "source", k]);
 	    source = null;
 	}
@@ -88,11 +88,20 @@ class Env extends IController {
 
 	this.model.setItem('app.sourceUrl', url);
 
-	let ghmatch = srcurl && srcurl.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/) || url.match(/^(https\:\/\/github.com\/[^/]+\/[^/]+).*/);
+	let ghmatch = srcurl &&
+	    srcurl.match(/^(https\:\/\/(bitbucket\.org|framagit\.org|github\.com)\/[^/]+\/[^/]+).*/) ||
+	    url.match(/^(https\:\/\/(bitbucket\.org|framagit\.org|github\.com)\/[^/]+\/[^/]+).*/);
 	
 	if( ghmatch ){
+	    srcurl = ghmatch[1] + "/archive/master.zip";
+	}else if( srcurl && /.*\.zip$/.test(srcurl) ){
+	}else if( /.*\.zip$/.test(url) ){
+	    srcurl = url;
+	}else srcurl = null;
+	
+	if( srcurl ){
 
-	    fetch( this.model.getItem("app.proxy") + ghmatch[1] + "/archive/master.zip" )
+	    fetch( this.model.getItem("app.proxy") + srcurl )
 		.then( rsp => rsp.arrayBuffer() )
 		.then( buff => JSZip.loadAsync( buff ) )
 		.then( z => {

@@ -109,13 +109,23 @@ module.exports = {
     EEPROM:{
 	write:{
 	    0x3F:function( value, oldValue ){
+		let addr = this.core.memory[0x41] + (this.core.memory[0x42] << 8);
+		
+		if( value & 0x2 )
+		    this.eeprom[ addr ] = this.core.memory[0x40];
+
 		value &= ~2;
 		return value;
 	    }
 	},
-	read:{},
+	read:{
+	    0x40:function(){
+		let addr = this.core.memory[0x41] + (this.core.memory[0x42] << 8);
+		return this.eeprom[ addr ] | 0;
+	    }
+	},
 	init:function(){
-	    
+	    this.eeprom = [];
 	}
     },
 
