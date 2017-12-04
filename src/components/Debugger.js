@@ -236,7 +236,23 @@ void loop() {
 
 	let src = Object.assign({}, this.model.getItem("app.source"));
 	delete src["disassembly.s"];
-	
+
+	let mainFile = null;
+	Object.keys(src).forEach( k => {
+	    if( /.*\.ino$/.test(k) ){
+		
+		if( !mainFile || k == this.DOM.currentFile.value ){
+		    
+		    if( mainFile )
+			delete src[mainFile];
+		    
+		    mainFile = k;
+		    
+		}else delete src[k];
+		
+	    }
+	});
+
 	fetch( compiler + "build", {
 	    method:"POST",
 	    body:JSON.stringify( src )
