@@ -69,7 +69,7 @@ class SCREEN {
 
 				
 				if( !this.saver )
-					this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"Save Recording"}, document.body);
+					this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"GIF (save As...)"}, document.body);
 				else
 					URL.revokeObjectURL( this.saver.href );
 				
@@ -96,11 +96,11 @@ class SCREEN {
     }
 
     setActiveView(){
-	this.pool.remove(this);
+		this.pool.remove(this);
     }
 
     onPressKeyR(){
-	this.toggleGIFRecording();
+		this.toggleGIFRecording();
     }
 
     onPressKeyF(){
@@ -110,42 +110,42 @@ class SCREEN {
 
 	return;
 
-	function isFullScreen(){
-		var doc = window.document;
-		return doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement || false;
-	}
+		function isFullScreen(){
+			var doc = window.document;
+			return doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement || false;
+		}
 
-	function toggleFullScreen(toggle) {
-		var doc = window.document;
+		function toggleFullScreen(toggle) {
+			var doc = window.document;
 	        
 
-		var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-		var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-		var state = isFullScreen();
+			var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+			var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+			var state = isFullScreen();
 
-		if( toggle == undefined ) toggle = !state;
-		else if( toggle == state ) return;
+			if( toggle == undefined ) toggle = !state;
+			else if( toggle == state ) return;
 
-		if( toggle ) requestFullScreen.call(docEl);
-		else cancelFullScreen.call(doc);
-	}
+			if( toggle ) requestFullScreen.call(docEl);
+			else cancelFullScreen.call(doc);
+		}
     }
     
     
     tick(){
-	if( !this.dirty )
-	    return;
+		if( !this.dirty )
+			return;
 
-	this.ctx.putImageData( this.activeBuffer, 0, 0 );
-	this.dirty = false;
-	
-	let now = performance.now();
-	let delay = (now - this.lastFrameTime);
-	if( this.isRecording && this.recordingSkip-- <= 0 ){
-	    this.recordingSkip = 2;
-	    this.lastFrameTime = now;
-	    this.gif.addFrame( this.ctx, { copy:true, delay:33 } );
-	}
+		this.ctx.putImageData( this.activeBuffer, 0, 0 );
+		this.dirty = false;
+		
+		let now = performance.now();
+		let delay = (now - this.lastFrameTime);
+		if( this.isRecording && this.recordingSkip-- <= 0 ){
+			this.recordingSkip = 2;
+			this.lastFrameTime = now;
+			this.gif.addFrame( this.ctx, { copy:true, delay:45 } );
+		}
 	    
     }
 
