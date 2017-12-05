@@ -1430,6 +1430,26 @@
             "screenshots": [],
             "arduboy": ""
         },
+
+        {
+            "title": "IDOUDO",
+            "description": "A Simon-like game by Rednuht. The game is opensource, in pure potato-chip assembly, available here: jumpstation.co.uk\/dreamcast\/idoudo.html1\n\n(This game was adapted using an adapted version of Marcus Comstedt's SoftVMS emulator for Arduboy by FManga)",
+            "genre": "Puzzle",
+            "url": "https:\/\/community.arduboy.com\/t\/sega-homebrew\/4528\nIDList=\nHotKey=0\nIconFile=C:\\Users\\erwin\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\m8lc5yuw.default\\shortcutCache\\lXNfnqd0xmU+_PYjSYRIoQ==.ico\nIconIndex=0",
+            "banner": "https:\/\/raw.githubusercontent.com\/eried\/ArduboyCollection\/master\/Puzzle%2FIDOUDO%2Fscreenshot.png",
+            "date": "",
+	    "author": "Rednuht, Comstedt, FManga",
+	    "sourceUrl": "https://gist.github.com/felipemanga/293351ada35c0d8017d92f1a1610fc08/raw/d4e9a9a2aad6b4d29d5db8fc1e28f58f7e341649/Idoudo.ino",
+            "binaries": [
+                {
+                    "title": "IDOUDO",
+                    "filename": "https:\/\/raw.githubusercontent.com\/eried\/ArduboyCollection\/master\/Puzzle%2FIDOUDO%2Fsrc.ino.leonardo.hex",
+                    "device": "Arduboy"
+                }
+            ],
+            "screenshots": [],
+            "arduboy": ""
+        },	
         {
             "title": "Invaders",
             "description": "Destroy all attacking invaders from space! Now with sound. (This game was adapted using the Gamebuino Library for Arduboy by akkera102)",
@@ -2304,6 +2324,25 @@
             "screenshots": [],
             "arduboy": ""
         },
+        {
+            "title": "Snake",
+            "description": "A Snake game by Stu. Any other information on it seems to have bitrotted away completely.\n\n(This game was adapted using an adapted version of Marcus Comstedt's SoftVMS emulator for Arduboy by FManga)",
+            "genre": "Arcade",
+            "url": "https:\/\/community.arduboy.com\/t\/sega-homebrew\/4528\nIDList=\nHotKey=0\nIconFile=C:\\Users\\erwin\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\m8lc5yuw.default\\shortcutCache\\lXNfnqd0xmU+_PYjSYRIoQ==.ico\nIconIndex=0",
+            "banner": "https:\/\/raw.githubusercontent.com\/eried\/ArduboyCollection\/master\/Arcade%2FSnake%2F4c80605b915cc161cd9534cd8a223f2b1ea17cd2.png",
+            "date": "",
+	    "author": "Stu, Comstedt, FManga",
+	    "sourceUrl": "https://gist.github.com/felipemanga/fe38feda23e09d660bab99411295b68e/raw/840ce834c53ec1a740eef1270ddac94328bbd6ad/snake.ino",
+            "binaries": [
+                {
+                    "title": "Snake",
+                    "filename": "https:\/\/raw.githubusercontent.com\/eried\/ArduboyCollection\/master\/Arcade%2FSnake%2FSnake.hex",
+                    "device": "Arduboy"
+                }
+            ],
+            "screenshots": [],
+            "arduboy": ""
+        },	
         {
             "title": "snELk",
             "description": "SnELk is clone of Snake from Nokia 3210 written in C++ on Arduboy",

@@ -135,7 +135,7 @@ void loop() {
     }
 
     changeBreakpoints(){
-	this.code.ignoreBreakpointChanges = true;
+
 	this.code.session.clearBreakpoints();
 	let paused = null;
 	for( let addr in core.breakpoints ){
@@ -155,8 +155,6 @@ void loop() {
 	if( !paused && this.srcmap[ this.currentPC ] ){
 	    this.code.session.setBreakpoint( this.srcmap[this.currentPC].line-1, "paused" );
 	}
-	
-	this.code.ignoreBreakpointChanges = false;
 	
     }
 
