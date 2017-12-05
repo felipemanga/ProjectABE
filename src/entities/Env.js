@@ -94,58 +94,78 @@ class Env extends IController {
 	
 	if( ghmatch ){
 	    srcurl = ghmatch[1] + "/archive/master.zip";
-	}else if( srcurl && /.*\.zip$/.test(srcurl) ){
-	}else if( /.*\.zip$/.test(url) ){
+	}else if( srcurl && /.*\.(?:zip|ino)$/.test(srcurl) ){
+	}else if( /.*\.(?:zip|ino)$/.test(url) ){
 	    srcurl = url;
 	}else srcurl = null;
 	
 	if( srcurl ){
 
-	    fetch( this.model.getItem("app.proxy") + srcurl )
-		.then( rsp => rsp.arrayBuffer() )
-		.then( buff => JSZip.loadAsync( buff ) )
-		.then( z => {
-		    
-		    for( let k in z.files ){
-			if( /.*\.(h|hpp|c|cpp|ino)$/i.test(k) ){
-			    addFile.call( this, k );
-			}
-			console.log(k);
-		    }
+	    let promise = null;
 
-		    function addFile( name ){
-			z.file(name)
-			    .async("text")
-			    .then( txt =>{
-				
-				if( txt.charCodeAt(0) == 0xFEFF )
-				    txt = txt.substr(1);
-				
-				this.model.setItem([
-				    "app",
-				    "source",
-				    name.replace(/\\/g, "/")
-				],txt );
-				
-			    })
-			    .catch( err => {
-				console.error( err.toString() );
-				this.model.setItem([
-				    "app",
-				    "source",
-				    name
-				], "// ERROR LOADING: " + err)
-			    });
-		    }
-		    
-		})
-		.catch(err => {
-		    console.error( err.toString() );
-		    this.model.setItem(
-			["app","source","main.ino"],
-			"// Could not load source: " + err
-		    );
-		});
+	    if( /.*\.ino$/.test(srcurl) ){
+		
+		promise = fetch( this.model.getItem("app.proxy") + srcurl )
+		    .then( rsp => rsp.text() )
+		    .then( txt => {
+
+			if( txt.charCodeAt(0) == 0xFEFF )
+			    txt = txt.substr(1);
+			
+			this.model.setItem(["app", "source", "main.ino"], txt);
+			
+		    });
+		
+	    }else{
+
+		promise = fetch( this.model.getItem("app.proxy") + srcurl )
+		    .then( rsp => rsp.arrayBuffer() )
+		    .then( buff => JSZip.loadAsync( buff ) )
+		    .then( z => {
+			
+			for( let k in z.files ){
+			    if( /.*\.(h|hpp|c|cpp|ino)$/i.test(k) ){
+				addFile.call( this, k );
+			    }
+			    console.log(k);
+			}
+
+			function addFile( name ){
+			    z.file(name)
+				.async("text")
+				.then( txt =>{
+				    
+				    if( txt.charCodeAt(0) == 0xFEFF )
+					txt = txt.substr(1);
+				    
+				    this.model.setItem([
+					"app",
+					"source",
+					name.replace(/\\/g, "/")
+				    ],txt );
+				    
+				})
+				.catch( err => {
+				    console.error( err.toString() );
+				    this.model.setItem([
+					"app",
+					"source",
+					name
+				    ], "// ERROR LOADING: " + err)
+				});
+			}
+			
+		    });
+		
+	    }
+	    
+	    promise.catch(err => {
+		console.error( err.toString() );
+		this.model.setItem(
+		    ["app","source","main.ino"],
+		    "// Could not load source: " + err
+		);
+	    });
 
 	}else if( !source ){
 	    this.model.setItem(

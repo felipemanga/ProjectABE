@@ -2515,6 +2515,25 @@
             "arduboy": ""
         },
         {
+            "title": "Tetris",
+            "description": "By Marcus Comstedt. After he wrote the assembler and reverse-engineered the hardware, he released this as a tutorial on making games for the VMU\n\n(This game was adapted using an adapted version of Marcus Comstedt's SoftVMS emulator for Arduboy by FManga)",
+            "genre": "Puzzle",
+            "url": "https:\/\/community.arduboy.com\/t\/sega-homebrew\/4528\nIDList=\nHotKey=0\nIconFile=C:\\Users\\erwin\\AppData\\Local\\Mozilla\\Firefox\\Profiles\\m8lc5yuw.default\\shortcutCache\\lXNfnqd0xmU+_PYjSYRIoQ==.ico\nIconIndex=0",
+            "banner": "https:\/\/raw.githubusercontent.com\/eried\/ArduboyCollection\/master\/Puzzle%2FTetris%2F0e556c5f159342edbedef489d07a61ff22672663.png",
+            "date": "",
+	    "author": "Comstedt, FManga",
+	    "sourceUrl": "https://gist.github.com/felipemanga/9d5232e219d5adcddae5f18bdb0cb3f3/raw/fc2746ad4d10f61d0baef04f4fa31134272497c7/tetris.ino",
+            "binaries": [
+                {
+                    "title": "Tetris",
+                    "filename": "https:\/\/raw.githubusercontent.com\/eried\/ArduboyCollection\/master\/Puzzle%2FTetris%2Ftetris.hex",
+                    "device": "Arduboy"
+                }
+            ],
+            "screenshots": [],
+            "arduboy": ""
+        },
+        {
             "title": "The Bounce",
             "description": "The Bounce is a bouncy ball physics platformer game. Simple to understand yet incredibly hard to master, what seems easy at first glance is actually pretty rage inducing when you get to the later levels. I'm not much of an artist so I focused on simple design, which allows for easily customisable levels (maybe a level editor someday) and awesome gameplay.",
             "genre": "Platformer",
