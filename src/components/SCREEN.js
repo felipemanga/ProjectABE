@@ -51,33 +51,47 @@ class SCREEN {
 
     toggleGIFRecording(){
 	
-	let gif = this.gif;
-	if( !gif ){
-	    
-	    gif = this.gif = new GIF({
-		workerScript:"gif.worker.js",
-		width: this.canvas.width,
-		height: this.canvas.height
-	    });
-	    
-	    gif.on('finished', (blob, data) => {
-		
-		if( !this.saver )
-		    this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"Save Recording"}, document.body);
-		else
-		    URL.revokeObjectURL( this.saver.href );
-		
-		this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
-		
-	    });
+		let gif = this.gif;
+		if( !gif ){
+			
+			gif = this.gif = new GIF({
+				workerScript:"gif.worker.js",
+				width: this.canvas.width,
+				height: this.canvas.height
+			});
 
-	}
-	
-	
-	if( this.isRecording )	    
-	    gif.render();
-	
-	this.isRecording = !this.isRecording;
+			this.lastFrameTime = performance.now();
+
+			if( !this.blinker )
+				this.blinker = this.DOM.create("span", {className:"RecordingIndicator"}, document.body);
+			
+			gif.on('finished', (blob, data) => {
+
+				
+				if( !this.saver )
+					this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"Save Recording"}, document.body);
+				else
+					URL.revokeObjectURL( this.saver.href );
+				
+				this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
+				this.saver.style.display = "block";
+				this.gif = null;
+				
+			});
+
+		}
+		
+		
+		if( this.isRecording ){
+			this.blinker.style.display = "none";
+			gif.render();
+		}else{
+			this.blinker.style.display = "block";
+			if( this.saver )
+				this.saver.style.display = "none";
+		}
+		
+		this.isRecording = !this.isRecording;
 	
     }
 
@@ -125,12 +139,12 @@ class SCREEN {
 	this.ctx.putImageData( this.activeBuffer, 0, 0 );
 	this.dirty = false;
 	
-//	let now = performance.now();
-//	let delta = now - this.lastFrameTime;
+	let now = performance.now();
+	let delay = (now - this.lastFrameTime);
 	if( this.isRecording && this.recordingSkip-- <= 0 ){
-	    this.recordingSkip = 5;
-//	    this.lastFrameTime = now;
-	    this.gif.addFrame( this.canvas, { delay:1/60 } );
+	    this.recordingSkip = 2;
+	    this.lastFrameTime = now;
+	    this.gif.addFrame( this.ctx, { copy:true, delay:33 } );
 	}
 	    
     }

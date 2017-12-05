@@ -165,7 +165,7 @@ nav button {
     font-size: inherit;
 }
 
-#envContainer .newProject, .FileSaver {
+#envContainer .newProject, .FileSaver, .RecordingIndicator {
     text-decoration: none;
     color: white;
     background: #567;
@@ -177,10 +177,23 @@ nav button {
     margin: 10px;
 }
 
-.FileSaver {
+.FileSaver, .RecordingIndicator {
     top: auto;
     bottom: 0;
 }
+
+@keyframes blinker {  
+  50% { opacity: 0; }
+}
+
+.RecordingIndicator {
+	width: 20px;
+	height: 20px;
+	border-radius: 20px;
+	background: red;
+	animation: blinker 1s linear infinite;
+}
+
 
 #simBox{
     position: relative;
