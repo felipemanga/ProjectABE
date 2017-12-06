@@ -139,7 +139,7 @@ function Builder(){
 			    retry[ file ] = 1;
 			    files.push( file );
 			}
-		    }else stdout += "Saved file " + file + "\n";
+		    }else stdout += "Saved file " + fullPath + "\n";
 		    
 		    return this.pop(files);
 		});
