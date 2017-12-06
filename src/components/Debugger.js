@@ -1,5 +1,5 @@
 import { IController, Model, IView } from '../lib/mvc.js';
-
+import JSZip from 'jszip/dist/jszip.min.js';
 import DOM from '../lib/dry-dom.js';
 
 
@@ -160,6 +160,27 @@ void loop() {
 	this.changeSourceFile();
     }
 
+    zip(){
+	
+	var zip = new JSZip();
+	let source = this.model.getItem("app.source");
+	
+	for( let name in source )
+	    zip.file( name, source[name]);
+	
+	zip.generateAsync({type:"blob"})
+	    .then( content => {
+		if( !this.saver )
+		    this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"ZIP (save As...)"}, document.body);
+		else
+		    URL.revokeObjectURL( this.saver.href );
+				
+		this.saver.href = URL.createObjectURL( content );
+		this.saver.style.display = "block";
+		
+	    });	
+    }
+
     onDropFile( dom, event ){
 	event.stopPropagation();
 	event.preventDefault();
@@ -171,7 +192,7 @@ void loop() {
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];
 	    if( /.*\.(png|jpg)$$/i.test(file.name) )
-		return loadImageFile.call( this, file );
+		loadImageFile.call( this, file );
 	}
 
 	function loadImageFile( file ){
