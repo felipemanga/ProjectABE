@@ -128,10 +128,12 @@ function Builder(){
 			    this.result = "ERROR: " + file + " - " + e.toString();
 			    return;
 			}else{
+			    stdout += "Retrying file " + file + "\n";
 			    retry[ file ] = 1;
 			    files.push( file );
 			}
-		    }
+		    }else stdout += "Saved file " + file + "\n";
+		    
 		    return this.pop(files);
 		});
 
@@ -160,7 +162,7 @@ function Builder(){
 		],
 		(error, _stdout, stderr) => {
 
-		    stdout = _stdout;
+		    stdout += _stdout;
 		    
 		    if( error ){
 			busy = false;
