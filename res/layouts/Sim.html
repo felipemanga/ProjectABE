@@ -23,15 +23,15 @@
 
     <div class="verticalContainer" id="sourceContainer">
       <div class="horizontalContainer tabs">
-	<button click-call="addNewFile">New</button>
+	<button click-call="addNewFile" id="addNewFile" title="Add New File">+</button>
 	<label>
 	  File:
 	  <select id="currentFile" change-call="changeSourceFile" data-src="app.source">
 	    <option value="{{key}}">{{key}}</option>
 	  </select>
 	</label>
-	<button click-call="renameFile" id="rename">Rename</button>
-	<button click-call="deleteFile" id="delete">Delete</button>
+	<button click-call="renameFile" id="rename" title="Rename current file">Rename</button>
+	<button click-call="deleteFile" id="delete" title="Delete current file">Delete</button>
 	<button click-call="compile" id="compile" title="Ctrl+Enter">Build</button>
       </div>
       <div id="ace" change-call="commit"></div>

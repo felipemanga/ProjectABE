@@ -196,13 +196,17 @@ void loop() {
 
 			let data = ctx.getImageData( 0, 0, canvas.width, canvas.height );
 
-			let src = "#ifndef " + cleanName.toUpperCase() + "_H\n";
-			src += "#define " + cleanName.toUpperCase() + "_H\n";
-			src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = " +
-		            "{\n// width, height,\n" + img.naturalWidth + ", " + img.naturalHeight;
+			let masksrc = "\nconst unsigned char PROGMEM " + cleanName + "_mask[] = ";
+
+			let src = "#ifndef BMP_" + cleanName.toUpperCase() + "_H\n";
+			src += "#define BMP_" + cleanName.toUpperCase() + "_H\n";
+			src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = ";
+			
+		        src += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
+			masksrc += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
 		        
 		        let pageCount = Math.ceil( img.naturalHeight / 8 );
-		        let currentByte = 0;
+		        let currentByte = 0, isPNG = /.*\.png$/i.test(file.name);
 		        
 		        // Read the sprite page-by-page
 		        for( let page = 0; page < pageCount; page++ ) {
@@ -211,34 +215,39 @@ void loop() {
 		            for( let column = 0; column < width; column++ ) {
 
 		        	// Read the column into a byte
-		        	let spriteByte = 0;
+		        	let spriteByte = 0, maskByte = 0;
 		        	for( let yPixel = 0; yPixel < 8; yPixel++) {
 
 				    let i = ((page*8 + yPixel) * data.width + column) * 4;
+				    let lum = (data.data[i  ] + data.data[i+1] + data.data[i+2]) / 3;
 
-		        	    // If the color of the pixel is not black, count it as white
-		        	    if( data.data[ i ] > 128 || data.data[ i+1 ] > 128 || data.data[ i+2 ] > 128 ){
+		        	    if( lum > 128 )
 		        	        spriteByte |= (1 << yPixel);
-		        	    }
+		        	    if( data.data[ i+3 ] > 128 )
+					maskByte |= (1 << yPixel);
 		        	}
-				
-		        	if( currentByte%width == 0 )
-		        	    src += ",\n";
-				else
-				    src += ",";
 
-		        	
-		        	// Print the column in hex notation, add a comma for formatting
+				src += ","; masksrc += ",";
+				
+		        	if( currentByte%width == 0 ){
+		        	    src += "\n"; masksrc += "\n";
+				}
+
 		        	src += "0x" + spriteByte.toString(16).padStart(2, "0");
+		        	if( isPNG )
+				    masksrc += "0x" + maskByte.toString(16).padStart(2, "0");
 
 		        	currentByte++;
 		            }
 		        }
-		        src += "};\n";
+		        src += "\n};\n\n"; masksrc += "\n};\n\n";
+
+			if( isPNG )
+			    src += masksrc;
 			
 			src += "#endif\n";
 			
-			this.model.setItem(["app", "source", cleanName + ".h"], src);
+			this.model.setItem(["app", "source", "bmp/" + cleanName + ".h"], src);
 			
 		    }
 		    
