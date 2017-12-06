@@ -111,7 +111,7 @@ function Builder(){
 	parts.pop();
 
 	if( parts.length ){
-	    stdout += "MKDIRP " + file + "\n";
+	    stdout += "MKDIRP " + parts.join('/') + "\n";
 	    mkdirp( parts.join('/'), e => writeFile.call( this ) );
 	}else
 	    writeFile.call(this)
