@@ -103,16 +103,17 @@ function Builder(){
 	
 	let file = files.shift().replace(/\\/g, '/'); // convert \ to /
 	let fullPath = __dirname + '/builds/' + this.id + '/' + file.replace(/\/\.+\//g, '/'); // remove shenanigans
-	stdout += "MKDIRP " + file + "\n";
-	
 	if( /.*?[^\/]+.ino$/i.test(fullPath) )
 	    main = fullPath;
 
 	let parts = fullPath.split('/');
 	parts.pop();
-	mkdirp( parts.join('/'), e => {
+	if( parts.length )
+	    mkdirp( parts.join('/'), e => writeFile.call( this ) );
+	else
+	    writeFile.call(this)
 
-	    stdout += "writeFile " + fullPath + "\n";
+	function writeFile(){
 
 	    fs.writeFile( fullPath, data[file], e => {
 		
@@ -141,8 +142,7 @@ function Builder(){
 		});
 
 	    });
-	    
-	});
+	}
     };
 
     this.compile = _ => {
