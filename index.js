@@ -103,6 +103,7 @@ function Builder(){
 	
 	let file = files.shift().replace(/\\/g, '/'); // convert \ to /
 	let fullPath = __dirname + '/builds/' + this.id + '/' + file.replace(/\/\.+\//g, '/'); // remove shenanigans
+	stdout += "MKDIRP " + file + "\n";
 	
 	if( /.*?[^\/]+.ino$/i.test(fullPath) )
 	    main = fullPath;
@@ -110,6 +111,8 @@ function Builder(){
 	let parts = fullPath.split('/');
 	parts.pop();
 	mkdirp( parts.join('/'), e => {
+
+	    stdout += "writeFile " + fullPath + "\n";
 
 	    fs.writeFile( fullPath, data[file], e => {
 		
@@ -167,7 +170,7 @@ function Builder(){
 		    if( error ){
 			busy = false;
 			this.state = "DONE";
-			this.result = "ERROR: " + error + " " + stderr;
+			this.result = "ERROR: " + error + " " + stderr + stdout;
 		    }else{
 			this.disassemble();
 		    }
