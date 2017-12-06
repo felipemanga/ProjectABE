@@ -248,6 +248,10 @@ class Model {
         delete data[key];
 
         model.raise( key, true );
+
+	var parentKey = parent.pop();
+	model = this.getModel( parent );
+	model.raise( parentKey, true );
     }
 
     raise(k, doRaise){

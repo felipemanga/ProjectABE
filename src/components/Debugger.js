@@ -134,6 +134,123 @@ void loop() {
 
     }
 
+    deleteFile(){
+	if( !confirm("Are you sure you want to delete " + this.DOM.currentFile.value + "?") )
+	    return;
+	this.model.removeItem( ["app", "source", this.DOM.currentFile.value] );
+	this.DOM.currentFile.value = Object.keys(this.model.getItem(["app", "source"]))[0];
+	this.changeSourceFile();
+    }
+
+    renameFile(){
+	let current = this.DOM.currentFile.value;
+	let target = prompt("Rename " + current + " to:").trim();
+	if( target == "" ) return;
+	let src = this.model.getItem(["app", "source", current]);
+	this.model.removeItem(["app", "source", current]);
+	this.model.setItem(["app", "source", target], src);
+	this.DOM.currentFile.value = target;
+    }
+
+    addNewFile(){
+	let target = prompt("File name:").trim();
+	if( target == "" ) return;
+	this.model.setItem( ["app", "source", target], "" );
+	this.DOM.currentFile.value = target;
+	this.changeSourceFile();
+    }
+
+    onDropFile( dom, event ){
+	event.stopPropagation();
+	event.preventDefault();
+
+
+	var dt = event.dataTransfer;
+	var files = dt.files;
+
+	for (var i = 0; i < files.length; i++) {
+	    let file = files[i];
+	    if( /.*\.(png|jpg)$$/i.test(file.name) )
+		return loadImageFile.call( this, file );
+	}
+
+	function loadImageFile( file ){
+	    let fr = new FileReader();
+	    fr.onload = evt => {
+
+		let cleanName = file.name.replace(/^.*?([^\/\\.]+)\..+$/,'$1');
+		
+		let img = DOM.create("img", {
+		    src:fr.result,
+		    onload:_=>{
+
+			let width = img.naturalWidth;
+
+			let canvas = DOM.create("canvas", {
+			    width,
+			    height: img.naturalHeight
+			});
+
+			let ctx = canvas.getContext("2d");
+			ctx.drawImage( img, 0, 0 );
+
+			let data = ctx.getImageData( 0, 0, canvas.width, canvas.height );
+
+			let src = "#ifndef " + cleanName.toUpperCase() + "_H\n";
+			src += "#define " + cleanName.toUpperCase() + "_H\n";
+			src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = " +
+		            "{\n// width, height,\n" + img.naturalWidth + ", " + img.naturalHeight;
+		        
+		        let pageCount = Math.ceil( img.naturalHeight / 8 );
+		        let currentByte = 0;
+		        
+		        // Read the sprite page-by-page
+		        for( let page = 0; page < pageCount; page++ ) {
+
+		            // Read the page column-by-column
+		            for( let column = 0; column < width; column++ ) {
+
+		        	// Read the column into a byte
+		        	let spriteByte = 0;
+		        	for( let yPixel = 0; yPixel < 8; yPixel++) {
+
+				    let i = ((page*8 + yPixel) * data.width + column) * 4;
+
+		        	    // If the color of the pixel is not black, count it as white
+		        	    if( data.data[ i ] > 128 || data.data[ i+1 ] > 128 || data.data[ i+2 ] > 128 ){
+		        	        spriteByte |= (1 << yPixel);
+		        	    }
+		        	}
+				
+		        	if( currentByte%width == 0 )
+		        	    src += ",\n";
+				else
+				    src += ",";
+
+		        	
+		        	// Print the column in hex notation, add a comma for formatting
+		        	src += "0x" + spriteByte.toString(16).padStart(2, "0");
+
+		        	currentByte++;
+		            }
+		        }
+		        src += "};\n";
+			
+			src += "#endif\n";
+			
+			this.model.setItem(["app", "source", cleanName + ".h"], src);
+			
+		    }
+		    
+		});
+		
+		    
+	    };
+	    fr.readAsDataURL(file);
+	}
+	
+    }    
+
     changeBreakpoints(){
 
 	this.code.session.clearBreakpoints();

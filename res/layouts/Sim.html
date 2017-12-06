@@ -1,6 +1,9 @@
 <div id="fb">
   
-  <div id="ideContainer" class="verticalContainer" data-inject="Debugger">
+  <div id="ideContainer" class="verticalContainer" data-inject="Debugger"
+	ondragenter="event.stopPropagation(); event.preventDefault();"
+	ondragover="event.stopPropagation(); event.preventDefault();"
+	drop-call="onDropFile">
 
     <div class="horizontalContainer tabs">
 
@@ -20,12 +23,15 @@
 
     <div class="verticalContainer" id="sourceContainer">
       <div class="horizontalContainer tabs">
+	<button click-call="addNewFile">New</button>
 	<label>
 	  File:
 	  <select id="currentFile" change-call="changeSourceFile" data-src="app.source">
 	    <option value="{{key}}">{{key}}</option>
 	  </select>
 	</label>
+	<button click-call="renameFile" id="rename">Rename</button>
+	<button click-call="deleteFile" id="delete">Delete</button>
 	<button click-call="compile" id="compile" title="Ctrl+Enter">Build</button>
       </div>
       <div id="ace" change-call="commit"></div>
