@@ -181,6 +181,41 @@ void loop() {
 	    });	
     }
 
+    importZipSourceFiles( z ){
+
+	for( let k in z.files ){
+	    if( /.*\.(h|hpp|c|cpp|ino)$/i.test(k) ){
+		addFile.call( this, k );
+	    }
+	}
+
+	function addFile( name ){
+	    z.file(name)
+		.async("text")
+		.then( txt =>{
+		    
+		    if( txt.charCodeAt(0) == 0xFEFF )
+			txt = txt.substr(1);
+		    
+		    this.model.setItem([
+			"app",
+			"source",
+			name.replace(/\\/g, "/")
+		    ],txt );
+		    
+		})
+		.catch( err => {
+		    console.error( err.toString() );
+		    this.model.setItem([
+			"app",
+			"source",
+			name
+		    ], "// ERROR LOADING: " + err)
+		});
+	}
+	
+    }
+
     onDropFile( dom, event ){
 	event.stopPropagation();
 	event.preventDefault();
@@ -191,8 +226,23 @@ void loop() {
 
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];
-	    if( /.*\.(png|jpg)$$/i.test(file.name) )
+	    if( /.*\.(png|jpg)$/i.test(file.name) )
 		loadImageFile.call( this, file );
+	    if( /.*\.zip$/i.test(file.name) )
+		loadZipFile.call( this, file );
+	}
+
+	this.changeSourceFile();
+	
+	function loadZipFile( file ){
+	    let fr = new FileReader();
+	    fr.onload = evt => {
+		
+		JSZip.loadAsync( fr.result )
+		    .then( z => this.importZipSourceFiles(z) );
+		
+	    };
+	    fr.readAsArrayBuffer( file );
 	}
 
 	function loadImageFile( file ){

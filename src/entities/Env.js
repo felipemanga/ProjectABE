@@ -121,41 +121,7 @@ class Env extends IController {
 		promise = fetch( this.model.getItem("app.proxy") + srcurl )
 		    .then( rsp => rsp.arrayBuffer() )
 		    .then( buff => JSZip.loadAsync( buff ) )
-		    .then( z => {
-			
-			for( let k in z.files ){
-			    if( /.*\.(h|hpp|c|cpp|ino)$/i.test(k) ){
-				addFile.call( this, k );
-			    }
-			    console.log(k);
-			}
-
-			function addFile( name ){
-			    z.file(name)
-				.async("text")
-				.then( txt =>{
-				    
-				    if( txt.charCodeAt(0) == 0xFEFF )
-					txt = txt.substr(1);
-				    
-				    this.model.setItem([
-					"app",
-					"source",
-					name.replace(/\\/g, "/")
-				    ],txt );
-				    
-				})
-				.catch( err => {
-				    console.error( err.toString() );
-				    this.model.setItem([
-					"app",
-					"source",
-					name
-				    ], "// ERROR LOADING: " + err)
-				});
-			}
-			
-		    });
+		    .then( z => this.pool.call("importZipSourceFiles", z) );
 		
 	    }
 	    
