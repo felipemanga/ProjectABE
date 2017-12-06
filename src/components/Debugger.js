@@ -274,7 +274,7 @@ void loop() {
 			src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = ";
 			
 		        src += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
-			masksrc += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
+			masksrc += "{";
 		        
 		        let pageCount = Math.ceil( img.naturalHeight / 8 );
 		        let currentByte = 0, isPNG = /.*\.png$/i.test(file.name);
@@ -298,7 +298,10 @@ void loop() {
 					maskByte |= (1 << yPixel);
 		        	}
 
-				src += ","; masksrc += ",";
+				src += ",";
+
+				if( currentByte != 0 )
+				    masksrc += ",";
 				
 		        	if( currentByte%width == 0 ){
 		        	    src += "\n"; masksrc += "\n";
