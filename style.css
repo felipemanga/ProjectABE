@@ -165,7 +165,7 @@ nav button {
     font-size: inherit;
 }
 
-#envContainer .newProject, .FileSaver {
+#envContainer .newProject, .FileSaver, .RecordingIndicator {
     text-decoration: none;
     color: white;
     background: #567;
@@ -177,10 +177,23 @@ nav button {
     margin: 10px;
 }
 
-.FileSaver {
+.FileSaver, .RecordingIndicator {
     top: auto;
     bottom: 0;
 }
+
+@keyframes blinker {  
+  50% { opacity: 0; }
+}
+
+.RecordingIndicator {
+	width: 20px;
+	height: 20px;
+	border-radius: 20px;
+	background: red;
+	animation: blinker 1s linear infinite;
+}
+
 
 #simBox{
     position: relative;
@@ -465,6 +478,14 @@ canvas:-webkit-full-screen {
     align-items: center;    
 }
 
+.tabs button {
+    border: none;
+    background: #ABC;
+    color: #234;
+    padding: 2px;
+    margin: 2px;
+}
+
 #simContainer.microcard {}
 
 #simContainer.microcard img {
@@ -562,10 +583,6 @@ canvas:-webkit-full-screen {
     color: #123;
 }
 
-#compile {
-    margin-left: auto;
-}
-
 .dbgbtn {
     background: #AEF;
     border: 0;
@@ -661,4 +678,12 @@ canvas:-webkit-full-screen {
     border-radius: 20px 0px 0px 20px; 
     box-shadow: 0px 0px 1px 1px yellow inset; 
 } 
+
+#compile {
+    margin-left: auto;
+}
+
+#addNewFile {
+    margin-right: 15px;
+}
 
