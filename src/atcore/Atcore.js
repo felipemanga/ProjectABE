@@ -15,6 +15,8 @@ if( typeof performance === "undefined" ){
     else global.performance = { now:()=>(new Date()).getTime() };
 }
 
+let staticOp = {begin:"", end:"", srDirty:0};
+
 class Atcore {
 
     constructor( desc ){
@@ -415,7 +417,7 @@ class Atcore {
 	    return false;
 	}
 	
-	this.history.push( "#" + (this.pc << 1).toString(16).padStart( 4, "0" ) );
+	// this.history.push( "#" + (this.pc << 1).toString(16).padStart( 4, "0" ) );
 
         var startPC = this.pc;
 
@@ -574,8 +576,6 @@ class Atcore {
         bytes2 = prog[pc] >>> 0;
         bytes4 = ((bytes2 << 16) | (prog[pc+1])) >>> 0;
 
-        let verbose = 1;
-
         for( ; i<l; ++i ){
 
             var desc = codec[i];
@@ -585,18 +585,11 @@ class Atcore {
 
             if( size === 4 ){
 
-                if( verbose==2 || verbose == desc.name )
-                    console.log( desc.name + "\n" + bin(bytes4 & mask, 8*4) + "\n" + bin(opcode, 8*4) );
-
                 if( (bytes4 & mask)>>>0 !== opcode )
                     continue;
                 bytes = bytes4;
 
             }else{
-
-
-                if( verbose==2 || verbose == desc.name )
-                    console.log( desc.name + "\n" + bin(bytes2 & mask, 8*2) + "\n" + bin(opcode, 8*2) );
 
                 if( (bytes2 & mask)>>>0 !== opcode )
                     continue;
@@ -759,7 +752,7 @@ class Atcore {
 
     
     getOpcodeImpl( inst, str, useParsed=true ){
-        var i, l, op = {begin:"", end:"", srDirty:0};
+        var i, l, op = staticOp;
 
 	if( inst.parsedBegin && str === inst.impl && useParsed ){
 	    op.begin = getParsed( inst.parsedBegin );
@@ -782,6 +775,8 @@ class Atcore {
 	    
 	    return op;
 	}
+
+	op = {begin:"", end:"", srDirty:0};
 
         if( Array.isArray(str) ){
             for( i = 0, l=str.length; i<l; ++i ){
@@ -1143,6 +1138,7 @@ const AtCODEC = [
     },
     {
         name: 'BRBS',
+	score:105,
         str:'111100kkkkkkksss',
         impl: [
             'if( SR@s ){',
@@ -1203,6 +1199,7 @@ const AtCODEC = [
     },
     {
         name: 'BRNE',
+	score:91,
         str:'111101kkkkkkk001',
         impl: [
             'if( !SR@1 ){',
@@ -1341,6 +1338,7 @@ const AtCODEC = [
     },
     {
         name: 'CPI',
+	score:83,
         str:'0011KKKKddddKKKK',
         impl: [
             'R = ((Rd - k) >>> 0) & 0xFF;',
@@ -1514,6 +1512,7 @@ const AtCODEC = [
     },
     {
         name: 'LDYQ',
+	score:81,
         str:'10q0qq0ddddd1qqq',
         impl: [
             `Rd ← (Y+q);`
@@ -1896,6 +1895,7 @@ const AtCODEC = [
     },
     {
         name: 'SBCI',
+	score:70,
         str: '0100KKKKddddKKKK',
         impl: [
             'Rd ← (Rd - k - SR@0)&0xFF;',
