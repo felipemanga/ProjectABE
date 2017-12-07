@@ -189,14 +189,16 @@ class SCREEN {
 	
 	let x = cs + this.col;
 	let y = (ps + this.page) * 8;
+	let fbdata = this.fb.data;
+	let iOffset = (y*128 + x) * 4;
 	
-	for( let i=0; i<8; ++i ){
-	    let offset = ((y+i)*128 + x) * 4;
+	for( let i=0; i<8; ++i, iOffset += 128*4 ){
+	    let offset = iOffset; // ((y+i)*128 + x) * 4;
 	    let bit = ((data >>> i) & 1) * 0xE0;
-	    this.fb.data[ offset++ ] = bit;
-	    this.fb.data[ offset++ ] = bit;
-	    this.fb.data[ offset++ ] = bit;
-	    this.fb.data[ offset++ ] = bit;
+	    fbdata[ offset++ ] = bit;
+	    fbdata[ offset++ ] = bit;
+	    fbdata[ offset++ ] = bit;
+	    fbdata[ offset++ ] = bit;
 	}
 
 	this.col++;
