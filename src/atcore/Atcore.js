@@ -410,12 +410,15 @@ class Atcore {
         this.time = now;
     }
 
-    getBlock(){
-	
-	if( this.pc >= 0xFFFF ){
-	    this.pc = 0;
-	    return false;
-	}
+    getBlock( execute ){
+
+		if( execute == undefined )
+			execute = true;
+		
+		if( this.pc >= 0xFFFF ){
+			this.pc = 0;
+			return false;
+		}
 	
 	// this.history.push( "#" + (this.pc << 1).toString(16).padStart( 4, "0" ) );
 
@@ -423,10 +426,10 @@ class Atcore {
 
         var skip = false, prev = false, dbg = this.debuggerEnabled;
         var cacheList = ['reg', 'wreg', 'io', 'memory', 'sram', 'flash']
-	
-	
-	if( dbg )
-	    cacheList.push("breakpoints");
+		
+		
+		if( dbg )
+			cacheList.push("breakpoints");
 	    
         var code = '"use strict";\nvar sp=this.sp, r, t1, i8a=this.i8a, SKIP=false, read=this.read, write=this.write, ';
         code += cacheList.map(c=> `${c} = this.${c}`).join(', ');
@@ -436,59 +439,48 @@ class Atcore {
             code += `, sr${i} = (sr>>${i})&1`;
         code += ';\n';
 
-	
-	code += 'switch( this.pc ){\n';
-	// code += 'while(1){\n';
+		
+		code += 'switch( this.pc ){\n';
+		// code += 'while(1){\n';
 
-	let addrs = [];
-	let doTickCheck = 1;
+		let addrs = [];
+		let doTickCheck = 1;
         do{
-	    
+			
             var inst = this.identify();
             if( !inst ){
                 // inst = nop;
-		this.history.push( this.error );
-		this.pc++;
+				this.history.push( this.error );
+				this.pc++;
                 return;
             }
 
-	    // addrs.push( this.pc );
-
             code += `\ncase ${this.pc}:`;
-	    /*
-	    code += `// #` + (this.pc<<1).toString(16) + ": " + inst.name + ' [' + inst.decbytes.toString(2).padStart(16, "0") + ']' + '\n';
-	    */
 
             var chunk = `\n\tthis.pc = ${this.pc};\n`;
 	    
-	    if( dbg ){
-		chunk += '\nif( !breakpoints.disableFirst ){\n';
-		chunk += `\n\tif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
-		chunk += '{\n\t\tthis.endTick = this.tick;\n';
-		chunk += '\t\tthis.breakpointHit = true;\n';
-		chunk += '\t\tbreak;\n\t}\n';
-	    }
-	    doTickCheck--;
-	    if( doTickCheck <= 0 ){
-		chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
-		doTickCheck = 5;
-	    }else chunk += `\tthis.tick += ${inst.cycles};\n`;
+			if( dbg ){
+				chunk += '\nif( !breakpoints.disableFirst ){\n';
+				chunk += `\n\tif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
+				chunk += '{\n\t\tthis.endTick = this.tick;\n';
+				chunk += '\t\tthis.breakpointHit = true;\n';
+				chunk += '\t\tbreak;\n\t}\n';
+			}
+			doTickCheck--;
+			if( doTickCheck <= 0 ){
+				chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
+				doTickCheck = 5;
+			}else chunk += `\tthis.tick += ${inst.cycles};\n`;
 
-	    if( dbg ){
-		chunk += '\n}else{\n';
-		chunk += '\tthis.tick += ' + inst.cycles + ';\n';
-		chunk += '\tbreakpoints.disableFirst = false;\n';
-		chunk += '}\n';
-	    }
-	                
+			if( dbg ){
+				chunk += '\n}else{\n';
+				chunk += '\tthis.tick += ' + inst.cycles + ';\n';
+				chunk += '\tbreakpoints.disableFirst = false;\n';
+				chunk += '}\n';
+			}
+	        
             var op = this.getOpcodeImpl( inst, inst.impl );
-	    
-	    /* 
-	    var chop = this.getOpcodeImpl( inst, inst.impl, false );	    
-	    if( op.begin != chop.begin || op.end != chop.end || op.srDirty != chop.srDirty )
-		console.log(op, chop);
-	    */
-	    
+			
             var srDirty = op.srDirty;
             var line = op.begin, endline = op.end;
             if( inst.flags ){
@@ -524,30 +516,32 @@ class Atcore {
         }while( this.pc < this.prog.length && (!inst.end || skip || prev) )
 
         code += `\nthis.pc = ${this.pc};\n`;
-	code += `break;\n`;
+		code += `break;\n`;
 
-//	code += `default: this.tick += 2; console.warn('fell through #' + (this.pc++<<1).toString(16));\n`;
-        code += `\n\n}`;
-        // code += cacheList.map(c=>`this.${c} = ${c};`).join('\n');
-        code += 'this.sp = sp;\n';
+        code += '\n\n}';
+		code += 'this.sp = sp;\n';
 
-        var endPC = this.pc;
-        this.pc = startPC;
+		var endPC = this.pc;
 
         code = "return (function _" + (startPC<<1).toString(16) + "(){\n"
              + code
              + "});";
 
         try{
+
             var func = (new Function( code ))();
 
             for( var i=startPC; i<endPC; ++i )
                 this.native[ i ] = func;
 
-            func.call( this );
+			if( execute ){
+				this.pc = startPC;
+				func.call( this );
+			}
+
         }catch(ex){
 
-	    this.history.push( "Error on 0x" + startPC + ": " + ex.toString() );
+			this.history.push( "Error on 0x" + startPC + ": " + ex.toString() );
             
             setTimeout(()=>{
                 debugger;
@@ -557,7 +551,7 @@ class Atcore {
             throw ex;
         }
 
-        return true;
+        return endPC;
 
     }
 
