@@ -401,7 +401,7 @@ class Atcore {
 	if( this.debuggerEnabled )
 	    delta = 16;
 	else
-            delta = Math.max( 0, Math.min( 33, delta ) );
+            delta = Math.max( 0, Math.min( 16, delta ) );
 
         this.exec( delta/1000 );
 
