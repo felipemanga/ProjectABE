@@ -63,19 +63,30 @@ class SCREEN {
 			this.lastFrameTime = performance.now();
 
 			if( !this.blinker )
-				this.blinker = this.DOM.create("span", {className:"RecordingIndicator"}, document.body);
+			    this.blinker = this.DOM.create(
+				"span", {
+				    className:"RecordingIndicator"
+				},
+				document.body
+			    );
 			
 			gif.on('finished', (blob, data) => {
 
 				
-				if( !this.saver )
-					this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"GIF (save As...)"}, document.body);
-				else
-					URL.revokeObjectURL( this.saver.href );
+			    if( !this.saver ){
 				
-				this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
-				this.saver.style.display = "block";
-				this.gif = null;
+				this.saver = this.DOM.create("a", {
+				    className:"FileSaver",
+				    textContent:"GIF",
+				    attr:{download:true}
+				}, document.body);
+				
+			    }else
+				URL.revokeObjectURL( this.saver.href );
+				
+			    this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
+			    this.saver.style.display = "block";
+			    this.gif = null;
 				
 			});
 

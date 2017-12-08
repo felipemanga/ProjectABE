@@ -371,6 +371,14 @@ canvas:-webkit-full-screen {
     left: 89%;
 }
 
+#ABM {
+    width: 15%;
+    height: 9%;
+    top: 84%;
+    left: 19%;
+    display: none;
+}
+
 #DBG {
     width: 21%;
     height: 10%;
@@ -561,11 +569,24 @@ canvas:-webkit-full-screen {
     display: none;
 }
 
+#simContainer.microcard #ABM {
+    display: block;
+}
+
 #simContainer.microcard #DBG {
     width: 11%;
     left: 44%;
     height: 14%;
 }
+
+#simContainer.microcard #RESET {
+    width: 7%;
+    height: 10%;
+    top: 2%;
+    left: 71%;
+}
+
+
 
 #ideContainer #ace {
     flex-grow: 1;

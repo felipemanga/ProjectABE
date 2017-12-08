@@ -35,6 +35,7 @@ class Arduboy {
 	this.update = this._update.bind( this );
 	this.resize();
 	this.loadFlash();
+	this.arduboyMode();
 
 	setTimeout( _ => this._update(), 5 );
 	
@@ -164,6 +165,15 @@ class Arduboy {
 
     onPressEscape(){
 	this.powerOff();
+    }
+
+    arduboyMode(){
+	this.pool.call("remapKey", {
+	    ArrowUp:"ArrowUp",
+	    ArrowRight:"ArrowRight",
+	    ArrowDown:"ArrowDown",
+	    ArrowLeft:"ArrowLeft"
+	});
     }
 
     microcardMode(){

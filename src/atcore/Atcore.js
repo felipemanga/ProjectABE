@@ -216,12 +216,16 @@ class Atcore {
 		if( ret !== undefined ) value = ret;
             }
 
-	    THIS.lastReadValue = value;
-	    THIS.lastReadAddr = addr;
+	    if( THIS.debuggerEnabled ){
 
-	    if( THIS.debuggerEnabled && THIS.readBreakpoints[addr] ){
-		THIS.endTick = THIS.tick;
-		THIS.breakpointHit = true;
+		THIS.lastReadValue = value;
+		THIS.lastReadAddr = addr;
+
+		if( THIS.readBreakpoints[addr] ){
+		    THIS.endTick = THIS.tick;
+		    THIS.breakpointHit = true;
+		}
+		
 	    }
 
             return value;
@@ -238,12 +242,15 @@ class Atcore {
 		if( ret !== undefined ) value = ret;
 	    }
 
-	    THIS.lastWriteValue = value;
-	    THIS.lastWriteAddr = addr;
+	    if( THIS.debuggerEnabled ){
 	    
-	    if( THIS.debuggerEnabled && THIS.writeBreakpoints[addr] ){
-		THIS.endTick = THIS.tick;
-		THIS.breakpointHit = true;
+		THIS.lastWriteValue = value;
+		THIS.lastWriteAddr = addr;
+	    
+		if( THIS.writeBreakpoints[addr] ){
+		    THIS.endTick = THIS.tick;
+		    THIS.breakpointHit = true;
+		}
 	    }
 
 	    return memory[ addr ] = value;
@@ -403,7 +410,7 @@ class Atcore {
 	if( this.debuggerEnabled )
 	    delta = 16;
 	else
-            delta = Math.max( 0, Math.min( 16, delta ) );
+            delta = Math.max( 0, Math.min( 33, delta ) );
 
         this.exec( delta/1000 );
 

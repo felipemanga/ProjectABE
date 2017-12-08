@@ -170,9 +170,18 @@ void loop() {
 	
 	zip.generateAsync({type:"blob"})
 	    .then( content => {
-		if( !this.saver )
-		    this.saver = this.DOM.create("a", {className:"FileSaver", textContent:"ZIP (save As...)"}, document.body);
-		else
+		
+		if( !this.saver ){
+		    
+		    this.saver = this.DOM.create("a", {
+			className:"FileSaver",
+			textContent:"ZIP",
+			attr:{
+			    download:true
+			}
+		    }, document.body);
+		    
+		}else
 		    URL.revokeObjectURL( this.saver.href );
 				
 		this.saver.href = URL.createObjectURL( content );
