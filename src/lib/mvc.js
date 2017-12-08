@@ -113,6 +113,7 @@ class Model {
 
     setItem( k, v, doRaise = true ){
 
+	var raiseToParents = false;
         if( k.charCodeAt ) k = k.split(".");
         var prop = k.shift(), child;
         var data = this.data, children = this.children, revChildren = this.revChildren;
@@ -155,7 +156,7 @@ class Model {
 
             delete child.parents[ this.id ];
 
-        }
+        }else raiseToParents = true;
 
         if( v && typeof v == "object" ){
 
@@ -184,6 +185,10 @@ class Model {
 
         this.dirty = true;
         this.raise( prop, doRaise );
+	if( raiseToParents ){
+	    for( let pid in this.parents )
+		this.parents[pid].raise( this.parents[pid].revChildren[ this.id ], doRaise );
+	}	    
 
         return this;
 
@@ -248,10 +253,11 @@ class Model {
         delete data[key];
 
         model.raise( key, true );
-
+/*
 	var parentKey = parent.pop();
 	model = this.getModel( parent );
 	model.raise( parentKey, true );
+*/
     }
 
     raise(k, doRaise){
@@ -313,7 +319,7 @@ class Model {
     // attach( cb:Function )
     // listen to key additions/removals
     attach(k, cb){
-        var key = k.split(".");
+        var key = (k.split && k.split(".")) || k;
         var model;
         if( key.length == 1 ){
             key = k;
@@ -321,6 +327,7 @@ class Model {
         }else{
             k = key.pop();
             model = this.getModel( key, true );
+	    key.push(k);
             key = k;
         }
         
@@ -334,14 +341,24 @@ class Model {
     // stop listening
     detach(k, cb){
 
-        var index, listeners;
+        var index, listeners, model;
 
-        if( typeof k == "function" ){
-            cb = k;
-            k = "";
+	k = (k.split && k.split(".")) || k;
+	
+	var key = k;
+
+        if( key.length == 1 ){
+            key = k;
+            model = this;
+        }else{
+            k = key.pop();
+            model = this.getModel( key, false );
+	    key.push(k);
+	    if( !model ) return;
+            key = k;
         }
 
-        listeners = this.listeners[k];
+        listeners = model.listeners[k];
         if( !listeners[k] )
             return;
 
@@ -385,7 +402,7 @@ class IView {
                 this.loadLayout( html );
             }).catch( (ex) => {
 
-                this.parentElement.innerHTML = `<div>` + (ex.message || ex) + `: ${layout}!</div>`;
+                this.parentElement.innerHTML = `<div>` + (ex.message || ex) + `: ${layout}!</div>` + (ex.stack||"").split("\n").map( e => `<div>${e}</div>` ).join("");
 
             });
 
@@ -448,19 +465,46 @@ function prepareDOM( dom, controller, _model, viewdom ){
             updateAttribute( element.attributes[i], memo );
         }
 
-        if( element.dataset.src && !element.dataset.inject ){
+        if( (element.dataset.src || element.dataset.srcIndirect) && !element.dataset.inject ){
+	    let indirect = element.dataset.srcIndirect, prevattach;
+
+	    if( indirect ){
+		_model.attach( indirect, _ => attach( _model.getItem(indirect, "") ) );
+	    }
+	    
             switch( element.tagName ){
             case 'UL':
             case 'OL':
 	    case 'SELECT':
                 var template = element.cloneNode(true);
-                _model.attach( element.dataset.src, renderList.bind( null, element, template ) );
-                renderList( element, template, _model.getItem( element.dataset.src ) );
+		var attachcb = _ => renderList(
+		    element,
+		    template,
+		    _model.getItem( indirect ? _model.getItem(indirect, "") : element.dataset.src )
+		);
+		attach( indirect ? _model.getItem(indirect, "") : element.dataset.src );
                 break;
 
             default:
                 break;
             }
+	    
+	    function attach( src ){
+		if( Array.isArray(src) )
+		    src = [...src];
+		
+		if( prevattach )
+		    _model.detach( prevattach, attachcb );		
+		prevattach = src;
+		
+		if( Array.isArray(src) )
+		    src = [...src];
+                _model.attach( src, attachcb );
+		
+		attachcb();
+		
+	    }
+	    
             return false;
         }
 

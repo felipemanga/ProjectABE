@@ -87,6 +87,7 @@ class Arduboy {
 		core.history.push("Loading hex from URL");
 		Hex.parseURL( url, this.core.flash, success => {
 		    if( success ) this.initCore( preserve );
+		    else this.pool.call("showDebugger");
 		});
 	    }else{
 		this.pool.call("showDebugger");
