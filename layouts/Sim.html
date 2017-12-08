@@ -26,7 +26,7 @@
 	<button click-call="addNewFile" id="addNewFile" title="Add New File">+</button>
 	<label>
 	  File:
-	  <select id="currentFile" change-call="changeSourceFile" data-src="app.source">
+	  <select id="currentFile" change-call="changeSourceFile" data-src-indirect="app.srcpath">
 	    <option value="{{key}}">{{key}}</option>
 	  </select>
 	</label>
