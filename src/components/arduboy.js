@@ -186,32 +186,32 @@ class Arduboy {
     }
 
     setActiveView(){
-	this.pool.remove(this);
+		this.pool.remove(this);
     }
 
     powerOff(){
-	this.pool.remove(this);
-	console.error = this._error;
-	this.dead = true;
-	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
+		this.pool.remove(this);
+		console.error = this._error;
+		this.dead = true;
+		this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }
 
     initCore( preserve ){
 
-	self.core.history.push("Initializing core" + (preserve?" with debugger enabled":"") );
-	
-	window.onerror = evt => {
-	    self.core.history.push( "ERROR: " + evt.toString() );
-	};
-	this._error = console.error;
-	console.error = (...args) => {
-	    self.core.history.push( "ERROR: " + args.join(" ") );
-	    this._error.apply( console, args );
-	};
-	
-	this.root.setItem("ram.core", self.core);
-	
-	let core = this.core, oldValues = {}, DDRB, serial0Buffer = "", callbacks = {
+		self.core.history.push("Initializing core" + (preserve?" with debugger enabled":"") );
+		
+		window.onerror = evt => {
+			self.core.history.push( "ERROR: " + evt.toString() );
+		};
+		this._error = console.error;
+		console.error = (...args) => {
+			self.core.history.push( "ERROR: " + args.join(" ") );
+			this._error.apply( console, args );
+		};
+		
+		this.root.setItem("ram.core", self.core);
+		
+		let core = this.core, oldValues = {}, DDRB, serial0Buffer = "", callbacks = {
             DDRB:{},
             DDRC:{},
             DDRD:{},
@@ -220,29 +220,29 @@ class Arduboy {
             PORTD:{},
             PORTE:{},
             PORTF:{}
-	};
-	
-	if( preserve ){
-	    core.enableDebugger();
-	    for( let k in preserve )
-		Object.assign( core[k], preserve[k] );
-	}
+		};
+		
+		if( preserve ){
+			core.enableDebugger();
+			for( let k in preserve )
+				Object.assign( core[k], preserve[k] );
+		}
 
-	Object.keys(callbacks).forEach( k =>
-					Object.assign(callbacks[k],{
-					    onHighToLow:[], 
-					    onLowToHigh:[]
-					})
-				      );
+		Object.keys(callbacks).forEach( k =>
+										Object.assign(callbacks[k],{
+											onHighToLow:[], 
+											onLowToHigh:[]
+										})
+									  );
 
-	Object.defineProperties( core.pins, {
+		Object.defineProperties( core.pins, {
 
             onHighToLow:{value:function( port, bit, cb ){
-		(callbacks[ port ].onHighToLow[ bit ] = callbacks[ port ][ bit ] || []).push( cb );
+				(callbacks[ port ].onHighToLow[ bit ] = callbacks[ port ][ bit ] || []).push( cb );
             }},
 
             onLowToHigh:{value:function( port, bit, cb ){
-		(callbacks[ port ].onLowToHigh[ bit ] = callbacks[ port ][ bit ] || []).push( cb );
+				(callbacks[ port ].onLowToHigh[ bit ] = callbacks[ port ][ bit ] || []).push( cb );
             }},
 
             0:{value:{ out:{port:"PORTD", bit:2 }, in:{port:"PIND", bit:2} } },
@@ -258,40 +258,40 @@ class Arduboy {
             10:{value:{ out:{port:"PORTB", bit:6 }, in:{port:"PINB", bit:6} } },
             11:{value:{ out:{port:"PORTB", bit:7 }, in:{port:"PINB", bit:7} } },
 
-	    16:{value:{ out:{port:"PORTB", bit:2 }, in:{port:"PINB", bit:2} } },
+			16:{value:{ out:{port:"PORTB", bit:2 }, in:{port:"PINB", bit:2} } },
             14:{value:{ out:{port:"PORTB", bit:3 }, in:{port:"PINB", bit:3} } },
             15:{value:{ out:{port:"PORTB", bit:1 }, in:{port:"PINB", bit:1} } },
             17:{value:{ out:{port:"PORTB", bit:0 }, in:{port:"PINB", bit:0} } },
 
             18:{value:{ out:{port:"PORTF", bit:7 }, in:{port:"PINF", bit:7} } },
             A0:{value:{ out:{port:"PORTF", bit:7 }, in:{port:"PINF", bit:7} } },
-            19:{value:{ out:{port:"PORTF", bit:6 }, in:{port:"PINF", bit:6} } },
-            A1:{value:{ out:{port:"PORTF", bit:6 }, in:{port:"PINF", bit:6} } },
-            20:{value:{ out:{port:"PORTF", bit:5 }, in:{port:"PINF", bit:5} } },
-            A2:{value:{ out:{port:"PORTF", bit:5 }, in:{port:"PINF", bit:5} } },
-            21:{value:{ out:{port:"PORTF", bit:4 }, in:{port:"PINF", bit:4} } },
-            A3:{value:{ out:{port:"PORTF", bit:4 }, in:{port:"PINF", bit:4} } },
-	    
-	    MOSI:{value:{}},
-	    MISO:{value:{}},
+			19:{value:{ out:{port:"PORTF", bit:6 }, in:{port:"PINF", bit:6} } },
+			A1:{value:{ out:{port:"PORTF", bit:6 }, in:{port:"PINF", bit:6} } },
+			20:{value:{ out:{port:"PORTF", bit:5 }, in:{port:"PINF", bit:5} } },
+			A2:{value:{ out:{port:"PORTF", bit:5 }, in:{port:"PINF", bit:5} } },
+			21:{value:{ out:{port:"PORTF", bit:4 }, in:{port:"PINF", bit:4} } },
+			A3:{value:{ out:{port:"PORTF", bit:4 }, in:{port:"PINF", bit:4} } },
+			
+			MOSI:{value:{}},
+			MISO:{value:{}},
 
-	    spiIn:{
-		value:[]
-	    },
-	    
-	    spiOut:{
-		value:{
-		    listeners:[],
-		    push( data ){
-			let i=0, listeners=this.listeners, l=listeners.length;
-			for(;i<l;++i)
-			    listeners[i]( data );
-		    }
-		}
-	    },
-	    
+			spiIn:{
+				value:[]
+			},
+			
+			spiOut:{
+				value:{
+					listeners:[],
+					push( data ){
+						let i=0, listeners=this.listeners, l=listeners.length;
+						for(;i<l;++i)
+							listeners[i]( data );
+					}
+				}
+			},
+			
             serial0:{
-		set:function( str ){
+				set:function( str ){
                     str = (str || "").replace(/\r\n?/,'\n');
                     serial0Buffer += str;
 
@@ -306,57 +306,58 @@ class Arduboy {
 
                     }
                     
-		}
+				}
             },
 
             DDRB: {
-		set: setDDR.bind(null, "DDRB"),
-		get:function(){
+				set: setDDR.bind(null, "DDRB"),
+				get:function(){
                     return oldValues.DDRB|0;
-		}
+				}
             },
             DDRC: {
-		set: setDDR.bind(null, "DDRC"),
+				set: setDDR.bind(null, "DDRC"),
             },
             DDRD: {
-		set: setDDR.bind(null, "DDRD"),
+				set: setDDR.bind(null, "DDRD"),
             },
             DDRE: {
-		set: setDDR.bind(null, "DDRD"),
+				set: setDDR.bind(null, "DDRD"),
             },
             DDRF: {
-		set: setDDR.bind(null, "DDRD"),
+				set: setDDR.bind(null, "DDRD"),
             },
             PORTB: {
-		set: setPort.bind(null, "PORTB")
+				set: setPort.bind(null, "PORTB")
             },
             PORTC: {
-		set: setPort.bind(null, "PORTC")
+				set: setPort.bind(null, "PORTC")
             },
             PORTD: {
-		set: setPort.bind(null, "PORTD")
+				set: setPort.bind(null, "PORTD")
             },
             PORTE: {
-		set: setPort.bind(null, "PORTE")
+				set: setPort.bind(null, "PORTE")
             },
             PORTF: {
-		set: setPort.bind(null, "PORTF")
+				set: setPort.bind(null, "PORTF")
             }
 
-	});
+		});
 
-	setTimeout( _ =>{
-	    this.setupPeriferals();
-	    this.state = RUNNING;
-	}, 5);
+		setTimeout( _ =>{
+			this.setupPeriferals();
+			this.JITwarmup();
+			this.state = RUNNING;
+		}, 5);
 
-	function setDDR( name, cur ){   
+		function setDDR( name, cur ){   
             var old = oldValues[name];                    
             if( old === cur ) return;
             oldValues[name] = cur;
-	}
+		}
 
-	function setPort( name, cur ){
+		function setPort( name, cur ){
             var old = oldValues[name];
             
             if( old === cur ) return;
@@ -364,94 +365,105 @@ class Arduboy {
 
             for( var i=0; i<8; ++i ){
 
-		var ob = old>>>i&1, nb = cur>>>i&1;
-		if( lth[i] && !ob && nb ){
+				var ob = old>>>i&1, nb = cur>>>i&1;
+				if( lth[i] && !ob && nb ){
                     for( j=0, s=lth[i], l=s.length; j<l; ++j )
-			s[j]( tick );
-		}
-		if( htl[i] && ob && !nb ){
+						s[j]( tick );
+				}
+				if( htl[i] && ob && !nb ){
                     for( j=0, s=htl[i], l=s.length; j<l; ++j )
-			s[j]( tick );
-		}
+						s[j]( tick );
+				}
 
             }
 
             oldValues[name] = cur;
 
-	}
+		}
     }
 
-    
+    JITwarmup(){
+
+		let core = this.core;
+		let startPC = core.pc;
+		core.pc = 0;
+
+		while( core.pc < core.prog.length )
+			core.getBlock( false );
+
+		core.pc = startPC;
+
+	}
 
     addPeriferal( ctrl ){
-	
-	this.periferals.push( ctrl );
-	
+		
+		this.periferals.push( ctrl );
+		
     }
 
     setupPeriferals(){
-	let pins = this.core.pins;
-	let map = { cpu:this.core.pins };
-	this.tick = [];
-	
-	this.periferals.forEach( ctrl => {
-
-	    if( ctrl.tick )
-		this.tick.push( ctrl );
-	    
-	    for( let k in ctrl ){
-
-		let v = ctrl[k];
-		if( !v || !v.connect ) continue;
-
-		v = ctrl[k] = Object.assign({}, v );
-
-		let target = v.connect;
-		if(typeof target == "number" )
-		    target = "cpu." + target;
-
-		let tobj = map;
-		let tparts = target.split(".");
-		while( tparts.length && tobj )
-		    tobj = tobj[ tparts.shift() ];
-
-		if( v.MOSI )
-		    pins.spiOut.listeners.push( v.MOSI.bind( ctrl ) );
-
-		if( !tobj ){
-		    console.warn("Could not attach wire from ", k, " to ", target);
-		    continue;
-		}
-
-		if( v.onLowToHigh )
-		    pins.onLowToHigh( tobj.out.port, tobj.out.bit, v.onLowToHigh.bind( ctrl ) );
+		let pins = this.core.pins;
+		let map = { cpu:this.core.pins };
+		this.tick = [];
 		
-		if( v.onHighToLow )
-		    pins.onHighToLow( tobj.out.port, tobj.out.bit, v.onHighToLow.bind( ctrl ) );
+		this.periferals.forEach( ctrl => {
+
+			if( ctrl.tick )
+				this.tick.push( ctrl );
+			
+			for( let k in ctrl ){
+
+				let v = ctrl[k];
+				if( !v || !v.connect ) continue;
+
+				v = ctrl[k] = Object.assign({}, v );
+
+				let target = v.connect;
+				if(typeof target == "number" )
+					target = "cpu." + target;
+
+				let tobj = map;
+				let tparts = target.split(".");
+				while( tparts.length && tobj )
+					tobj = tobj[ tparts.shift() ];
+
+				if( v.MOSI )
+					pins.spiOut.listeners.push( v.MOSI.bind( ctrl ) );
+
+				if( !tobj ){
+					console.warn("Could not attach wire from ", k, " to ", target);
+					continue;
+				}
+
+				if( v.onLowToHigh )
+					pins.onLowToHigh( tobj.out.port, tobj.out.bit, v.onLowToHigh.bind( ctrl ) );
+				
+				if( v.onHighToLow )
+					pins.onHighToLow( tobj.out.port, tobj.out.bit, v.onHighToLow.bind( ctrl ) );
 
 
-		let setter = (function( tobj, nv ){
-		    
-		    if( nv ) pins[ tobj.in.port ] |= 1 << tobj.in.bit;
-		    else pins[ tobj.in.port ] &= ~(1 << tobj.in.bit);
-		    
-		}).bind(this, tobj);
+				let setter = (function( tobj, nv ){
+					
+					if( nv ) pins[ tobj.in.port ] |= 1 << tobj.in.bit;
+					else pins[ tobj.in.port ] &= ~(1 << tobj.in.bit);
+					
+				}).bind(this, tobj);
 
-		let getter = (function( tobj ){
-		    return (pins[ tobj.out.port ] >>> tobj.out.bit) & 1;
-		}).bind(this, tobj);
+				let getter = (function( tobj ){
+					return (pins[ tobj.out.port ] >>> tobj.out.bit) & 1;
+				}).bind(this, tobj);
 
-		Object.defineProperty(v, "value", {
-		    set:setter,
-		    get:getter
+				Object.defineProperty(v, "value", {
+					set:setter,
+					get:getter
+				});
+
+				if( v.init )
+					v.init.call( ctrl );
+
+			}
+			
 		});
-
-		if( v.init )
-		    v.init.call( ctrl );
-
-	    }
-	    
-	});
 	
     }
 
