@@ -30,7 +30,7 @@ function Builder(){
     fs.mkdirSync(__dirname + '/builds/' + this.id);
     fs.mkdirSync(__dirname + '/public/builds/' + this.id);
 
-    let data = '', stdout = '', disassembly = '';
+    let data = '', stdout = '', disassembly = '', items = [];
 
     let main = null;
 
@@ -175,7 +175,16 @@ function Builder(){
 			this.state = "DONE";
 			this.result = "ERROR: " + error + " " + stderr + stdout;
 		    }else{
-			this.disassemble();
+			
+			fs.readdir( __dirname + '/public/builds/' + this.id, (err, _items) => {
+			    
+			    items = _items;
+
+			    main = (items.find( f => /.*?\.hex$/i.test(f) )||"").replace(/\.hex$/i, '');
+			
+			    this.disassemble();
+			    
+			});
 		    }
 		    
 		});
@@ -221,16 +230,14 @@ function Builder(){
 
     this.complete = hasDA => {
 
-	fs.readdir( __dirname + '/public/builds/' + this.id, (err, items) => {
-	    busy = false;
-	    this.state = "DONE";
-	    
-	    this.result = JSON.stringify({
-		path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
-		disassembly: disassembly,
-		result: items,
-		stdout
-	    });
+	busy = false;
+	this.state = "DONE";
+	
+	this.result = JSON.stringify({
+	    path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
+	    disassembly: disassembly,
+	    result: items,
+	    stdout
 	});
 		
     };
