@@ -101,7 +101,12 @@ class Arduboy {
 	if( hex ){
 	    
 	    this.core = Atcore.ATmega32u4();
-	    Hex.parse( hex, this.core.flash );
+	    try{
+		Hex.parse( hex, this.core.flash );
+	    }catch(ex){
+		this.pool.call("showDebugger");
+		return;
+	    }
 	    this.initCore( preserve );
 	    return;
 	    
