@@ -220,16 +220,19 @@ function Builder(){
     };
 
     this.complete = hasDA => {
-	
-	busy = false;
-	this.state = "DONE";
-			
-	this.result = JSON.stringify({
-	    path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
-	    disassembly: disassembly,
-	    stdout
+
+	fs.readdir( __dirname + '/public/builds/' + this.id, (err, items) => {
+	    busy = false;
+	    this.state = "DONE";
+	    
+	    this.result = JSON.stringify({
+		path:'/builds/' + this.id + '/' + main.replace(/.*?([^\/]+)$/, '$1') + '.hex',
+		disassembly: disassembly,
+		result: items,
+		stdout
+	    });
 	});
-	
+		
     };
     
 }
