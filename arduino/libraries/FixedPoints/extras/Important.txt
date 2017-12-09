@@ -1,0 +1,6 @@
+Do not attempt to use anything from the Details namespace.
+Everything in the Details namespace is merely an implementation detail which may be changed without notice,
+thus any attempt to use anything from the Details namespace may result in your own code breaking in future updates. 
+
+To wrap the fixed point types in the FixedPoints namespace (e.g. in case of name conflicts):
+#define FIXED_POINTS_USE_NAMESPACE

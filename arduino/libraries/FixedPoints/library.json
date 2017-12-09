@@ -1,0 +1,18 @@
+{
+  "name": "FixedPoints",
+  "description": "A templated header-only fixed point arithmetic library aimed at Arduino",
+  "keywords": "maths, fixed, point, fixed point, arithmetic",
+  "authors":
+  {
+    "name": "Pharap",
+    "url": "https://github.com/Pharap"
+  },
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/Pharap/FixedPointsArduino.git"
+  },
+  "license": "Apache-2.0",
+  "version": "1.0.4",
+  "frameworks": "arduino"
+}

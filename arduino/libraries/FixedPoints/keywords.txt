@@ -1,0 +1,47 @@
+
+####################################
+# Syntax Colouring For FixedPoints #
+####################################
+
+####################################
+# Datatypes (KEYWORD1)             #
+####################################
+
+SFixed	KEYWORD1
+UFixed	KEYWORD1
+UQ4x4	KEYWORD1
+UQ8x8	KEYWORD1
+UQ16x16	KEYWORD1
+UQ32x32	KEYWORD1
+UQ1x7	KEYWORD1
+UQ1x15	KEYWORD1
+UQ1x31	KEYWORD1
+UQ1x63	KEYWORD1
+SQ3x4	KEYWORD1
+SQ7x8	KEYWORD1
+SQ15x16	KEYWORD1
+SQ31x32	KEYWORD1
+SQ1x6	KEYWORD1
+SQ1x14	KEYWORD1
+SQ1x30	KEYWORD1
+SQ1x62	KEYWORD1
+
+####################################
+# Methods and Functions (KEYWORD2) #
+####################################
+
+getInternal	KEYWORD2
+getInteger	KEYWORD2
+getFraction	KEYWORD2
+fromInternal	KEYWORD2
+multiply	KEYWORD2
+floorFixed	KEYWORD2
+ceilFixed	KEYWORD2
+roundFixed	KEYWORD2
+truncFixed	KEYWORD2
+signbitFixed	KEYWORD2
+absFixed	KEYWORD2
+copysignFixed	KEYWORD2
+nextafterFixed	KEYWORD2
+randomUFixed	KEYWORD2
+randomSFixed	KEYWORD2
