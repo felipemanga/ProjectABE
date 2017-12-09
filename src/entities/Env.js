@@ -60,8 +60,14 @@ class Env extends IController {
 	this.model.removeItem("app.srcpath");
 	this.model.setItem('app.srcpath', ["app", "sources", url]);
 	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
+
+	let build = source.getItem(["build.hex"]);
+	if( build ){
+
+	    this.model.setItem("app.AT32u4.hex", build);
+	    this.pool.call("runSim");
 	
-	if( /\.arduboy$/i.test(url) ){
+	} else if( /\.arduboy$/i.test(url) ){
 	    
 	    let zip = null;
 	    fetch( this.model.getItem("app.proxy") + url )
@@ -70,6 +76,7 @@ class Env extends IController {
 		.then( z => (zip=z).file("info.json").async("text") )
 		.then( info => zip.file( JSON.parse( fixJSON(info) ).binaries[0].filename).async("text") )
 		.then( hex => {
+		    source.setItem(["build.hex"], hex);
 		    this.model.setItem("app.AT32u4.hex", hex);
 		    this.pool.call("runSim");
 		})
@@ -78,8 +85,13 @@ class Env extends IController {
 		});
 
 	}else{
-	    this.model.setItem("app.AT32u4.url", this.model.getItem("app.proxy") + url );
-	    setTimeout( _ => this.pool.call("runSim"), 10 );
+	    fetch( this.model.getItem("app.proxy") + url )
+		.then( rsp => rsp.text() )
+		.then( hex => {
+		    source.setItem(["build.hex"], hex);
+		    this.model.setItem("app.AT32u4.hex", hex);
+		    this.pool.call("runSim");
+		})
 	}
 
 	let ghmatch = srcurl &&

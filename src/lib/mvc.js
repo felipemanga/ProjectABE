@@ -203,7 +203,7 @@ class Model {
         if( create ){
             while( ctx && i<k.length ){
                 if( !ctx.children[k[i]] )
-                    ctx.setItem(k[i], {});
+                    ctx.setItem([k[i]], {});
                 ctx = ctx.children[ k[i++] ];
             }
         }else{

@@ -31,7 +31,7 @@ class Debugger {
 	this.code = null;
 	this.compileId = 0;
 
-	this.initSource();
+	// this.initSource();
 	
     }
 
@@ -46,7 +46,7 @@ class Debugger {
 	this.source = this.model.getModel(
 	    this.model.getItem("app.srcpath"),
 	    true
-	);
+	) || new Model();
 
 	let promise = null;
 
@@ -275,7 +275,7 @@ void loop() {
 			className:"FileSaver",
 			textContent:"ZIP",
 			attr:{
-			    download:true
+			    download:"ArduboyProject"
 			}
 		    }, document.body);
 		    
@@ -420,7 +420,7 @@ void loop() {
 			
 			src += "#endif\n";
 			
-			this.source.setItem(["bmp/" + cleanName + ".h"], src);
+			this.addNewFile( "bmp/" + cleanName + ".h", src );
 			
 		    }
 		    
@@ -597,7 +597,7 @@ void loop() {
 			.then( rsp => rsp.text() )
 			.then( text => {
 			    this.model.setItem("app.AT32u4.hex", text);
-			    this.source.setItem("build.hex", text);
+			    this.source.setItem(["build.hex"], text);
 			    this.pool.call("loadFlash");
 			});
 

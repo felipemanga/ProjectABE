@@ -78,7 +78,7 @@ class SCREEN {
 				this.saver = this.DOM.create("a", {
 				    className:"FileSaver",
 				    textContent:"GIF",
-				    attr:{download:true}
+				    attr:{download:"ArduboyRecording"}
 				}, document.body);
 				
 			    }else
