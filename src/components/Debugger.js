@@ -430,7 +430,7 @@ void loop() {
 			var hasHeader = false;
 			var headerPath = "bmp/" + cleanName + ".h";
 			
-			bmpcpp.replace(/(?:^|\n)\s*#include\s+"([^"]+)"/, (_, inc) =>{
+			bmpcpp.replace(/(?:^|\n)\s*#include\s+"([^"]+)"/g, (_, inc) =>{
 			    hasHeader = hasHeader || inc == headerPath;
 			    return "";
 			});
@@ -443,7 +443,7 @@ void loop() {
 			var bmph = this.source.getItem(["bmp.h"], "");
 			var hasExtern = false;
 
-			bmph.replace(/(?:^|\n)\s*extern\s+const\s+unsigned\s+char\s+PROGMEM\s+([^\[\s\[]+)/, (_, inc) => {
+			bmph.replace(/(?:^|\n)\s*extern\s+const\s+unsigned\s+char\s+PROGMEM\s+([^\[\s\[]+)/g, (_, inc) => {
 			    hasExtern = hasExtern || inc == cleanName;
 			});
 
