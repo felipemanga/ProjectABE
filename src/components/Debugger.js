@@ -2,7 +2,6 @@ import { IController, Model, IView } from '../lib/mvc.js';
 import JSZip from 'jszip/dist/jszip.min.js';
 import DOM from '../lib/dry-dom.js';
 
-
 const compiler = "https://projectabe.herokuapp.com/";
 
 class Debugger {
@@ -13,7 +12,7 @@ class Debugger {
     }
 
     constructor( DOM ){
-
+	this.model.setItem("ram.fuzzy", []);
 	this.pool.add(this);
 	
 	this.DOM = DOM;
@@ -207,11 +206,19 @@ void loop() {
 	    }
 	    
 	});
+
+//	this.code.setKeyboardHandler("ace/keyboard/emacs");
 		
         this.code.commands.addCommand({
             name: "replace",
             bindKey: {win: "Ctrl-Enter", mac: "Command-Option-Enter"},
             exec: () => this.compile()
+        });	    
+
+        this.code.commands.addCommand({
+            name: "fuzzy",
+            bindKey: {win: "Ctrl-P", mac: "Command-P"},
+            exec: () => this.showFuzzyFinder()
         });	    
 
 	this.changeSourceFile();
@@ -368,8 +375,7 @@ void loop() {
 
 			let masksrc = "\nconst unsigned char PROGMEM " + cleanName + "_mask[] = ";
 
-			let src = "#ifndef BMP_" + cleanName.toUpperCase() + "_H\n";
-			src += "#define BMP_" + cleanName.toUpperCase() + "_H\n";
+			let src = "";
 			src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = ";
 			
 		        src += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
@@ -418,9 +424,39 @@ void loop() {
 			if( isPNG )
 			    src += masksrc;
 			
-			src += "#endif\n";
+			src += "\n";
+
+			var bmpcpp = this.source.getItem(["bmp.cpp"], "#include <Arduino.h>\n#include \"bmp.h\"\n");
+			var hasHeader = false;
+			var headerPath = "bmp/" + cleanName + ".h";
 			
-			this.addNewFile( "bmp/" + cleanName + ".h", src );
+			bmpcpp.replace(/(?:^|\n)\s*#include\s+"([^"]+)"/, (_, inc) =>{
+			    hasHeader = hasHeader || inc == headerPath;
+			    return "";
+			});
+			
+			if( !hasHeader )
+			    bmpcpp += "\n#include \"" + headerPath + "\"\n";
+
+			this.source.setItem(["bmp.cpp"], bmpcpp);
+
+			var bmph = this.source.getItem(["bmp.h"], "");
+			var hasExtern = false;
+
+			bmph.replace(/(?:^|\n)\s*extern\s+const\s+unsigned\s+char\s+PROGMEM\s+([^\[\s\[]+)/, (_, inc) => {
+			    hasExtern = hasExtern || inc == cleanName;
+			});
+
+			if( !hasExtern ){
+			    bmph = "extern const unsigned char PROGMEM " +
+				cleanName + "[], " +
+				cleanName + "_mask[];\n" +
+				bmph;
+			}
+
+			this.source.setItem(["bmp.h"], bmph);
+			
+			this.addNewFile( headerPath, src );
 			
 		    }
 		    
@@ -450,12 +486,97 @@ void loop() {
 		}
 		this.code.session.setBreakpoint( this.srcmap[addr].line-1, c );
 	    }
-	    
+	    	    
 	}
 	
 	if( !paused && this.srcmap[ this.currentPC ] ){
 	    this.code.session.setBreakpoint( this.srcmap[this.currentPC].line-1, "paused" );
 	}
+	
+    }
+
+    showFuzzyFinder(){
+	this.DOM.currentFile.style.display = "none";
+	this.DOM.fuzzyContainer.style.display = "block";
+	this.DOM.fuzzy.focus();
+	this.DOM.fuzzy.setSelectionRange(0, this.DOM.fuzzy.value.length);
+    }
+
+    updateFuzzyFind( dom, evt ){
+
+	let matches;
+	let str = this.DOM.fuzzy.value.trim().replace();
+	
+	if( str.length > 1 ) matches = fuzzy( str, Object.keys(this.source.data) );
+	else matches = [];
+	
+	this.model.setItem( "ram.fuzzy", matches.sort( (a,b)=>a.rank-b.rank ).map( a=>a.match ) );
+
+
+	function fuzzy( str, args ){
+
+	    if ( str === void 0 ) str = '';
+	    if ( args === void 0 ) args = [];
+
+	    var escaped = str.replace(/[|\\{}()\[\]^$+*?.]/g, '\\$&');
+	    var regex = new RegExp(((escaped.split(/(\\.|)/).filter( x=>x.length ).join('(.*)')) + ".*"));
+	    var length = str.length;
+
+	    return args.reduce(function (acc, possibleMatch) {
+		var result = regex.exec(possibleMatch);
+
+		if (result) {
+		    acc.push({
+			match: possibleMatch,
+			rank: result.index
+		    });
+		}
+		return acc
+	    }, []);
+	    
+	}
+    }
+
+    cancelFuzzyFind( dom, evt ){
+	
+	if( evt ) return setTimeout( _=>this.cancelFuzzyFind(), 10 );
+	
+	this.DOM.fuzzyContainer.style.display = "none";
+	this.DOM.currentFile.style.display = "";
+	this.code.focus();
+	
+    }
+
+    endFuzzyFind( dom, evt ){
+	
+	let results = this.model.getItem("ram.fuzzy", []);
+	let result = null;
+	
+	if( evt ){
+	    if( evt.type == "keydown" ){
+		
+		if( evt.key == "Escape")
+		    return this.cancelFuzzyFind();
+		else if( evt.key != "Enter" )
+		    return;
+
+		evt.preventDefault();
+		evt.stopPropagation();
+		
+	    }else if( evt.target.textContent in this.source.data )		
+		result = evt.target.textContent;
+	    
+	}
+    
+	if( !result && results.length )
+	    result = results[0];
+	
+	if( result ){
+	    this.DOM.currentFile.value = result;
+	    setTimeout( _=>this.changeSourceFile(), 10 );
+	}
+	
+	this.cancelFuzzyFind();
 	
     }
 
@@ -526,6 +647,53 @@ void loop() {
 	this.source.setItem( [this.DOM.currentFile.value], this.code.getValue() );
     }
 
+    initQRCGen(){
+	if( typeof QRCode == "undefined" ){
+	    self.QRCode = false;
+	    DOM.create("script", {src:"qrcode.min.js"}, document.head);
+	}
+    }
+    
+    updateQRCode( url ){
+
+	this.initQRCGen();
+
+	if( !self.QRCode )
+	    return;
+	
+	url = url.replace(/^https?:/i, "arduboy:");
+	
+	if( !this.qrcode ){
+	    
+	    this.qrcode = new QRCode( this.DOM.qrcContainer, {
+		text:url,
+		correctLevel: QRCode.CorrectLevel.L
+	    });
+	    
+	}else{
+	    
+	    this.qrcode.clear();
+	    this.qrcode.makeCode( url );
+	    
+	}
+	    
+	this.DOM.qrc.style.display = "inline";
+
+	if( this.qrcClearTH )
+	    clearTimeout( this.qrcClearTH );
+
+	this.qrcClearTH = setTimeout( _=>{
+	    
+	    this.qrcode.clear();
+	    this.DOM.qrc.style.display = "none";
+	    if( this.DOM.element.getAttribute("data-tab") == "qr" )
+ 		this.DOM.element.setAttribute("data-tab", "source");
+
+	    
+	}, 50000 );
+	
+    }
+
     compile(){
 	if( this.DOM.compile.style.display == "none" )
 	    return;
@@ -555,6 +723,8 @@ void loop() {
 		
 	    }
 	});
+
+	this.initQRCGen();
 
 	fetch( compiler + "build", {
 	    method:"POST",
@@ -593,9 +763,13 @@ void loop() {
 		    
 		    let data = JSON.parse( txt );
 		    this.model.removeItem("app.AT32u4");
+
+		    this.updateQRCode( compiler + data.path );
+		    
 		    fetch( compiler + data.path )
 			.then( rsp => rsp.text() )
 			.then( text => {
+			    
 			    this.model.setItem("app.AT32u4.hex", text);
 			    this.source.setItem(["build.hex"], text);
 			    this.pool.call("loadFlash");

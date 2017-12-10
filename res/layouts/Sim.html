@@ -12,6 +12,7 @@
       <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
       <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
       <button click-toggle="#ideContainer@data-tab=ram" click-call="refreshRAM">RAM</button>
+      <button click-toggle="#ideContainer@data-tab=qr" id="qrc" click-call="refreshQRC">QRCode</button>
       <div class="expand"> </div>
 
       <button click-call="reqReset" title="reset (F6)" class="dbgbtn">&#8635;</button>
@@ -21,15 +22,35 @@
       <div class="expand"> </div>
     </div>
 
+    <div class="verticalContainer" id="qrcContainer">
+    </div>
+
     <div class="verticalContainer" id="sourceContainer">
       <div class="horizontalContainer tabs">
 	<button click-call="addNewFile" id="addNewFile" title="Add New File">+</button>
 	<label>
 	  File:
-	  <select id="currentFile" change-call="changeSourceFile" data-src-indirect="app.srcpath">
+	  <select
+	    id="currentFile"
+	    change-call="changeSourceFile"
+	    data-src-indirect="app.srcpath"
+	    data-sort="key"
+	    title="Ctrl-P"
+	    >
 	    <option value="{{key}}">{{key}}</option>
 	  </select>
 	</label>
+	<div id="fuzzyContainer">
+	  <input
+	    id="fuzzy"
+	    keydown-call="endFuzzyFind"
+	    input-call="updateFuzzyFind"
+	    blur-call="cancelFuzzyFind"
+	    >
+	  <ul id="fuzzyList" data-src="ram.fuzzy">
+	    <li id="fuzzy{{key}}" mousedown-call="endFuzzyFind">{{value}}</li>
+	  </ul>
+	</div>
 	<button click-call="renameFile" id="rename" title="Rename current file">Rename</button>
 	<button click-call="deleteFile" id="delete" title="Delete current file">Delete</button>
 	<button click-call="compile" id="compile" title="Ctrl+Enter">Build</button>

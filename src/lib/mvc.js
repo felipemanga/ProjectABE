@@ -143,8 +143,19 @@ class Model {
 
         if( children[prop] ){
 
-            if( children[prop].data !== v )
-                return;
+            if( children[prop].data !== v ){
+		for( var ck in children[prop].data ){
+		    if( !(ck in v) )
+			children[prop].removeItem([ck], doRaise);
+		    else
+			children[prop].setItem([ck], v[ck], doRaise);
+		}
+		for( var ck in v ){
+		    if( !(ck in children[prop].data) )
+			children[prop].setItem([ck], v[ck], doRaise);
+		}
+                return this;
+	    }
 
             child = children[prop];
 
@@ -253,11 +264,9 @@ class Model {
         delete data[key];
 
         model.raise( key, true );
-/*
-	var parentKey = parent.pop();
-	model = this.getModel( parent );
-	model.raise( parentKey, true );
-*/
+	for( let pid in this.parents )
+	    this.parents[pid].raise( this.parents[pid].revChildren[ this.id ], true );
+
     }
 
     raise(k, doRaise){
