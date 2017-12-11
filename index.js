@@ -93,6 +93,12 @@ function Builder(){
 	busy = true;
 
 	let files = Object.keys( data );
+
+	if( !files.find( f => /^.*\.c(pp)?$/i.test(f) ) ){
+	    data["__dud__.cpp"] = "";
+	    files.push("__dud__.cpp");
+	}
+	
 	this.pop( files );
     };
 
