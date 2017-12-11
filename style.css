@@ -20,7 +20,7 @@ html, body {
     background-position: center;
     background-size: 256px 128px;
     -ms-interpolation-mode: nearest-neighbor;
-	image-rendering: -moz-crisp-edges;
+    image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
 }
 
@@ -260,6 +260,7 @@ nav button {
     height: 22.5%;
     left: 18%;
     width: 64.5%;
+    -ms-interpolation-mode: nearest-neighbor;
     image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
 }
@@ -411,7 +412,27 @@ canvas:-webkit-full-screen {
     display: flex;
 }
 
-#sourceContainer, #daContainer, #stateContainer, #historyContainer, #ramContainer {
+#qrc{
+    display: none;
+}
+
+#qrcContainer {
+    width: 512px;
+    height: 512px !important;
+    margin: auto;
+    max-width: 512px;
+    max-height: 512px;
+}
+
+#qrcContainer img {
+    width: 100%;
+    height: 100%;
+    -ms-interpolation-mode: nearest-neighbor;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: pixelated;
+}
+
+#sourceContainer, #daContainer, #stateContainer, #historyContainer, #ramContainer, #qrcContainer {
     display: none;
     height: 0;
     flex-grow: 0;
@@ -422,7 +443,8 @@ canvas:-webkit-full-screen {
 #ideContainer[data-tab=da] #daContainer,
 #ideContainer[data-tab=source] #sourceContainer,
 #ideContainer[data-tab=state] #stateContainer,
-#ideContainer[data-tab=ram] #ramContainer
+#ideContainer[data-tab=ram] #ramContainer,
+#ideContainer[data-tab=qr] #qrcContainer
 {
     display: flex;
     height: auto;
@@ -717,3 +739,22 @@ canvas:-webkit-full-screen {
     margin-right: 15px;
 }
 
+#fuzzyContainer {
+    display: none;
+    position: relative;
+}
+
+#fuzzyList {
+    position: absolute;
+    background: white;
+    z-index: 999;
+    margin: 0;
+    padding: 0 10px;
+    list-style: none;
+    min-width: 100%;
+    box-sizing: border-box;
+    color: black;
+    max-height: 300px;
+    overflow: auto;
+    border: solid 1px #567;
+}
