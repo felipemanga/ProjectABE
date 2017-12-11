@@ -297,7 +297,7 @@ class Arduboy {
 			},
 			
             serial0:{
-				set:function( str ){
+		set:function( str ){
                     str = (str || "").replace(/\r\n?/,'\n');
                     serial0Buffer += str;
 
@@ -306,13 +306,13 @@ class Arduboy {
 
                         var parts = serial0Buffer.split("\n");
                         while( parts.length>1 )
-                            console.log( 'SERIAL: ', parts.shift() );
+                            self.core.history.push( 'SERIAL: ', parts.shift() );
 
                         serial0Buffer = parts[0];
 
                     }
                     
-				}
+		}
             },
 
             DDRB: {

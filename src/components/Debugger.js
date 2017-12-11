@@ -500,9 +500,10 @@ void loop() {
 	this.DOM.fuzzyContainer.style.display = "block";
 	this.DOM.fuzzy.focus();
 	this.DOM.fuzzy.setSelectionRange(0, this.DOM.fuzzy.value.length);
+	this.updateFuzzyFind();
     }
 
-    updateFuzzyFind( dom, evt ){
+    updateFuzzyFind(){
 
 	let matches;
 	let str = this.DOM.fuzzy.value.trim().replace();
@@ -559,6 +560,10 @@ void loop() {
 		    return this.cancelFuzzyFind();
 		else if( evt.key != "Enter" )
 		    return;
+		else if( !results[0] && this.DOM.fuzzy.value.trim().length ){
+		    result = this.DOM.fuzzy.value.trim();
+		    this.addNewFile( result, "" );
+		}
 
 		evt.preventDefault();
 		evt.stopPropagation();
@@ -570,7 +575,7 @@ void loop() {
     
 	if( !result && results.length )
 	    result = results[0];
-	
+
 	if( result ){
 	    this.DOM.currentFile.value = result;
 	    setTimeout( _=>this.changeSourceFile(), 10 );

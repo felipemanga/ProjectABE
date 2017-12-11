@@ -466,25 +466,25 @@ class Atcore {
 
             var chunk = `\n\tthis.pc = ${this.pc};\n`;
 	    
-			if( dbg ){
-				chunk += '\nif( !breakpoints.disableFirst ){\n';
-				chunk += `\n\tif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
-				chunk += '{\n\t\tthis.endTick = this.tick;\n';
-				chunk += '\t\tthis.breakpointHit = true;\n';
-				chunk += '\t\tbreak;\n\t}\n';
-			}
-			doTickCheck--;
-			if( doTickCheck <= 0 ){
-				chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
-				doTickCheck = 5;
-			}else chunk += `\tthis.tick += ${inst.cycles};\n`;
+	    if( dbg ){
+		chunk += '\nif( !breakpoints.disableFirst ){\n';
+		chunk += `\n\tif( breakpoints[${this.pc}] && breakpoints[${this.pc}](${this.pc},this.sp) )`;
+		chunk += '{\n\t\tthis.endTick = this.tick;\n';
+		chunk += '\t\tthis.breakpointHit = true;\n';
+		chunk += '\t\tbreak;\n\t}\n';
+	    }
+	    doTickCheck--;
+	    if( doTickCheck <= 0 || dbg ){
+		chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
+		doTickCheck = 5;
+	    }else chunk += `\tthis.tick += ${inst.cycles};\n`;
 
-			if( dbg ){
-				chunk += '\n}else{\n';
-				chunk += '\tthis.tick += ' + inst.cycles + ';\n';
-				chunk += '\tbreakpoints.disableFirst = false;\n';
-				chunk += '}\n';
-			}
+	    if( dbg ){
+		chunk += '\n}else{\n';
+		chunk += '\tthis.tick += ' + inst.cycles + ';\n';
+		chunk += '\tbreakpoints.disableFirst = false;\n';
+		chunk += '}\n';
+	    }
 	        
             var op = this.getOpcodeImpl( inst, inst.impl );
 			
