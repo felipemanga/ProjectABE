@@ -62,9 +62,13 @@ class Env extends IController {
 	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
 
 	let build = source.getItem(["build.hex"]);
-	if( build ){
-
-	    this.model.setItem("app.AT32u4.hex", build);
+	if( build || url == "null" ){
+	    
+	    if( build )
+		this.model.setItem("app.AT32u4.hex", build);
+	    else
+		this.model.setItem("app.AT32u4.url", url);
+	    
 	    this.pool.call("runSim");
 	
 	} else if( /\.arduboy$/i.test(url) ){
