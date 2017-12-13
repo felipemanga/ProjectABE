@@ -13,9 +13,12 @@ class Env extends IController {
 
     exitSplash(){
 	let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
-	if( match )
-	    this.play( {element:{dataset:{url:match[1]}}} );
-	else
+	if( match ){
+	    let url = match[1];
+	    if( /^https?%.*/.test(url) )
+		url = decodeURIComponent(url);
+	    this.play( {element:{dataset:{url}}} );
+	}else
             this._show();
     }
 
