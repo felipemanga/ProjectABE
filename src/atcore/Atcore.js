@@ -1406,13 +1406,13 @@ const AtCODEC = [
     },
     {
         name: 'IN',
-        str:'10110AAddddd1110',
+        str:'1011011ddddd1110',
         impl: `Rd ← sp>>>8`,
         cycles: 1
     },
     {
         name: 'IN',
-        str:'10110AAddddd1101',
+        str:'1011011ddddd1101',
         impl: `Rd ← sp&0xFF`,
         cycles: 1
     },

@@ -40,7 +40,7 @@ module.exports = {
     
     read:{
 	0x4D:function(){
-	    this.SPIF = (!!this.core.pins.spiIn.length) | 0;
+	    // this.SPIF = (!!this.core.pins.spiIn.length) | 0;
 	    return (this.SPIF << 7) | (this.WCOL << 6) | this.SPI2X;
 	},
 	0x4E:function(){
