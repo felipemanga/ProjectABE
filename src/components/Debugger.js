@@ -474,10 +474,10 @@ void loop() {
 	this.code.session.clearBreakpoints();
 	if( typeof core == "undefined" ) return;
 
-	let paused = null;
+	let paused = null, currentFile = this.DOM.currentFile.value;
 	for( let addr in core.breakpoints ){
-	    
-	    if( addr in this.srcmap && core.breakpoints[addr] ){
+	    	    
+	    if( addr in this.srcmap && this.srcmap[addr].file == currentFile && core.breakpoints[addr] ){
 		
 		let c = "unconditional";
 		if( addr == this.currentPC ){
@@ -489,7 +489,7 @@ void loop() {
 	    	    
 	}
 	
-	if( !paused && this.srcmap[ this.currentPC ] ){
+	if( !paused && this.srcmap[ this.currentPC ] && this.srcmap[this.currentPC].file == currentFile ){
 	    this.code.session.setBreakpoint( this.srcmap[this.currentPC].line-1, "paused" );
 	}
 	
@@ -979,12 +979,16 @@ void loop() {
 	
 	this.DOM.daAddress.value = (Math.max(pc-5,0)<<1).toString(16);
 	this.refreshDa();
-	if( srcref && !srcref.offset && this.source.getItem([srcref.file]) ){
-	    this.DOM.element.setAttribute("data-tab", "source");
+
+	if( srcref && this.source.getItem([srcref.file]) ){
 	    this.DOM.currentFile.value = srcref.file;
 	    this.changeSourceFile();
 	    this.code.scrollToLine( srcref.line, true, true, _=>{} );
-	    this.code.gotoLine( srcref.line, 0, true );
+	    this.code.gotoLine( srcref.line, 0, true );	    
+	}
+	
+	if( srcref && !srcref.offset && this.source.getItem([srcref.file]) ){
+	    this.DOM.element.setAttribute("data-tab", "source");
 	}else{
 	    this.DOM.element.setAttribute("data-tab", "da");
 	}
