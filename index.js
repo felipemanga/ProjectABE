@@ -117,7 +117,7 @@ function Builder(){
 	parts.pop();
 
 	if( parts.length ){
-	    stdout += "MKDIRP " + parts.join('/') + "\n";
+//	    stdout += "MKDIRP " + parts.join('/') + "\n";
 	    mkdirp( parts.join('/'), e => writeFile.call( this ) );
 	}else
 	    writeFile.call(this)
@@ -145,7 +145,7 @@ function Builder(){
 			    retry[ file ] = 1;
 			    files.push( file );
 			}
-		    }else stdout += "Saved file " + fullPath + "\n";
+		    }// else stdout += "Saved file " + fullPath + "\n";
 		    
 		    return this.pop(files);
 		});
