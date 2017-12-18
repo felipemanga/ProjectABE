@@ -26,9 +26,10 @@ class Debugger {
 	this.rsrcmap = {};
 	this.currentPC = null;
 	this.ramComments = {};
+	this.ramIndex = {};
 	
 	for( let i=0; i<32; ++i )
-	    this.ramComments[i] = "@ R" + i;
+	    this.ramComments[i] = "@ R";
 
 	[
 	    "Reserved", "Reserved", "Reserved", "PINB", "DDRB", "PORTB",
@@ -185,31 +186,29 @@ void loop() {
     initEditor(){
 	if( this.code )
 	    return;
+	let editor = this.code = ace.edit( this.DOM.ace );
+	editor.$blockScrolling = Infinity;
+	editor.setTheme("ace/theme/monokai");
+	editor.getSession().setMode("ace/mode/c_cpp");
+	editor.resize(true);
 	
-	this.code = ace.edit( this.DOM.ace );
-	this.code.$blockScrolling = Infinity;
-	this.code.setTheme("ace/theme/monokai");
-	this.code.getSession().setMode("ace/mode/c_cpp");
-	this.code.resize(true);
+	editor.session.on( "change", _ => this.commit() );
+
+	let getLineAddress = ( line ) => {
+	    var file = this.DOM.currentFile.value;
+	    return this.rsrcmap[file+":"+(line+1)];	    
+	};
 	
-	this.code.session.on( "change", _ => this.commit() );
-	
-	this.code.on("guttermousedown", e => {
+	editor.on("guttermousedown", e => {
 	    let target = e.domEvent.target; 
 	    if (target.className.indexOf("ace_gutter-cell") == -1) 
 		return; 
 	    if (!this.code.isFocused()) 
 		return;
-	    /*
-	    if (e.clientX > 25 + target.getBoundingClientRect().left) 
-		return; 
-	    */
 
 	    e.stop();
-	    
-	    var line = e.getDocumentPosition().row+1;
-	    var file = this.DOM.currentFile.value;
-	    var addr = this.rsrcmap[file+":"+line];
+	    let row = e.getDocumentPosition().row;
+	    var addr = getLineAddress( row )
 	    if( addr !== undefined ){
 		if( core.breakpoints[addr] )
 		    core.breakpoints[addr] = false;
@@ -219,12 +218,91 @@ void loop() {
 		core.enableDebugger();
 		this.changeBreakpoints();
 	    }else{
-		this.code.session.setBreakpoint( line-1, "invalid");
+		this.code.session.setBreakpoint( row, "invalid");
 	    }
 	    
 	});
 
-//	this.code.setKeyboardHandler("ace/keyboard/emacs");
+	let updateTooltip = (position, text) => {
+
+	    if( !text ){
+		this.DOM.codeToolTip.style.display = "none";
+		return;
+	    }
+
+	    let offX = 0, offY = 0;
+	    let pe = this.DOM.codeToolTip.parentElement;
+	    while( pe ){
+		offX += pe.offsetLeft;
+		offY += pe.offsetTop;
+		pe = pe.parentElement;
+	    }
+	    
+	    this.DOM.codeToolTip.setAttribute("data-text", text);
+	    this.DOM.codeToolTip.style.display = "block";
+	    this.DOM.codeToolTip.style.left = (position.pageX - offX) + 'px';
+	    this.DOM.codeToolTip.style.top = (position.pageY - offY) + 'px';
+	};
+
+	editor.on("mousemove", (e) => {
+	    var position = e.getDocumentPosition();
+	    if( !position ) return;
+	    var wordRange = editor.getSession().getWordRange(position.row , position.column);
+	    var text = editor.session.getTextRange(wordRange);
+	    var pixelPosition = editor.renderer.textToScreenCoordinates(position);
+	    pixelPosition.pageY += editor.renderer.lineHeight;
+	    
+	    let addr = this.ramIndex[text];
+	    if( !text || !addr ){
+		text = "";
+	    }else{
+		let name = text;
+		text += ":\n";
+
+		if( this.ramIndex[name+"+0x3"] && ! this.ramIndex[name+"+0x4"] ){ // 32-bit
+		    let value =
+			core.memory[ addr ] +
+			(core.memory[ addr+1 ] << 7) +
+			(core.memory[ addr+2 ] << 14) +
+			(core.memory[ addr+3 ] << 21);
+		    if( value&0x80000000 ){
+			text += "uint32: " + (value>>>0) + " (0x" + (value>>>0).toString(16) + ")\n";
+			text += "int32: " + (value) + " (0x" + (value).toString(16) + ")\n";
+		    }else
+			text += "(u)int32: " + (value) + " (0x" + (value).toString(16) + ")\n";			
+		    
+		}else if( this.ramIndex[name+"+0x1"] && !this.ramIndex[name+"+0x2"] ){
+		    let value =
+			core.memory[ addr ] +
+			(core.memory[ addr+1 ] << 8);
+		    if( value&0x8000 ){
+			text += "uint16: " + (value>>>0) + " (0x" + (value>>>0).toString(16) + ")\n";
+			text += "int16: " + (value) + " (0x" + (value).toString(16) + ")\n";
+		    }else
+			text += "(u)int16: " + (value) + " (0x" + (value).toString(16) + ")\n";
+
+		    let src = this.srcmap[ value ];
+		    if( src && !src.offset && this.hints[value] ){
+			this.hints[value].replace(/(?:^|\n)[0-9a-f]+\s+<([^>]+)>:\n/, (m, fname) => {
+			    text += "fptr: ";
+			    fname = fname.replace(/_Z[0-9]+(.*)v/, "$1");
+			    text += fname + "\n" + src.file + ":" + src.line;
+			});
+		    }
+		    
+		}else{
+		    let value =
+			core.memory[ addr ];
+		    if( value & 0x80 ){
+			text += "uint8: " + (value>>>0) + " (0x" + (value>>>0).toString(16) + ")\n";
+			text += "int8: " + (value) + " (0x" + (value).toString(16) + ")\n";
+		    }else
+			text += "(u)int8: " + (value) + " (0x" + (value).toString(16) + ")\n";
+		}
+	    }
+	    
+	    updateTooltip(pixelPosition, text);
+	});	
 		
         this.code.commands.addCommand({
             name: "replace",
@@ -658,6 +736,7 @@ void loop() {
 	});
 
 	let oldttAddr = this.ttAddr;
+	this.ramIndex = {};
 	
 	txt.replace(/([\s\S]*?\n)\s+([0-9a-f]+):\t[ a-f0-9]+\t([^\n\r]+)/g, (txt, before, addr, after) => {
 	    this.hints[ parseInt(addr, 16)>>1 ] = (before + after).trim();
@@ -672,13 +751,16 @@ void loop() {
 		if( startAddr < 0 )
 		    return;
 
-		name = "@ " + name;
 		let offset = 0;
 
 		for( addr=startAddr; addr<endAddr; addr++ ){
 
 		    let offName = name + (offset?"+0x"+offset.toString(16):"");
 		    offset++;
+
+		    this.ramIndex[ offName ] = addr;
+
+		    offName = "@ " + offName;
 		    
 		    if(
 			this.ramComments[addr] &&
