@@ -26,6 +26,23 @@ class Debugger {
 	this.rsrcmap = {};
 	this.currentPC = null;
 	this.ramComments = {};
+	
+	for( let i=0; i<32; ++i )
+	    this.ramComments[i] = "@ R" + i;
+
+	[
+	    "Reserved", "Reserved", "Reserved", "PINB", "DDRB", "PORTB",
+	    "PINC", "DDRC", "PORTC", "PIND", "DDRD", "PORTD",
+	    "PINE", "DDRE", "PORTE", "PINF", "DDRF", "PORTF",
+	    "Reserved", "Reserved", "Reserved", "TIFR0", "TIFR1", "Reserved",
+	    "TIFR3", "TIFR4", "Reserved", "PCIFR", "EIFR", "EIMSK",
+	    "GPIOR0", "EECR", "EEDR", "EEARL", "EEARH", "GTCCR",
+	    "TCCR0A", "TCCR0B", "TCNT0", "OCR0A", "OCR0B", "PLLCSR",
+	    "GPIOR1", "GPIOR2", "SPCR", "SPSR", "SPDR", "Reserved",
+	    "ACSR", "OCDR / MONDR", "PLLFRQ", "SMCR", "MCUSR", "MCUCR",
+	    "Reserved", "SPMCSR", "Reserved", "Reserved", "Reserved", "RAMPZ",
+	    "Reserved", "SPL", "SPH", "SREG", "WDTCSR", "CLKPR"
+	].forEach( (name, i)=>this.ramComments[i+0x20] = name );
 
 	this.code = null;
 	this.compileId = 0;
@@ -520,7 +537,7 @@ void loop() {
 	    if ( args === void 0 ) args = [];
 
 	    var escaped = str.replace(/[|\\{}()\[\]^$+*?.]/g, '\\$&');
-	    var regex = new RegExp(((escaped.split(/(\\.|)/).filter( x=>x.length ).join('(.*)')) + ".*"));
+	    var regex = new RegExp(((escaped.split(/(\\.|)/).filter( x=>x.length ).join('(.*)')) + ".*"), "i");
 	    var length = str.length;
 
 	    return args.reduce(function (acc, possibleMatch) {
@@ -639,12 +656,48 @@ void loop() {
 	    this.hints[ parseInt(addr, 16)>>1 ] = (lbl).trim();
 	    return '';
 	});
+
+	let oldttAddr = this.ttAddr;
 	
 	txt.replace(/([\s\S]*?\n)\s+([0-9a-f]+):\t[ a-f0-9]+\t([^\n\r]+)/g, (txt, before, addr, after) => {
 	    this.hints[ parseInt(addr, 16)>>1 ] = (before + after).trim();
+	    after.replace(/\s+;\s+0x8([0-9a-f]{5,5})\s<([^>]+)>/g, (m, addr, name) => {
+		let startAddr = parseInt( addr, 16 );
+		let endAddr = startAddr+1;
+		name = name.replace(/^(.*?)\+0x([0-9a-f]+)$/, (m, name, off)=>{
+		    off = parseInt( off, 16 );
+		    startAddr -= off;
+		    return name;
+		});
+		if( startAddr < 0 )
+		    return;
+
+		name = "@ " + name;
+		let offset = 0;
+
+		for( addr=startAddr; addr<endAddr; addr++ ){
+
+		    let offName = name + (offset?"+0x"+offset.toString(16):"");
+		    offset++;
+		    
+		    if(
+			this.ramComments[addr] &&
+			    (this.ramComments[addr][0] != "@" || this.ramComments[addr] == offName)
+		    ){ 
+			continue;
+		    }
+
+		    this.ttAddr = addr;
+		    this.setTTComment( offName );
+		    
+		}
+		
+	    });
 	    return '';
 	    
 	});
+
+	this.ttAddr = oldttAddr;
 	
     }
 
@@ -816,11 +869,21 @@ void loop() {
 	
 	while( this.RAM.length > src.length )
 	    this.DOM.RAM.removeChild( this.RAM.pop() );
-	
-	while( this.RAM.length < src.length )
+
+	let oldttAddr = this.ttAddr;
+	while( this.RAM.length < src.length ){
+	    
+	    this.ttAddr = this.RAM.length;
 	    this.RAM.push( this.DOM.create( "li", this.DOM.RAM, {
 		title:"0x" + this.RAM.length.toString(16).padStart(4,"0")
 	    }) );
+
+	    if( this.ramComments[ this.ttAddr ] )
+		this.setTTComment( this.ramComments[ this.ttAddr ] );
+	    
+	}
+	
+	this.ttAddr = oldttAddr;
 
 	this.RAM.forEach( (li, idx) => {
 	    li.textContent = src[idx].toString(16).padStart(2, "0");
@@ -881,9 +944,16 @@ void loop() {
 	this.RAM[ this.ttAddr ].textContent = core.memory[ this.ttAddr ];
     }
 
-    setTTComment(){
-	this.ramComments[ this.ttAddr ] = this.DOM.comment.value.trim();
-	this.RAM[ this.ttAddr || 0 ].title = "0x" + this.ttAddr.toString(16).padStart(4, "0") + " " + this.ramComments[ this.ttAddr ];
+    setTTComment( value ){
+	if( typeof value !== "string" )
+	    value = this.DOM.comment.value.trim();
+
+	if( !this.RAM || !this.RAM.length )
+	    this.refreshRAM( true );
+	
+	this.ramComments[ this.ttAddr ] = value;
+
+	this.RAM[ this.ttAddr || 0 ].title = "0x" + this.ttAddr.toString(16).padStart(4, "0") + " " + value;
 	this.updateRAMColor();
     }
 
