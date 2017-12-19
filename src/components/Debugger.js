@@ -710,6 +710,8 @@ void loop() {
 		color: `rgb(${r},${g},${b})`,
 		anticolor: `rgb(${255-r},${255-g},${255-b})`
 	    };
+
+	    name = name.replace(/_Z[0-9]+(.*)v/, "$1");
 	    
 	    blockSizes[ name ] = prevBlock;
 
@@ -735,7 +737,7 @@ void loop() {
 	    var block = blockSizes[k];
 	    block.bytes = block.end - block.begin;
 	    let size = block.bytes / maxaddr * 100;
-	    if( size < 1 ){
+	    if( size < 0.5 ){
 		delete blockSizes[k];
 		tinyBlock.bytes += block.bytes;
 		continue;
