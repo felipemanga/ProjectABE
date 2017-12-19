@@ -56,6 +56,11 @@
 	<button click-call="compile" id="compile" title="Ctrl+Enter">Build</button>
 	<button click-call="zip" title="Download source zip">Download</button>
       </div>
+      <div class="horizontalContainer tabs">
+	<ul id="flashContainer" data-src="ram.blocksizes">
+	  <li title="{{key}}: {{value.bytes}}b" style="width:{{value.size}}; color:{{value.color}}; background:{{value.anticolor}}">{{key}}</li>
+	</ul>
+      </div>
       <div id="ace" change-call="commit"></div>
       <div id="codeToolTip"></div>
     </div>

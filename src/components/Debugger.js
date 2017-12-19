@@ -13,6 +13,8 @@ class Debugger {
 
     constructor( DOM ){
 	this.model.setItem("ram.fuzzy", []);
+	this.model.setItem("ram.blocksizes", []);
+
 	this.pool.add(this);
 	
 	this.DOM = DOM;
@@ -686,14 +688,71 @@ void loop() {
 	this.changeBreakpoints();
     }
 
+    initSpacebar( txt ){
+	var blockSizes = {};
+
+	let prevBlock = null;
+	let maxaddr = 28672;
+	
+	txt.replace(/\n([0-9a-f]{8,8})\s+<([^>]+)>:/g, (m, addr, name) => {
+	    addr = parseInt(addr, 16);
+	    if( prevBlock ) prevBlock.end = addr;
+	    maxaddr = addr;
+	    
+	    var r=Math.random()*100+155|0,
+		g=Math.random()*100+155|0,
+		b=Math.random()*100+155|0;
+	    
+	    prevBlock = {
+		begin: addr,
+		end: addr,
+		size: null,
+		bytes: 0,
+		color: `rgb(${r},${g},${b})`,
+		anticolor: `rgb(${255-r},${255-g},${255-b})`
+	    };
+	    
+	    blockSizes[ name ] = prevBlock;
+
+	    return "";
+	});
+
+	var tinyBlock = {
+	    size: null,
+	    bytes: 0,
+	    color: "black",
+	    anticolor: "white"
+	};
+
+	for( var k in blockSizes ){
+	    var block = blockSizes[k];
+	    block.bytes = block.end - block.begin;
+	    let size = block.bytes / maxaddr * 1000;
+	    if( size < 10 ){
+		delete blockSizes[k];
+		tinyBlock.bytes += block.bytes;
+	    }
+	    block.size = Math.round(size)/10 + "%";
+	}
+
+	tinyBlock.size = Math.round(tinyBlock.bytes / maxaddr * 1000) / 10 + "%";
+	blockSizes["Tiny (<1%)"] = tinyBlock;
+
+	this.model.setItem("ram.blocksizes", blockSizes);
+
+    }
+
     initHints( txt ){
 	let source = this.source.data;
 	this.srcmap = [];
 	this.rsrcmap = {};
+
+	this.initSpacebar( txt );
+	
 	txt.replace(
 		/\n([\/a-zA-Z0-9._\- ]+):([0-9]+)\n([\s\S]+?)(?=$|\n[0-9a-f]+ <[^>]+>:|\n(?:[\/a-zA-Z0-9._\-<> ]+:[0-9]+\n))/g,
 	    (m, file, line, code)=>{
-		 
+
 		file = file.replace(/^\/app\/builds\/[0-9]+\//, '');
 		
 		file = file.replace(/^\/app\/public\/builds\/[0-9]+\/sketch\/(.*)/, (match,name) => {
