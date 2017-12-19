@@ -697,7 +697,6 @@ void loop() {
 	txt.replace(/\n([0-9a-f]{8,8})\s+<([^>]+)>:/g, (m, addr, name) => {
 	    addr = parseInt(addr, 16);
 	    if( prevBlock ) prevBlock.end = addr;
-	    maxaddr = addr;
 	    
 	    var r=Math.random()*100+155|0,
 		g=Math.random()*100+155|0,
@@ -723,20 +722,42 @@ void loop() {
 	    color: "black",
 	    anticolor: "white"
 	};
+	var freeBlock = {
+	    size: null,
+	    bytes: maxaddr - prevBlock.end,
+	    color: "white",
+	    anticolor: "black"
+	};
+
+	var sum = 0;
 
 	for( var k in blockSizes ){
 	    var block = blockSizes[k];
 	    block.bytes = block.end - block.begin;
-	    let size = block.bytes / maxaddr * 1000;
-	    if( size < 10 ){
+	    let size = block.bytes / maxaddr * 100;
+	    if( size < 1 ){
 		delete blockSizes[k];
 		tinyBlock.bytes += block.bytes;
+		continue;
 	    }
-	    block.size = Math.round(size)/10 + "%";
+	    size = Math.round(size);
+	    sum += size;
+	    block.size = size + "%";
 	}
 
-	tinyBlock.size = Math.round(tinyBlock.bytes / maxaddr * 1000) / 10 + "%";
+	let size = Math.round(freeBlock.bytes / maxaddr * 100);
+	sum += size;
+	freeBlock.size = size + "%";
+	
+	size = Math.round(tinyBlock.bytes / maxaddr * 100);
+	sum += size;
+	
+	if( sum > 100 ) size -= sum - 100;
+	tinyBlock.size = size + "%";
+
+	
 	blockSizes["Tiny (<1%)"] = tinyBlock;
+	blockSizes["Free"] = freeBlock;
 
 	this.model.setItem("ram.blocksizes", blockSizes);
 
