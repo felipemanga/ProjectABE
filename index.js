@@ -2,6 +2,7 @@ const { execFile, execSync } = require('child_process');
 const fs = require('fs');
 const rimraf = require('rimraf');
 const mkdirp = require('mkdirp');
+const copy = require('recursive-copy');
 const express = require('express');
 const path = require('path');
 const PORT = process.env.PORT || 5000;
@@ -30,11 +31,13 @@ function Builder(){
     fs.mkdirSync(__dirname + '/builds/' + this.id);
     fs.mkdirSync(__dirname + '/public/builds/' + this.id);
 
-    let data = '', stdout = '', disassembly = '', items = [];
+    let data = '', stdout = '', disassembly = '', items = [], buildpath;
 
     let main = null;
 
     let retry = {};
+
+    buildpath = __dirname + '/public/builds/' + this.id + '/';
     
     this.destroy = _ => {	
 	if( builders[ this.id ] == this )
@@ -94,18 +97,13 @@ function Builder(){
 
 	let files = Object.keys( data );
 
-	if( !files.find( f => /^.*\.c(pp)?$/i.test(f) ) ){
-	    data["__dud__.cpp"] = "";
-	    files.push("__dud__.cpp");
-	}
-	
 	this.pop( files );
     };
 
     this.pop = files => {
 	
 	if( !files.length )
-	    return this.compile();
+	    return this.copy();
 	
 	let file = files.shift().replace(/\\/g, '/'); // convert \ to /
 	let fullPath = __dirname + '/builds/' + this.id + '/' + file.replace(/\/\.+\//g, '/'); // remove shenanigans
@@ -117,7 +115,6 @@ function Builder(){
 	parts.pop();
 
 	if( parts.length ){
-//	    stdout += "MKDIRP " + parts.join('/') + "\n";
 	    mkdirp( parts.join('/'), e => writeFile.call( this ) );
 	}else
 	    writeFile.call(this)
@@ -133,25 +130,20 @@ function Builder(){
 		    return;
 		}
 
-		fs.access( fullPath, (e) => {
-		    if( e ){
-			if( retry[ file ] ){
-			    this.state = 'DONE';
-			    busy = false;
-			    this.result = "ERROR: " + file + " - " + e.toString();
-			    return;
-			}else{
-			    stdout += "Retrying file " + file + "\n";
-			    retry[ file ] = 1;
-			    files.push( file );
-			}
-		    }// else stdout += "Saved file " + fullPath + "\n";
-		    
-		    return this.pop(files);
-		});
+		this.pop(files);
 
 	    });
 	}
+    };
+
+    this.copy = _ => {
+	let rootFolder = main.split('/');
+	rootFolder.pop();
+	mkdirp( buildpath + "sketch", e => {
+	    copy( rootFolder, buildpath + "sketch", e => {
+		this.compile();
+	    });
+	});
     };
 
     this.compile = _ => {
@@ -169,7 +161,7 @@ function Builder(){
 		__dirname + '/arduino/arduino',
 		[
 		    '--board', 'arduino:avr:leonardo',
-		    '--pref', 'build.path=' + __dirname + '/public/builds/' + this.id + '/',
+		    '--pref', 'build.path=' + buildpath,
 		    '--verify', main
 		],
 		(error, _stdout, stderr) => {
