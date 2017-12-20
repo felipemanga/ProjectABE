@@ -140,7 +140,7 @@ function Builder(){
 	let rootFolder = main.split('/');
 	rootFolder.pop();
 	mkdirp( buildpath + "sketch", e => {
-	    copy( rootFolder, buildpath + "sketch", e => {
+	    copy( rootFolder.join('/'), buildpath + "sketch", e => {
 		this.compile();
 	    });
 	});
