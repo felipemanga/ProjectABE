@@ -65,6 +65,24 @@ class Env extends IController {
 	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
 
 	let build = source.getItem(["build.hex"]);
+
+	let finalURL;
+	let github = url.match(/^https:\/\/raw.githubusercontent.com\/(.*)$/i);
+	if( github ){
+	    finalURL = 'https://gitcdn.xyz/repo/' + github[1];
+/*
+	}else{
+	    github = url.match(/^https:\/\/github.com\/(.*)/i);
+	    if( github ){
+		finalURL = 'https://cdn.rawgit.com/' + github[1];
+	    }
+*/
+	}
+	
+	if( !finalURL ){
+	    finalURL = this.model.getItem("app.proxy") + url;
+	}
+	
 	if( build || url == "null" ){
 	    
 	    if( build )
@@ -77,7 +95,7 @@ class Env extends IController {
 	} else if( /\.arduboy$/i.test(url) ){
 	    
 	    let zip = null;
-	    fetch( this.model.getItem("app.proxy") + url )
+	    fetch( finalURL )
 		.then( rsp => rsp.arrayBuffer() )
 		.then( buff => JSZip.loadAsync( buff ) )
 		.then( z => (zip=z).file("info.json").async("text") )
@@ -92,7 +110,7 @@ class Env extends IController {
 		});
 
 	}else{
-	    fetch( this.model.getItem("app.proxy") + url )
+	    fetch( finalURL )
 		.then( rsp => rsp.text() )
 		.then( hex => {
 		    source.setItem(["build.hex"], hex);
