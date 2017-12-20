@@ -1322,7 +1322,7 @@ const AtCODEC = [
             'Rd ← - Rd;',
             'SR3 = R@7 • R@6 ¯ • R@5 ¯ • R@4 ¯ • R@3 ¯ • R@2 ¯ • R@1 ¯ • R@0 ¯',
             'SR0 = (!!R)|0',
-            'SR@5 ← R@3 | Rd3 ¯'
+            'SR@5 ← R@3 | Rd@3 ¯'
         ],
         flags: 'zns'
     },

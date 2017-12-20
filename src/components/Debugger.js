@@ -750,6 +750,9 @@ void loop() {
 	let size = Math.round(freeBlock.bytes / maxaddr * 100);
 	sum += size;
 	freeBlock.size = size + "%";
+	if( freeBlock.bytes < 200 )
+	    freeBlock.anticolor = "red";
+
 	
 	size = Math.round(tinyBlock.bytes / maxaddr * 100);
 	sum += size;
@@ -758,7 +761,7 @@ void loop() {
 	tinyBlock.size = size + "%";
 
 	
-	blockSizes["Tiny (<1%)"] = tinyBlock;
+	blockSizes["Tiny (<0.5%)"] = tinyBlock;
 	blockSizes["Free"] = freeBlock;
 
 	this.model.setItem("ram.blocksizes", blockSizes);
