@@ -139,9 +139,8 @@ function Builder(){
     this.copy = _ => {
 	let rootFolder = main.split('/');
 	rootFolder.pop();
-	mkdirp( buildpath + "sketch", (e, r) => {
-	    copy( rootFolder.join('/'), buildpath + "sketch", (e, r) => {
-		stdout += JSON.stringify({e,r});
+	mkdirp( buildpath + "sketch", e => {
+	    copy( rootFolder.join('/'), buildpath + "sketch", e => {
 		this.compile();
 	    });
 	});
