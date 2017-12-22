@@ -265,6 +265,24 @@ nav button {
     image-rendering: pixelated;
 }
 
+canvas:-webkit-full-screen{
+  width: 100% !important;
+  left: initial !important;
+  top: initial !important;
+  bottom: initial !important;
+  height: initial !important;
+  object-fit: contain !important;
+  background-color: black !important;
+}
+canvas:-moz-full-screen{
+  width: 100% !important;
+  left: initial !important;
+  top: initial !important;
+  bottom: initial !important;
+  height: initial !important;
+  object-fit: contain !important;
+  background-color: black !important;
+}
 canvas:fullscreen{
   width: 100% !important;
   left: initial !important;
@@ -275,24 +293,14 @@ canvas:fullscreen{
   background-color: black !important;
 }
 
-canvas:-moz-full-screen{
-  width: 100% !important;
-  left: initial !important;
-  top: initial !important;
-  bottom: initial !important;
-  height: initial !important;
-  object-fit: contain !important;
-  background-color: black !important;
+.microcard canvas:-webkit-full-screen{
+    transform: rotate(-90deg) scale(0.55) !important;
 }
-
-canvas:-webkit-full-screen {
-  width: 100% !important;
-  left: initial !important;
-  top: initial !important;
-  bottom: initial !important;
-  height: initial !important;
-  object-fit: contain !important;
-  background-color: black !important;
+.microcard canvas:-moz-full-screen{
+    transform: rotate(-90deg) scale(0.55) !important;
+}
+.microcard canvas:fullscreen{
+    transform: rotate(-90deg) scale(0.55) !important;
 }
 
 #simContainer led {
@@ -612,8 +620,6 @@ canvas:-webkit-full-screen {
     top: 2%;
     left: 71%;
 }
-
-
 
 #ideContainer #ace {
     flex-grow: 1;
