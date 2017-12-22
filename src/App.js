@@ -121,6 +121,45 @@ class App {
 	
 	for( let k in controllers ){
 	    let {gamepad, state} = controllers[k];
+
+	    let upDown = gamepad.axes[1],
+		leftRight = gamepad.axes[0];
+
+	    if( upDown < 0.5 ) upDown = -1;
+	    else if( upDown > 0.5 ) upDown = 1;
+	    else upDown = 0;
+	    
+	    if( leftRight < 0.5 ) leftRight = -1;
+	    else if( leftRight > 0.5 ) leftRight = 1;
+	    else leftRight = 0;
+
+	    if( upDown != state.upDown ){
+
+		if( state.upDown < 0 )
+		    this.inputUp("ArrowUp");
+		else if( state.upDown > 0 )
+		    this.inputUp("ArrowDown");
+		
+		state.upDown = upDown;
+		
+		if( upDown < 0 ) this.inputDown("ArrowUp");
+		else if( upDown > 0 ) this.inputDown("ArrowDown");
+
+	    }
+
+	    if( leftRight != state.leftRight ){
+
+		if( state.leftRight < 0 )
+		    this.inputUp("ArrowLeft");
+		else if( state.leftRight > 0 )
+		    this.inputUp("ArrowRight");
+		
+		state.leftRight = leftRight;
+		
+		if( leftRight < 0 ) this.inputDown("ArrowLeft");
+		else if( leftRight > 0 ) this.inputDown("ArrowRight");
+
+	    }
 	    
 	    for( let i in this.gamepadmap ){
 		let pressed = gamepad.buttons[i];
