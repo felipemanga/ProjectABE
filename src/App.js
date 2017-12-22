@@ -125,11 +125,11 @@ class App {
 	    let upDown = gamepad.axes[1],
 		leftRight = gamepad.axes[0];
 
-	    if( upDown < 0.5 ) upDown = -1;
+	    if( upDown < -0.5 ) upDown = -1;
 	    else if( upDown > 0.5 ) upDown = 1;
 	    else upDown = 0;
 	    
-	    if( leftRight < 0.5 ) leftRight = -1;
+	    if( leftRight < -0.5 ) leftRight = -1;
 	    else if( leftRight > 0.5 ) leftRight = 1;
 	    else leftRight = 0;
 

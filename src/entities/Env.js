@@ -30,17 +30,26 @@ class Env extends IController {
 	event.stopPropagation();
 	event.preventDefault();
 
+	this.model.removeItem("app.AT32u4");
+	this.model.removeItem("app.srcpath");
 
 	var dt = event.dataTransfer;
 	var files = dt.files;
 
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];
-	    if( /.*\.arduboy$|.*\.hex$/i.test(file.name) )
-		return loadFile.call( this, file );
+	    
+	    this.model.setItem('app.srcpath', ["app", "sources", file.name]);
+	    
+	    if( /.*\.hex$/i.test(file.name) )
+		return loadFileHex.call( this, file );
+	    
+	    if( /.*\.arduboy$/i.test(file.name) )
+		return loadFileArduboy.call( this, file );
+	    
 	}
 
-	function loadFile( file ){
+	function loadFileHex( file ){
 	    let fr = new FileReader();
 	    fr.onload = evt => {
 		this.model.removeItem("app.AT32u4");		
@@ -48,6 +57,12 @@ class Env extends IController {
 		this.pool.call("runSim");
 	    };
 	    fr.readAsText(file);
+	}
+	
+	function loadFileArduboy( file ){
+	    let fr = new FileReader();
+	    fr.onload = evt => this.loadArduboy( fr.result );
+	    fr.readAsArrayBuffer(file);
 	}
 	
     }
@@ -97,14 +112,7 @@ class Env extends IController {
 	    let zip = null;
 	    fetch( finalURL )
 		.then( rsp => rsp.arrayBuffer() )
-		.then( buff => JSZip.loadAsync( buff ) )
-		.then( z => (zip=z).file("info.json").async("text") )
-		.then( info => zip.file( JSON.parse( fixJSON(info) ).binaries[0].filename).async("text") )
-		.then( hex => {
-		    source.setItem(["build.hex"], hex);
-		    this.model.setItem("app.AT32u4.hex", hex);
-		    this.pool.call("runSim");
-		})
+		.then( buff => this.loadArduboy(buff) )
 		.catch( err => {
 		    console.error( err );
 		});
@@ -132,6 +140,21 @@ class Env extends IController {
 
 	this.model.setItem("ram.srcurl", srcurl);	
 	
+    }
+
+    loadArduboy( buff ){
+	let zip;
+	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
+	
+	JSZip.loadAsync( buff )
+	    .then( z => (zip=z).file("info.json").async("text") )
+	    .then( info => zip.file( JSON.parse( fixJSON(info) ).binaries[0].filename).async("text") )
+	    .then( hex => {
+		source.setItem(["build.hex"], hex);
+		this.model.setItem("app.AT32u4.hex", hex);
+		this.pool.call("runSim");
+	    });
+
 	function fixJSON( str ){
 	    
 	    if( str.charCodeAt(0) == 0xFEFF )
@@ -140,6 +163,8 @@ class Env extends IController {
 	    return str.replace(/\,(?!\s*?[\{\[\"\'\w])/g, '');
 	    
 	}
+	
+	
     }
 
 }
