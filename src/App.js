@@ -4,6 +4,8 @@ import DOM from './lib/dry-dom.js';
 
 window.strldr = require("./lib/strldr.js");
 
+let controllers = {};
+
 class App {
 
     static "@inject" = {
@@ -21,6 +23,17 @@ class App {
 	"Right":"ArrowRight",
 	"Alt":"AltLeft",
 	"CONTROL":"ControlLeft"
+    }
+
+    gamepadmap = {
+	0:"ControlLeft",
+	1:"AltLeft",
+	2:"ControlLeft",
+	3:"AltLeft",
+	12:"ArrowUp",
+	15:"ArrowRight",
+	13:"ArrowDown",
+	14:"ArrowLeft"	
     }
 
     unblockable = {
@@ -55,6 +68,89 @@ class App {
 
     init(){
 
+	this.initKeyboard();
+	this.initControllers();
+
+        this.pool.call("enterSplash");
+
+        setInterval( this.commit.bind(this), 3000 );
+
+        var pending = 2;
+        this.openModel( "app", done.bind(this) );
+        setTimeout( done.bind(this), 1000 );
+
+        function done(){
+            pending--;
+            if( !pending )
+                this.pool.call( "exitSplash" );
+
+        }
+
+    }
+
+    initControllers(){
+
+	controllers = {};
+
+	let connecthandler = e => {
+	    controllers[e.gamepad.index] = {gamepad:e.gamepad, state:{}};
+	};
+
+	let disconnecthandler = e => {
+	    delete controllers[e.gamepad.index];
+	};
+
+	window.addEventListener("gamepadconnected", connecthandler);
+	window.addEventListener("gamepaddisconnected", disconnecthandler);
+	
+    }
+
+    onPollTickListeners( list ){
+	list.push(this);	
+    }
+
+    tick(){
+
+	Array.from((navigator.getGamepads || navigator.webkitGetGamepads || (_=>[])).call(navigator))
+	    .filter( gp => !!gp )
+	    .reduce( (c, gp) => {
+		if( c[gp.index] ) c[gp.index].gamepad = gp;
+		else c[gp.index] = {gamepad:gp, state:{}};
+		return c;
+	    }, controllers);	
+	
+	for( let k in controllers ){
+	    let {gamepad, state} = controllers[k];
+	    
+	    for( let i in this.gamepadmap ){
+		let pressed = gamepad.buttons[i];
+		
+		if( typeof pressed == "object" )
+		    pressed = pressed.pressed;
+		else pressed = pressed >= 0.5;
+		
+		if( pressed != state[i] ){
+		    state[i] = pressed;
+
+		    if( pressed ) this.inputDown( this.gamepadmap[i] );
+		    else this.inputUp( this.gamepadmap[i] );
+
+		}
+	    }
+	}
+	
+    }
+
+    inputDown( code ){
+	return this.pool.call("onPress" + (this.mappings[ code ] || code) );	
+    }
+
+    inputUp( code ){
+	return this.pool.call("onRelease" + (this.mappings[ code ] || code) );
+    }
+
+    initKeyboard(){
+	
 	document.body.addEventListener("keydown", evt => {
 
 	    let code = evt.code;
@@ -63,7 +159,7 @@ class App {
 	    if( (evt.target.tagName == "INPUT" || evt.target.tagName == "TEXTAREA") && !this.unblockable[code] )
 		return;
 
-	    let ret = this.pool.call("onPress" + (this.mappings[ code ] || code) );
+	    let ret = this.inputDown( code );
 	    if( ret === true ){
 		evt.preventDefault();
 		evt.stopPropagation();
@@ -79,7 +175,7 @@ class App {
 	    if( (evt.target.tagName == "INPUT" || evt.target.tagName == "TEXTAREA") && !this.unblockable[code] )
 		return;
 
-	    let ret = this.pool.call("onRelease" + (this.mappings[ code ] || code) );
+	    let ret = this.inputUp( code );
 	    if( ret === true ){
 		evt.preventDefault();
 		evt.stopPropagation();
@@ -89,23 +185,7 @@ class App {
         this.controllers.forEach((controller) => {
             this.pool.add( controller );
         });
-
-        this.pool.call("enterSplash");
-
-
-        setInterval( this.commit.bind(this), 3000 );
-
-        var pending = 2;
-        this.openModel( "app", done.bind(this) );
-        setTimeout( done.bind(this), 1000 );
-
-        function done(){
-            pending--;
-            if( !pending )
-                this.pool.call( "exitSplash" );
-
-        }
-
+	
     }
 
     openModel( name, cb, model ){
@@ -139,6 +219,30 @@ class App {
 
         this.store.getTextItem( path, (data)=>{
 
+	    let onGetModel = data => {
+
+		if( data ){
+		    
+		    model.load( data );
+		    if( model.getItem("color") === undefined )
+			model.setItem("color", Math.random()*10 | 0);
+
+		    if( model.getItem("expires") > (new Date()).getTime() ){
+			model.dirty = false;
+			cb.call();
+			return;
+		    }
+
+		    model.setItem("color", Math.random()*10 | 0);
+		    
+		}else if( model.getItem("color") === undefined )
+		    model.setItem("color", Math.random()*10 | 0);
+
+		
+		this.pool.call( name + "ModelInit", model, cb );
+		
+	    };
+
             if( data ){
 		try{
 		    data=JSON.parse(data);
@@ -147,25 +251,23 @@ class App {
 		}
 	    }
 
-	    if( data ){
+	    if( !data || !Array.isArray(data) )
+		return onGetModel( data );
+
+	    let map = {}, pending = data.length;
+
+	    data.forEach( de => {
+
+		this.store.getTextItem( path + "/" + de, item => {
+
+		    map[de] = JSON.parse(item);
+		    pending--;
+		    if( !pending )
+			onGetModel( map );
+		    
+		});
 		
-		model.load( data );
-		if( model.getItem("color") === undefined )
-			model.setItem("color", Math.random()*10 | 0);
-
-		if( model.getItem("expires") > (new Date()).getTime() ){
-                    model.dirty = false;
-		    cb.call();
-		    return;
-		}
-
-		model.setItem("color", Math.random()*10 | 0);
-		
-            }else if( model.getItem("color") === undefined )
-		model.setItem("color", Math.random()*10 | 0);
-
-	    
-            this.pool.call( name + "ModelInit", model, cb );
+	    });
 
         });
 
@@ -268,7 +370,11 @@ class App {
             }else if( obj.dirty && !obj.model.dirty ){
 
                 obj.dirty = false;
-                this.store.setItem( obj.path, JSON.stringify(obj.model.data) );
+                // this.store.setItem( obj.path, JSON.stringify(obj.model.data) );
+		this.store.setItem( obj.path, JSON.stringify( Object.keys(obj.model.data) ) );
+		for( let k in obj.model.data ){
+		    this.store.setItem( obj.path + "/" + k, JSON.stringify( obj.model.data[k] ) );
+		}
 
             }else if( obj.dirty && obj.model.dirty ){
 
