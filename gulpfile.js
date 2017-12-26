@@ -137,6 +137,33 @@ gulp.task('build', function () {
     .on("error", swallowError);
 });
 
+
+gulp.task('web-build', function () {
+
+  var b = browserify({
+    entries: './src/web.js',
+    debug: true
+  });
+
+  b.plugin(sourcemapify, {root:'../'});
+
+  b.transform(babelify, {
+      plugins:[
+        ["transform-class-properties"],
+        ["import-glob"]
+      ],
+      presets:[
+        ["env", {targets:{uglify:[]}}
+      ]
+  ]});
+
+  return b
+    .bundle()
+    .on("end", () => reload.changed("app.js") )
+    .pipe(fs.createWriteStream("build/app.js", {encoding:"UTF-8"}))
+    .on("error", swallowError);
+});
+
 // gulp.task('pg-build', function(){
 //     return gulp.src(['./build/**/*'])
 //         .pipe(gulp.dest('./dist/'));
@@ -194,6 +221,11 @@ gulp.task('package', sequence('pg-postclean', 'pg-move', 'pg-copy', 'pg-build', 
 
 gulp.task('watch', ['build', 'copy'], function(){
     gulp.watch('./src/**/*', ['build']);
+    gulp.watch('./res/**/*', ['copy']);
+});
+
+gulp.task('web-watch', ['web-build', 'copy'], function(){
+    gulp.watch('./src/**/*', ['web-build']);
     gulp.watch('./res/**/*', ['copy']);
 });
 
