@@ -756,8 +756,11 @@ canvas:fullscreen{
 #flashContainer li {
     display: inline-block;
     padding: 0;
-    height: 25px;
+    height: 100%;
     overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.7em;
+    line-height: 30px;
 }
 
 #addNewFile {

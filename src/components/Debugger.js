@@ -287,7 +287,7 @@ void loop() {
 		    if( src && !src.offset && this.hints[value] ){
 			this.hints[value].replace(/(?:^|\n)[0-9a-f]+\s+<([^>]+)>:\n/, (m, fname) => {
 			    text += "fptr: ";
-			    fname = fname.replace(/_Z[0-9]+(.*)v/, "$1");
+			    fname = this.unmangle(fname); // fname.replace(/_Z[0-9]+(.*)v/, "$1");
 			    text += fname + "\n" + src.file + ":" + src.line;
 			});
 		    }
@@ -380,7 +380,8 @@ void loop() {
 			textContent:"ZIP",
 			attr:{
 			    download:"ArduboyProject"
-			}
+			},
+			onclick:_=>this.saver.style.display = "none"
 		    }, document.body);
 		    
 		}else
@@ -688,22 +689,157 @@ void loop() {
 	this.changeBreakpoints();
     }
 
+    unmangle( str ){
+	let end = 0, sub = [];
+	
+	if( str[0] != "_" || str[1] != "Z" ) return str;
+	str = str.substr(2);
+	let srcstr = str;
+
+	str = chunk(str);
+
+	if( end < srcstr.length ){
+	    let a = args( srcstr.substr(end) );
+	    str += "(" + a.join(", ") + ")";
+	}
+	
+	return str;
+	
+	function chunk( str ){
+	    let m = str.match(/(L)?(N)?(Z)?([0-9]+)?/);
+	    if( !m ){
+		end = str.length;
+		return str;
+	    }
+	    let len = parseInt( m[4] );
+	    if( m[2] ){
+		let acc = chunk( str.substr(1) );
+		let p = 1+end;
+		acc += "::" + chunk( str.substr(p) );
+		end += p + 1;
+		return acc;
+	    }else if(m[3]){
+		let func = chunk( str.substr(1) );
+		m = str.match(/3__c_?([0-9A-Z]+)$/);
+		let idx = 0;
+		if( m )
+		    idx = parseInt(idx, 36)+1;
+		
+		func = "Local String #" + idx + " in " + func;
+		return func;
+	    }else if(m[4]){
+		let start = (m[1]?1:0) + m[4].length;
+		end = start + len;
+		let ret = str.substr( start, len );
+		sub.push( ret );
+		return ret;
+	    }else{
+		end = str.length;
+		return str;
+	    }
+	}
+	//*
+	function args( str ){
+	    let pos = 0, acc = [];
+	    let nextPostfix = "", nextPrefix = "";
+	    
+	    while( pos < str.length ){
+		let c = {
+		    v:"void",
+		    w:"wchar_t",
+		    b:"bool",
+		    c:"char",
+		    a:"signed char",
+		    h:"unsigned char",
+		    s:"short",
+		    t:"unsigned short",
+		    i:"int",
+		    j:"unsigned int",
+		    l:"long",
+		    m:"unsigned long",
+		    x:"long long",
+		    y:"unsigned long long",
+		    n:"__int128",
+		    o:"unsigned __int128",
+		    f:"float",
+		    d:"double",
+		    e:"long double",
+		    g:"float128",
+		    z:"ellipsis"
+		}[ str[pos] ] || str[pos];
+
+		if( c == "P" ){
+		    nextPostfix += "*";
+		}else if( c == "R" ){
+		    nextPostfix += "&";
+		}else if( c == "K" ){
+		    nextPrefix += "const ";
+		}else if( c == "S" ){
+		    let idx;
+		    if( str[pos+1] == "_" ){
+			pos++;
+			idx = 0;
+		    }else if( /[0-9A-Z]/.test(str[pos+1]) ){
+			idx = parseInt(str.substr(pos+1, 36))+1;
+		    }else{
+			idx = "";
+			pos+=2;
+			acc.push("?");
+			continue;
+		    }
+		    c = sub[idx];
+		    
+		    while( str[pos] != "_" && pos++ < str.length );
+		    acc.push( nextPrefix + c + nextPostfix );
+		    nextPrefix = nextPostfix = "";
+		    
+		}else if( c == "." ){
+		    pos += str.length;
+		}else{
+		    
+		    if( /[0-9]/.test(c) ){
+			c = chunk(str.substr(pos));
+			pos += end+1;
+		    }
+		    
+		    acc.push( nextPrefix + c + nextPostfix );
+		    nextPrefix = nextPostfix = "";
+		}
+		pos++;
+	    }
+
+	    return acc;
+	}
+	/* */
+
+    }
+
     initSpacebar( txt ){
 	var blockSizes = {};
 
 	let prevBlock = null;
 	let maxaddr = 28672;
 	
-	txt.replace(/\n([0-9a-f]{8,8})\s+<([^>]+)>:/g, (m, addr, name) => {
+	txt.replace(/\n([0-9a-f]{8,8})\s+<([^>]+)>:\s+([^\(:]+\()?/g, (m, addr, name, func, index) => {
 	    addr = parseInt(addr, 16);
-	    if( prevBlock ) prevBlock.end = addr;
+	    if( prevBlock ){
+		prevBlock.end = addr;
+		prevBlock.bytes = prevBlock.end - prevBlock.begin;
+		prevBlock.endIndex = index;
+	    }
 	    
 	    var r=Math.random()*100+155|0,
 		g=Math.random()*100+155|0,
 		b=Math.random()*100+155|0;
 	    
 	    prevBlock = {
-		begin: addr,
+		name: this.unmangle(name),
+		index,
+		endIndex:0,
+		deps:{},
+		dependants:0,
+		isFunc: func !== undefined,
+ 		begin: addr,
 		end: addr,
 		size: null,
 		bytes: 0,
@@ -711,7 +847,7 @@ void loop() {
 		anticolor: `rgb(${255-r},${255-g},${255-b})`
 	    };
 
-	    name = name.replace(/_Z[0-9]+(.*)v/, "$1");
+	    // name = this.unmangle(name); // .replace(/_ZL?[0-9]+(.*)v/, "$1");
 	    
 	    blockSizes[ name ] = prevBlock;
 
@@ -722,20 +858,85 @@ void loop() {
 	    size: null,
 	    bytes: 0,
 	    color: "black",
-	    anticolor: "white"
+	    anticolor: "white",
+	    name: "Tiny (<0.5%)"
 	};
 	var freeBlock = {
 	    size: null,
 	    bytes: maxaddr - prevBlock.end,
 	    color: "white",
-	    anticolor: "black"
+	    anticolor: "black",
+	    name: "Free"
 	};
 
 	var sum = 0;
-
+	
 	for( var k in blockSizes ){
 	    var block = blockSizes[k];
-	    block.bytes = block.end - block.begin;
+	    var blockCode = txt.substr( block.index, block.endIndex-block.index );
+	    
+	    var lines = {}, prevLine = null, prevAddr, accSize = 0;
+
+	    blockCode.replace(/(?:\n|^)([\/a-zA-Z0-9_.]+):([0-9]+)\n\s+([0-9a-f]{4,4}:)/gi, (m, file, line, addr) => {
+		addr = parseInt(addr, 16);
+		file = file.replace(/^\/app\/public\/builds\/[0-9]+\/sketch\//, '');
+		let curLine = `${file}:${line}`;
+
+		if( !(curLine in lines) ){
+		    lines[curLine] = {
+			line:curLine,
+			size:0
+		    };
+		}
+
+		if( prevLine )
+		    prevLine.size += addr - prevAddr;
+
+		prevLine = lines[ curLine ];
+		prevAddr = addr;
+	    });
+
+	    if( prevLine )
+		prevLine.size += block.end - prevAddr;
+
+	    block.lines = Object.keys(lines).map( l => lines[l] );
+
+	    blockCode.replace(/\s+call\s+[.+\-x0-9a-f]+\s+;\s+0x[0-9a-f]+\s+<([^>]+)>/gi, (m, dep)=>{
+		if( !blockSizes[dep] ){
+		    console.error("Dependency not found: " + dep);
+		    return;
+		}
+		let count = block.deps[dep] || 0;
+		block.deps[dep] = count+1;
+		blockSizes[dep].dependants++;
+	    });
+	}
+	
+	this.source.setItem(["dependencies.txt"],
+			    Object.keys(blockSizes)
+			    .filter( a => blockSizes[a].isFunc )
+			    .sort( (a, b)=> blockSizes[b].bytes - blockSizes[a].bytes )
+			    .reduce((acc, key)=>{
+				let block = blockSizes[key];
+				return acc + block.name +
+				    " " + [
+					block.bytes + "b:",
+					'Internal:',
+					    ...block.lines.sort( (a,b)=> b.size - a.size ).map( l => `\t\t${l.line}\t${l.size}b` ),
+					'References:',
+					    ...Object.keys(block.deps).sort( (a, b) => {
+						let wa = blockSizes[a].bytes * (block.deps[a] / blockSizes[a].dependants);
+						let wb = blockSizes[b].bytes * (block.deps[b] / blockSizes[b].dependants);
+						return wb - wa;
+					    })
+					    .map( n => `\t\t${this.unmangle(n)} ${blockSizes[n].bytes}b ${block.deps[n]} of ${blockSizes[n].dependants}` )
+				    ].join("\n") + "\n\n"
+			    }, ""));
+
+	
+	for( var k in blockSizes ){
+	    var block = blockSizes[k];
+    
 	    let size = block.bytes / maxaddr * 100;
 	    if( size < 0.5 ){
 		delete blockSizes[k];
@@ -746,6 +947,7 @@ void loop() {
 	    sum += size;
 	    block.size = size + "%";
 	}
+
 
 	let size = Math.round(freeBlock.bytes / maxaddr * 100);
 	sum += size;
@@ -761,11 +963,10 @@ void loop() {
 	tinyBlock.size = size + "%";
 
 	
-	blockSizes["Tiny (<0.5%)"] = tinyBlock;
-	blockSizes["Free"] = freeBlock;
+	blockSizes[ tinyBlock.name ] = tinyBlock;
+	blockSizes[ freeBlock.name ] = freeBlock;
 
 	this.model.setItem("ram.blocksizes", blockSizes);
-
     }
 
     initHints( txt ){
