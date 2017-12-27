@@ -1,6 +1,7 @@
 import { IController, Model, IView } from '../lib/mvc.js';
 import JSZip from 'jszip/dist/jszip.min.js';
 import DOM from '../lib/dry-dom.js';
+import loadImage from '../lib/image.js';
 
 const compiler = "https://projectabe.herokuapp.com/";
 
@@ -437,98 +438,36 @@ void loop() {
 	}
 
 	this.changeSourceFile();
-	
+		
 	function loadZipFile( file ){
 	    let fr = new FileReader();
 	    fr.onload = evt => {
-		
+				
 		JSZip.loadAsync( fr.result )
 		    .then( z => this.importZipSourceFiles(z) );
 		
 	    };
 	    fr.readAsArrayBuffer( file );
+	  
 	}
-
+		
 	function loadImageFile( file ){
 	    let fr = new FileReader();
 	    fr.onload = evt => {
-
-		let cleanName = file.name.replace(/^.*?([^\/\\.]+)\..+$/,'$1');
 		
+		let cleanName = file.name.replace(/^.*?([^\/\\.]+)\..+$/,'$1');
+    
 		let img = DOM.create("img", {
 		    src:fr.result,
 		    onload:_=>{
 
-			let width = img.naturalWidth;
-
-			let canvas = DOM.create("canvas", {
-			    width,
-			    height: img.naturalHeight
-			});
-
-			let ctx = canvas.getContext("2d");
-			ctx.drawImage( img, 0, 0 );
-
-			let data = ctx.getImageData( 0, 0, canvas.width, canvas.height );
-
-			let masksrc = "\nconst unsigned char PROGMEM " + cleanName + "_mask[] = ";
-
-			let src = "";
-			src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = ";
-			
-		        src += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
-			masksrc += "{";
-		        
-		        let pageCount = Math.ceil( img.naturalHeight / 8 );
-		        let currentByte = 0, isPNG = /.*\.png$/i.test(file.name);
-		        
-		        // Read the sprite page-by-page
-		        for( let page = 0; page < pageCount; page++ ) {
-
-		            // Read the page column-by-column
-		            for( let column = 0; column < width; column++ ) {
-
-		        	// Read the column into a byte
-		        	let spriteByte = 0, maskByte = 0;
-		        	for( let yPixel = 0; yPixel < 8; yPixel++) {
-
-				    let i = ((page*8 + yPixel) * data.width + column) * 4;
-				    let lum = (data.data[i  ] + data.data[i+1] + data.data[i+2]) / 3;
-
-		        	    if( lum > 128 )
-		        	        spriteByte |= (1 << yPixel);
-		        	    if( data.data[ i+3 ] > 128 )
-					maskByte |= (1 << yPixel);
-		        	}
-
-				src += ",";
-
-				if( currentByte != 0 )
-				    masksrc += ",";
-				
-		        	if( currentByte%width == 0 ){
-		        	    src += "\n"; masksrc += "\n";
-				}
-
-		        	src += "0x" + spriteByte.toString(16).padStart(2, "0");
-		        	if( isPNG )
-				    masksrc += "0x" + maskByte.toString(16).padStart(2, "0");
-
-		        	currentByte++;
-		            }
-		        }
-		        src += "\n};\n\n"; masksrc += "\n};\n\n";
-
-			if( isPNG )
-			    src += masksrc;
-			
-			src += "\n";
+			let src = loadImage( img, cleanName, /.*\.png$/i.test(file.name) );
 
 			var bmpcpp = this.source.getItem(["bmp.cpp"], "#include <Arduino.h>\n#include \"bmp.h\"\n");
 			var hasHeader = false;
 			var headerPath = "bmp/" + cleanName + ".h";
 			
-			bmpcpp.replace(/(?:^|\n)\s*#include\s+"([^"]+)"/g, (_, inc) =>{
+			bmpcpp.replace(/#include\s+"([^"]+)"/g, (_, inc) =>{
 			    hasHeader = hasHeader || inc == headerPath;
 			    return "";
 			});
@@ -541,20 +480,16 @@ void loop() {
 			var bmph = this.source.getItem(["bmp.h"], "");
 			var hasExtern = false;
 
-			bmph.replace(/(?:^|\n)\s*extern\s+const\s+unsigned\s+char\s+PROGMEM\s+([^\[\s\[]+)/g, (_, inc) => {
+			bmph.replace(/extern\s+const\s+unsigned\s+char\s+PROGMEM\s+([^\[\s\[]+)/g, (_, inc) => {
 			    hasExtern = hasExtern || inc == cleanName;
 			});
 
-			if( !hasExtern ){
-			    bmph = "extern const unsigned char PROGMEM " +
-				cleanName + "[], " +
-				cleanName + "_mask[];\n" +
-				bmph;
-			}
+			if( !hasExtern )
+			    bmph = src.h + bmph;
 
 			this.source.setItem(["bmp.h"], bmph);
 			
-			this.addNewFile( headerPath, src );
+			this.addNewFile( headerPath, src.cpp );
 			
 		    }
 		    
@@ -705,7 +640,7 @@ void loop() {
 	
 	return str;
 	
-	function chunk( str ){
+	function chunk( str, noDict ){
 	    let m = str.match(/(L)?(N)?(Z)?([0-9]+)?/);
 	    if( !m ){
 		end = str.length;
@@ -715,7 +650,7 @@ void loop() {
 	    if( m[2] ){
 		let acc = chunk( str.substr(1) );
 		let p = 1+end;
-		acc += "::" + chunk( str.substr(p) );
+		acc += "::" + chunk( str.substr(p), true );
 		end += p + 1;
 		return acc;
 	    }else if(m[3]){
@@ -731,7 +666,9 @@ void loop() {
 		let start = (m[1]?1:0) + m[4].length;
 		end = start + len;
 		let ret = str.substr( start, len );
-		sub.push( ret );
+		
+		if( !noDict ) sub.push( ret );
+		
 		return ret;
 	    }else{
 		end = str.length;
@@ -799,9 +736,14 @@ void loop() {
 		    
 		    if( /[0-9]/.test(c) ){
 			c = chunk(str.substr(pos));
-			pos += end+1;
+			pos += end;
 		    }
-		    
+		    if( nextPrefix ){
+			sub.push(nextPrefix + c );
+		    }
+		    if( nextPostfix ){
+			sub.push(nextPrefix + c + nextPostfix);
+		    }
 		    acc.push( nextPrefix + c + nextPostfix );
 		    nextPrefix = nextPostfix = "";
 		}
