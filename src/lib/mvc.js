@@ -104,7 +104,7 @@ class Model {
         }
 
         for( var k in data ){
-            this.setItem( k, data[k], doRaise );
+            this.setItem( [k], data[k], doRaise );
         }
 
         return this;
@@ -143,7 +143,7 @@ class Model {
 
         if( children[prop] ){
 
-            if( children[prop].data !== v ){
+            if( children[prop].data !== v && v && typeof v == "object" ){
 		for( var ck in children[prop].data ){
 		    if( !(ck in v) )
 			children[prop].removeItem([ck], doRaise);

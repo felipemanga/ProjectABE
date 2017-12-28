@@ -110,7 +110,7 @@ function compress_rle( src, w, h, prefix, suffix ){
 	len;
     
     cs.dest = `const uint8_t PROGMEM ${prefix}${suffix}[] = {`;
-    cs.src = i => src[ i*4+3 ] > 128 ? (src[i*4]+src[i*4+1]+src[i*4+2])/3 > 127 : 0;
+    cs.src = src;
     cs.bit = 1;
     cs.byte = 0;
     cs.w = w;
@@ -144,9 +144,16 @@ function compress_rle( src, w, h, prefix, suffix ){
 
 // end port of Cabi
 
-function cabi( data, cleanName, isPNG ){
-    compress_rle( data.data, data.width, Math.ceil(data.height/8)*8, cleanName, "_comp" );
-    return cs.dest;
+function cabi( data, cleanName, out ){
+    let src = data.data;
+
+    let white = i => src[ i*4+3 ] > 128 ? (src[i*4]+src[i*4+1]+src[i*4+2])/3 > 127 : 0;
+    compress_rle( white, data.width, Math.ceil(data.height/8)*8, cleanName, "_comp_w" );
+    out[cleanName + "_comp_w[]"] = cs.dest;
+
+    let black = i => src[ i*4+3 ] > 128 ? (src[i*4]+src[i*4+1]+src[i*4+2])/3 < 127 : 0;
+    compress_rle( black, data.width, Math.ceil(data.height/8)*8, cleanName, "_comp_b" );
+    out[cleanName + "_comp_b[]"] = cs.dest;
 }
 
 function loadImage( img, cleanName, isPNG ){
@@ -163,7 +170,9 @@ function loadImage( img, cleanName, isPNG ){
 
     let data = ctx.getImageData( 0, 0, canvas.width, canvas.height );
 
-    let cmpsrc = cabi( data, cleanName, isPNG );
+    let ret = {};
+
+    cabi( data, cleanName, ret );
 
     let masksrc = "\nconst unsigned char PROGMEM " + cleanName + "_mask[] = ";
 
@@ -245,19 +254,22 @@ function loadImage( img, cleanName, isPNG ){
     spmasksrc += "\n};\n\n";
     ascii += "\n*/\n\n";
 
-    src += masksrc + "\n";
-    
-    src += spmasksrc + "\n";
-
-    src += cmpsrc + "\n";
+    src += masksrc + "\n";    
+    src += spmasksrc + "\n";    
+	
+    let headers = [
+	cleanName + "[]",
+	cleanName + "_mask[]",
+	cleanName + "_plus_mask[]"
+    ]
+    for( var k in ret ){
+	src += ret[k];
+	headers.push(k);
+    }
     
     return {
 	cpp: ascii + src,
-	h: "extern const unsigned char PROGMEM " +
-	    cleanName + "[], " +
-	    cleanName + "_mask[], " +
-	    cleanName + "_plus_mask[], " +
-	    cleanName + "_comp[];\n"
+	h: "extern const unsigned char PROGMEM " + headers.join(', ') + ";\n"
     };
 }
 
