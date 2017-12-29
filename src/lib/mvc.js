@@ -720,7 +720,7 @@ function boot( { main, element, components, entities, model } ){
     }
 
     bind(main).to(main).injecting([new DOM(element), DOM]);
-    getInstanceOf( main );
+    return getInstanceOf( main );
 
 }
 

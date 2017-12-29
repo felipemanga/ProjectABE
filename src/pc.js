@@ -10,6 +10,7 @@ import * as entities from './entities/*.js';
 import * as components from './components/*.js';
 
 const electron = window.require('electron');
+const fs = window.require('fs');
 
 electron.webFrame.registerURLSchemeAsPrivileged('file', { bypassCSP: true });
 
@@ -23,12 +24,30 @@ setTimeout( function(){
 
 //    console.log( argv );
 
-    let url;
+    let url, app;
     
-    if( argv[1] )
+    if( argv[1] ){
+	let hnd = 0;
+	let watcher = fs.watch(
+	    argv[1],
+	    { persistent:false },
+	    _ => {
+		if( hnd ) clearTimeout(hnd);
+		hnd = setTimeout(
+		    _=>{
+			app.root.removeItem("app.AT32u4");
+			app.root.setItem("app.AT32u4.url", url);
+			app.pool.call("loadFlash");
+		    },
+		    1000
+		);
+	});
+	
 	url = "file://" + argv[1].replace(/\\/g, "/");
+	
+    }
 
-    boot({
+    app = boot({
         main:App,
         element:document.body,
         components,

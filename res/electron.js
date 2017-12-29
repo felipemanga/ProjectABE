@@ -17,11 +17,11 @@ app.on('ready', function() {
   mainWindow = new BrowserWindow({
       width:375,
       height:600,
-  
+  /* */
       webPreferences:{
 	  devTools: false
       }
-  
+  /* */
     // fullscreen:true
     // frame:false
   });
