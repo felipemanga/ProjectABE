@@ -2,6 +2,7 @@
   "name": "ProjectABE",
   "version": "0.6.7",
   "license": "MIT",
+    "main":"electron.js",
   "scripts": {
     "test": "gulp test"
   },
@@ -13,6 +14,7 @@
     "localforage": "^1.5.0"
   },
   "devDependencies": {
+    "asar": "^0.14.0",
     "babel-plugin-import-glob": "^2.0.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-preset-env": "^1.5.2",

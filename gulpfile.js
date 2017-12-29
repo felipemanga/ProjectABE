@@ -12,7 +12,8 @@ var gulp = require('gulp'),
     zip = require("gulp-zip"),
     sequence = require("gulp-sequence"),
     reload = require("gulp-livereload"),
-    {execFile, execFileSync} = require("child_process");
+    {execFile, execFileSync} = require("child_process"),
+    asar = require('asar');
 
 var fs = require('fs');
 
@@ -131,8 +132,12 @@ gulp.task('build', function () {
   ]});
 
   return b
-    .bundle()
-    .on("end", () => reload.changed("app.js") )
+	.bundle()
+	.on("end", () => {
+	    asar.createPackage( './build', './dist/resources/app.asar', function() {
+	    reload.changed("app.asar");
+	    })
+	})
     .pipe(fs.createWriteStream("build/app.js", {encoding:"UTF-8"}))
     .on("error", swallowError);
 });

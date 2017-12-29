@@ -1,4 +1,4 @@
-import { inject, bind, getInstanceOf } from 'dry-di';
+import { inject, bind, getInstanceOf, getPolicy } from 'dry-di';
 import StrLdr from './strldr.js';
 import IStore from '../store/IStore.js';
 import DOM from "./dry-dom.js";
@@ -444,6 +444,13 @@ function prepareDOM( dom, controller, _model, viewdom ){
             
             if( parts.length == 2 )
                 switch( parts[1] ){
+		case "hide":
+		    bindVisibility( element, parts[0], value, "hidden" );
+		    break;
+		case "show":
+		    bindVisibility( element, parts[0], value, "visible" );
+		    break;
+		    
                 case "call":
 		    
                     var target = readMethod( value, controller, dom );
@@ -541,6 +548,24 @@ function prepareDOM( dom, controller, _model, viewdom ){
         }
 
     });
+
+    function bindVisibility( element, value, path, style ){
+
+	if( value == "undefined" ) value = undefined;
+	else{
+	    try{ value = JSON.parse(value); }
+	    catch( ex ){}
+	}
+	let cb = v => {
+	    if( v == value )
+		element.style.visibility = style;
+	};
+	
+	cb( _model.getItem(path) );
+	
+	_model.attach( path, cb );
+	
+    }
 
     function bindToggle( element, event, cmd ){
 	
@@ -662,10 +687,21 @@ class IController {
 }
 
 
-function boot( { main, element, components, entities } ){
+function boot( { main, element, components, entities, model } ){
 
     bind(Pool).to('pool').singleton();
     bind(Model).to(Model).withTags({scope:'root'}).singleton();
+
+    if( model ){
+	
+	let root = getPolicy({
+	    _interface: Model,
+	    tags:{scope:'root'},
+	    args:[]
+	});
+	
+	root.load( model );
+    }
 
     for( var k in components )
         bind( components[k] ).to( k );
