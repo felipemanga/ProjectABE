@@ -27,20 +27,32 @@ document.addEventListener( "DOMContentLoaded", () => {
     
     if( argv[1] ){
 	let hnd = 0;
-	let watcher = fs.watch(
-	    argv[1],
-	    { persistent:false },
-	    _ => {
-		if( hnd ) clearTimeout(hnd);
-		hnd = setTimeout(
-		    _=>{
-			app.root.removeItem("app.AT32u4");
-			app.root.setItem("app.AT32u4.url", url);
-			app.pool.call("loadFlash");
-		    },
-		    1000
-		);
-	});
+	let watcher;
+
+	function watch(){
+
+	    if( watcher )
+		watcher.close();
+
+	    watcher = fs.watch(
+		argv[1],
+		{ persistent:false },
+		_ => {
+		    if( hnd ) clearTimeout(hnd);
+		    hnd = setTimeout(
+			_=>{
+			    app.root.removeItem("app.AT32u4");
+			    app.root.setItem("app.AT32u4.url", url);
+			    app.pool.call("loadFlash");
+			    watch();
+			},
+			1000
+		    );
+		});
+	    
+	}
+
+	watch();
 	
 	url = "file://" + argv[1].replace(/\\/g, "/");
 	

@@ -1,0 +1,38 @@
+{
+  "name": "ProjectABE",
+  "version": "0.6.7",
+  "license": "MIT",
+  "main": "electron.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "dependencies": {
+    "cordova": "^8.0.0",
+    "dry-di": "^0.5.9",
+    "html5-fs": "^0.1.1",
+    "isomorphic-fetch": "^2.2.1",
+    "jszip": "^3.1.5",
+    "localforage": "^1.5.0"
+  },
+  "devDependencies": {
+    "asar": "^0.14.0",
+    "babel-plugin-import-glob": "^2.0.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-env": "^1.5.2",
+    "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
+    "detect-newline": "^2.1.0",
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-livereload": "^3.8.1",
+    "gulp-sequence": "^0.4.6",
+    "gulp-sourcemaps": "^2.6.2",
+    "gulp-uglify": "^3.0.0",
+    "gulp-zip": "^4.0.0",
+    "sourcemapify": "^1.1.2",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^1.1.2"
+  }
+}
