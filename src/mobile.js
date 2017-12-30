@@ -1,5 +1,5 @@
 import {bind, inject, getInstanceOf} from 'dry-di';
-
+import DOM from "./lib/dry-dom.js";
 
 import App from './App.js';
 import IStore from './store/IStore.js';
@@ -8,6 +8,8 @@ import { Model, boot } from './lib/mvc.js';
 
 import * as entities from './entities/*.js';
 import * as components from './components/*.js';
+
+DOM.create("script", {src:"cordova.js"}, document.head);
 
 document.addEventListener( "deviceready", () => {
 
@@ -20,7 +22,7 @@ document.addEventListener( "deviceready", () => {
         entities,
         model:{
 	    ram:{
-		autoRun: url,
+		autoRun: undefined,
 		debuggerEnabled: undefined
 	    }
 	}

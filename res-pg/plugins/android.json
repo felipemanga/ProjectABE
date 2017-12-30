@@ -9,6 +9,9 @@
   "installed_plugins": {
     "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "io.github.felipemanga.ProjectABE"
+    },
+    "cordova-plugin-file": {
+      "PACKAGE_NAME": "io.github.felipemanga.ProjectABE"
     }
   },
   "dependent_plugins": {}

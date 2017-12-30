@@ -3,7 +3,7 @@ import StrLdr from './strldr.js';
 import IStore from '../store/IStore.js';
 import DOM from "./dry-dom.js";
 import Pool from './pool.js';
-
+import getURL from './getURL.js';
 
 function read( str, ctx ){
 
@@ -398,7 +398,7 @@ class IView {
 
         if( !cache[layout] ){
 
-            fetch( layout )
+            getURL( layout )
             .then( (rsp) => {
 
                 if( !rsp.ok && rsp.status !== 0 ) throw new Error("Not OK!");
