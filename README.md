@@ -8,6 +8,8 @@ More info here: https://community.arduboy.com/t/projectabe-preview-released/4463
 
 ## Want to contribute?
 
+     npm install -g gulp-cli
+     npm install -g serve
      git clone https://github.com/felipemanga/ProjectABE.git
      cd ProjectABE
      npm install
