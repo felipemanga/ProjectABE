@@ -18,7 +18,6 @@ const remote = electron.remote;
 const argv = remote.getGlobal('argv');
 
 document.addEventListener( "DOMContentLoaded", () => {
-setTimeout( function(){
 
     bind(Store).to(IStore).singleton();
 
@@ -60,5 +59,4 @@ setTimeout( function(){
 	}
     });
 
-}, 2000);
 } );

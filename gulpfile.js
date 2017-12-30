@@ -13,7 +13,8 @@ var gulp = require('gulp'),
     sequence = require("gulp-sequence"),
     reload = require("gulp-livereload"),
     {execFile, execFileSync} = require("child_process"),
-    asar = require('asar');
+    asar = require('asar'),
+    cordova = require("cordova-lib").cordova;
 
 var fs = require('fs');
 
@@ -175,7 +176,7 @@ gulp.task('web-build', function () {
 // });
 
 
-gulp.task('pg-build', ["build-atcore-worker"], function () {
+gulp.task('pg-build', function () {
   
   var b = browserify({
     entries: './src/mobile.js',
@@ -196,33 +197,31 @@ gulp.task('pg-build', ["build-atcore-worker"], function () {
 
   return b
     .bundle()
-    .pipe(fs.createWriteStream("dist/www/app.js", {encoding:"UTF-8"}))
+    .pipe(fs.createWriteStream("build/www/app.js", {encoding:"UTF-8"}))
     .on("error", swallowError);
 });
 
 gulp.task('pg-move', function(){
   return gulp.src(["./res/**/*"])
-      .pipe(gulp.dest('dist/www'));
+      .pipe(gulp.dest('build/www'));
 })
 
 gulp.task('pg-copy', function(){
     return gulp.src(["./res-pg/**/*"])
-        .pipe(gulp.dest('dist'));
+        .pipe(gulp.dest('build'));
 })
 
-gulp.task('pg-zip', function(){
-    return gulp.src("./dist/**/*", {nodir: true})
-      .pipe(zip("app.zip"))
-      .pipe(gulp.dest("./"))
+gulp.task('cordova', function( cb ){
+    process.env.PWD = __dirname + "/build"; 
+    cordova.build({
+        "platforms": ["android"],
+        "options": {
+            argv: ["--release","--gradleArg=--no-daemon"]
+        }
+    }, cb);
 });
 
-gulp.task('pg-postclean', function(){
-  return gulp.src("./dist/*", {read:false})
-    .on("error", swallowError)
-    .pipe(clean())
-});
-
-gulp.task('package', sequence('pg-postclean', 'pg-move', 'pg-copy', 'pg-build', 'pg-zip'));
+gulp.task('android', sequence('clean', 'pg-copy', 'pg-move', 'pg-build', 'cordova'))
 
 gulp.task('watch', ['build', 'copy'], function(){
     gulp.watch('./src/**/*', ['build']);
