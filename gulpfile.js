@@ -13,8 +13,7 @@ var gulp = require('gulp'),
     sequence = require("gulp-sequence"),
     reload = require("gulp-livereload"),
     {execFile, execFileSync} = require("child_process"),
-    asar = require('asar'),
-    cordova = require("cordova-lib").cordova;
+    asar = require('asar');
 
 var fs = require('fs');
 
@@ -212,6 +211,7 @@ gulp.task('pg-copy', function(){
 })
 
 gulp.task('cordova', function( cb ){
+    let cordova = require("cordova-lib").cordova;
     process.env.PWD = __dirname + "/build"; 
     cordova.build({
         "platforms": ["android"],
