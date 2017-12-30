@@ -10,6 +10,7 @@ More info here: https://community.arduboy.com/t/projectabe-preview-released/4463
 
      npm install -g gulp-cli
      npm install -g serve
+     npm install -g cordova   # optional, for android build only
      git clone https://github.com/felipemanga/ProjectABE.git
      cd ProjectABE
      npm install
