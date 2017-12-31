@@ -16,7 +16,7 @@ More info here: https://community.arduboy.com/t/projectabe-preview-released/4463
      npm install
      mkdir build
      gulp copy
-     gulp build
+     gulp web-build
      cd build
      serve .
 
