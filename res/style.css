@@ -182,6 +182,10 @@ nav button {
     bottom: 0;
 }
 
+.FileSaver A {
+    margin: 10px;
+}
+
 @keyframes blinker {  
   50% { opacity: 0; }
 }

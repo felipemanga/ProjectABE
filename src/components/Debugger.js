@@ -376,20 +376,36 @@ void loop() {
 		
 		if( !this.saver ){
 		    
-		    this.saver = this.DOM.create("a", {
+		    let dom = new DOM(this.DOM.create("div", {
+			id:"el",
 			className:"FileSaver",
-			textContent:"ZIP",
-			attr:{
-			    download:"ArduboyProject"
-			},
-			onclick:_=>this.saver.style.display = "none"
-		    }, document.body);
+			onclick:_=>this.saver.el.style.display = "none"
+		    }, [
+			["a", {
+			    id: "zip",
+			    textContent:"ZIP",
+			    attr:{
+				download:"ArduboyProject"
+			    }
+			}],
+			["a", {
+			    id: "hex",
+			    textContent:"HEX",
+			    attr:{
+				download:"ArduboyProject.hex"
+			    }
+			}]
+		    ], document.body));
+		    this.saver = dom.index("id");		    
 		    
 		}else
 		    URL.revokeObjectURL( this.saver.href );
 				
-		this.saver.href = URL.createObjectURL( content );
-		this.saver.style.display = "block";
+		this.saver.zip.href = URL.createObjectURL( content );
+		this.saver.hex.href = URL.createObjectURL(
+		    new Blob( [ this.source.getItem(["build.hex"]) ], {type:"text/x-hex"} )
+		);
+		this.saver.el.style.display = "block";
 		
 	    });	
     }
@@ -435,9 +451,27 @@ void loop() {
 		loadImageFile.call( this, file );
 	    if( /.*\.zip$/i.test(file.name) )
 		loadZipFile.call( this, file );
+	    if( /.*\.(cpp|ino|h|hpp)/i.test(file.name) )
+		loadSourceFile.call( this, file );
 	}
 
 	this.changeSourceFile();
+
+	function loadSourceFile( file ){
+	    let fr = new FileReader();
+	    fr.onload = evt => {
+
+		let txt = fr.result, name = file.name;
+
+		if( txt.charCodeAt(0) == 0xFEFF )
+		    txt = txt.substr(1);
+
+		this.addNewFile( name.replace(/\\/g, "/"), txt );
+		
+		
+	    };
+	    fr.readAsText( file );
+	}
 		
 	function loadZipFile( file ){
 	    let fr = new FileReader();
@@ -845,7 +879,7 @@ void loop() {
 
 	    blockCode.replace(/\s+call\s+[.+\-x0-9a-f]+\s+;\s+0x[0-9a-f]+\s+<([^>]+)>/gi, (m, dep)=>{
 		if( !blockSizes[dep] ){
-		    console.error("Dependency not found: " + dep);
+		    // console.error("Dependency not found: " + dep);
 		    return;
 		}
 		let count = block.deps[dep] || 0;
