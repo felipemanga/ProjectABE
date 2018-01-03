@@ -12,11 +12,8 @@ class Env extends IController {
     }
 
     exitSplash(){
-	let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
-	if( match ){
-	    let url = match[1];
-	    if( /^https?%.*/.test(url) )
-		url = decodeURIComponent(url);
+	let url = this.model.getItem("ram.autoRun");
+	if( url ){
 	    this.play( {element:{dataset:{url}}} );
 	}else
             this._show();

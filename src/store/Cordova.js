@@ -1,11 +1,18 @@
 let IStore = require('./IStore.js');
-let fs = require('html5-fs');
+let fs = require('../lib/html5-fs.js');
 
 class CordovaStore extends IStore {
 
     constructor(){
-        fs.init(9000*1000, () => this.fs = fs );
-        super();
+
+	super();
+	
+	if( navigator.webkitPersistentStorage )
+	    navigator.webkitPersistentStorage.requestQuota = null;
+	if( window.webkitStorageInfo )
+	    window.webkitStorageInfo.requestQuota = null;
+        fs.init(1000, () => this.fs = fs );
+		
     }
 
     

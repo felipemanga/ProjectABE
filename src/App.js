@@ -298,8 +298,9 @@ class App {
 	    data.forEach( de => {
 
 		this.store.getTextItem( path + "/" + de, item => {
-
-		    map[de] = JSON.parse(item);
+		    if( typeof item == 'string' )
+			map[de] = JSON.parse(item);
+		    
 		    pending--;
 		    if( !pending )
 			onGetModel( map );

@@ -2,6 +2,8 @@ const {app, BrowserWindow} = require('electron');
 
 let mainWindow;
 
+global.argv = process.argv;
+
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
   if (process.platform != 'darwin')
@@ -13,13 +15,18 @@ app.on('window-all-closed', function() {
 app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width:800,
-    height:600
+      width:375,
+      height:600,
+  /* */
+      webPreferences:{
+	  devTools: false
+      }
+  /* */
     // fullscreen:true
     // frame:false
   });
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   // and load the index.html of the app.
   mainWindow.loadURL('file://' + __dirname + '/index.html');

@@ -15,12 +15,25 @@ setTimeout( function(){
 
     bind(Store).to(IStore).singleton();
 
+    let url;
+    let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
+    if( match ){
+	url = match[1];
+	if( /^https?%.*/.test(url) )
+	    url = decodeURIComponent(url);
+    }
+
     boot({
         main:App,
         element:document.body,
         components,
         entities,
-        modelName: 'default'
+        model:{
+	    ram:{
+		autoRun: url,
+		debuggerEnabled:true
+	    }
+	}
     });
 
 }, 2000);
