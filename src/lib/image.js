@@ -154,6 +154,10 @@ function cabi( data, cleanName, out ){
     let black = i => src[ i*4+3 ] > 128 ? (src[i*4]+src[i*4+1]+src[i*4+2])/3 < 127 : 0;
     compress_rle( black, data.width, Math.ceil(data.height/8)*8, cleanName, "_comp_b" );
     out[cleanName + "_comp_b[]"] = cs.dest;
+
+    let alpha = i => src[ i*4+3 ] > 128 ? 1 : 0;
+    compress_rle( alpha, data.width, Math.ceil(data.height/8)*8, cleanName, "_comp_a" );
+    out[cleanName + "_comp_a[]"] = cs.dest;
 }
 
 function loadImage( img, cleanName, isPNG ){

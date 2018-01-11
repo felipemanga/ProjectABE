@@ -1110,6 +1110,7 @@ void loop() {
 		src[key] = this.source.data[key];
 	}
 
+	/*
 	let mainFile = null;
 	Object.keys(src).forEach( k => {
 	    if( /.*\.ino$/.test(k) ){
@@ -1125,6 +1126,7 @@ void loop() {
 		
 	    }
 	});
+	*/
 
 	this.initQRCGen();
 
