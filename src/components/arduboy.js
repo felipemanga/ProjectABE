@@ -237,7 +237,8 @@ class Arduboy {
 	Object.keys(callbacks).forEach( k =>
 					Object.assign(callbacks[k],{
 					    onHighToLow:[], 
-					    onLowToHigh:[]
+					    onLowToHigh:[],
+					    onChangePWM:[]
 					})
 				      );
 
@@ -251,12 +252,17 @@ class Arduboy {
 		(callbacks[ port ].onLowToHigh[ bit ] = callbacks[ port ][ bit ] || []).push( cb );
             }},
 
+            onChangePWM:{value:function( port, bit, cb ){
+		(callbacks[ port ].onLowToHigh[ bit ] = callbacks[ port ][ bit ] || []).push( cb );
+            }},
+
             0:{value:{ out:{port:"PORTD", bit:2 }, in:{port:"PIND", bit:2} } },
             1:{value:{ out:{port:"PORTD", bit:3 }, in:{port:"PIND", bit:3} } },
             2:{value:{ out:{port:"PORTD", bit:1 }, in:{port:"PIND", bit:1} } },
             3:{value:{ out:{port:"PORTD", bit:0 }, in:{port:"PIND", bit:0} } },
             4:{value:{ out:{port:"PORTD", bit:4 }, in:{port:"PIND", bit:4} } },
             5:{value:{ out:{port:"PORTC", bit:6 }, in:{port:"PINC", bit:6} } },
+	    13:{value:{out:{port:"PORTC", bit:7 }, in:{port:"PINC", bit:7} } },	    
             6:{value:{ out:{port:"PORTD", bit:7 }, in:{port:"PIND", bit:7} } },
             7:{value:{ out:{port:"PORTE", bit:6 }, in:{port:"PINE", bit:6} } },
             8:{value:{ out:{port:"PORTB", bit:4 }, in:{port:"PINB", bit:4} } },
@@ -422,7 +428,8 @@ class Arduboy {
 	    for( let k in ctrl ){
 
 		let v = ctrl[k];
-		if( !v || !v.connect ) continue;
+		if( !v || !v.connect || typeof v.connect != "string" )
+		    continue;
 
 		v = ctrl[k] = Object.assign({}, v );
 
@@ -449,6 +456,8 @@ class Arduboy {
 		if( v.onHighToLow )
 		    pins.onHighToLow( tobj.out.port, tobj.out.bit, v.onHighToLow.bind( ctrl ) );
 
+		if( v.onChangePWM )
+		    pins.onChangePWM( tobj.out.port, tobj.out.bit, v.onChangePWM.bind( ctrl ) );
 
 		let setter = (function( tobj, nv ){
 		    
