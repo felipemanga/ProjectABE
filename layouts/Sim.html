@@ -58,7 +58,7 @@
       </div>
       <div class="horizontalContainer tabs">
 	<ul id="flashContainer" data-src="ram.blocksizes">
-	  <li title="{{key}}: {{value.bytes}}b" style="width:{{value.size}}; color:{{value.color}}; background:{{value.anticolor}}">{{key}}</li>
+	  <li title="{{value.name}}: {{value.bytes}}b" style="width:{{value.size}}; color:{{value.color}}; background:{{value.anticolor}}">{{value.name}}</li>
 	</ul>
       </div>
       <div id="ace" change-call="commit"></div>
@@ -122,6 +122,7 @@
       <img src="Arduboy ({{app.color}}).png" />
       <canvas data-inject="SCREEN" id="screen" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
       </canvas>
+      <btn data-inject="SOUND" pin-ch1="cpu.5" pin-ch2="cpu.13"></btn>
       <led data-inject="LED" style="background-color: #F00" pin-on="cpu.10"></led>
       <led data-inject="LED" style="background-color: #0F0" pin-on="cpu.11"></led>
       <led data-inject="LED" style="background-color: #00F" pin-on="cpu.9"></led>
@@ -136,7 +137,7 @@
       <btn click-call="powerOff" id="PWR"></btn>
       <btn click-toggle="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
       <btn click-toggle="#simContainer@class=arduboy;#simContainer img@src=Arduboy (0).png" click-call="arduboyMode" id="ABM"></btn>
-      <btn click-toggle="#ideContainer@hidden=false" id="DBG"></btn>
+      <btn click-toggle="#ideContainer@hidden=false" undefined-hide="ram.debuggerEnabled" id="DBG"></btn>
       <btn click-call="reset" id="RESET"></btn>
       
     </div>
