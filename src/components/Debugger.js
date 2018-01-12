@@ -32,7 +32,7 @@ class Debugger {
 	this.ramIndex = {};
 	
 	for( let i=0; i<32; ++i )
-	    this.ramComments[i] = "@ R";
+	    this.ramComments[i] = "@ R" + i;
 
 	[
 	    "Reserved", "Reserved", "Reserved", "PINB", "DDRB", "PORTB",
@@ -1274,7 +1274,13 @@ void loop() {
 	let color = [0,0,0];
 	if( core.readBreakpoints[ this.ttAddr ] ) color[0] = 255;
 	if( core.writeBreakpoints[ this.ttAddr ] ) color[1] = 255;
-	if( this.ramComments[ this.ttAddr ] ) color[2] = 255;
+	if( this.ramComments[ this.ttAddr ] )
+	    color[2] = parseInt(
+		this.ramComments[ this.ttAddr ]
+		    .toLowerCase()
+		    .replace(/\+.*|[^a-z0-9]+/g, "")
+		, 36)*16807%127+127;
+	
 	color = color.join(",");
 	if( color == "0,0,0" ) color = '';
 	else color = "rgba(" + color + ",0.5)";
