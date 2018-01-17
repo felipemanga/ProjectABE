@@ -45,3 +45,69 @@ Some games look/play better on a vertical screen, like [1942](https://felipemang
 
 If you want to debug the game you're currently playing, click on the **USB port** (bottom-center, online version only, for now).
 
+
+# IDE / Debugger
+
+ProjectABE includes an IDE (based on the awesome [Ace](https://ace.c9.io) editor). It allows you to write, build and debug Arduboy games in your browser, without installing anything on your computer. Since it's a work-in-progress, the edges are still rough, but it's already possible to make entire games in it (see [Hello, Commander](https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander)).
+
+IDE Keyboard shortcuts:
+- Ctrl-Enter: Build and run
+- Ctrl-P: Jump to file
+- F6: Reset
+- F7: Step-In
+- F8: Resume
+
+You can drag-and-drop code (or a zip file containing code) into the editor. 
+
+You can also drag-and-drop images to have them converted into source code, ready to be used with the Arduboy2 library, with an ascii-art preview (dashes are transparent, spaces are black, and sharps white):
+
+```
+/*
+-------    -----------
+------   ## ----------
+-----   ##   ---------
+-----   #    ---------
+-----        ---------
+------       ---------
+--------    ----------
+-------   ------------
+------     -----------
+------      ----------
+------       ---------
+------       ---------
+------       ---------
+------      ----------
+-----        ---------
+-----         --------
+-----          -------
+-----       -  -------
+-----#       -##------
+-----##    #  -##-----
+---- ##    #  -###----
+----##    ##  --##----
+--- ##    ##   --#----
+--  ##    ###  -------
+--  #     ###  -------
+---       ###  -------
+-----     ####  ------
+------#   -###  ------
+------###--####-------
+-----####---###-------
+----####----###-------
+----###-----###-------
+---####-----###-------
+---###-------###------
+--###--------###------
+--##----------##------
+--##-----------##-----
+-##------------##-----
+-##-------------##----
+###-------------##----
+####------------###---
+#-##------------####--
+#--###----------#-####
+*/
+
+```
+
+Simply ignore the arrays you do not need and GCC will not add them to the final build.
