@@ -57,7 +57,8 @@ IDE Keyboard shortcuts:
 - F7: Step-In
 - F8: Resume
 
-You can drag-and-drop code (or a zip file containing code) into the editor. 
+If you have an existing project, you can drag-and-drop code (or a zip file containing code) into the editor. If your project is on github or bitbucket, the IDE can load your code from there by pointing ProjectABE to your repository like this:
+https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander
 
 You can also drag-and-drop images to have them converted into source code, ready to be used with the Arduboy2 library, with an ascii-art preview (dashes are transparent, spaces are black, and sharps white):
 
