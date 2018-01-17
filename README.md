@@ -60,7 +60,7 @@ IDE Keyboard shortcuts:
 You can drag-and-drop code (or a zip file containing code) into the editor. 
 
 You can also drag-and-drop images to have them converted into source code, ready to be used with the Arduboy2 library, with an ascii-art preview (dashes are transparent, spaces are black, and sharps white):
-
+<p style="background-color: #123; color: #ABC">
 ```
 /*
 -------    -----------
@@ -109,5 +109,6 @@ You can also drag-and-drop images to have them converted into source code, ready
 */
 
 ```
+</span>
 
 Simply ignore the arrays you do not need and GCC will not add them to the final build.
