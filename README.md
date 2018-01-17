@@ -60,55 +60,7 @@ IDE Keyboard shortcuts:
 You can drag-and-drop code (or a zip file containing code) into the editor. 
 
 You can also drag-and-drop images to have them converted into source code, ready to be used with the Arduboy2 library, with an ascii-art preview (dashes are transparent, spaces are black, and sharps white):
-<span style="background-color: #123; color: #ABC">
-```cpp
-/*
--------    -----------
-------   ## ----------
------   ##   ---------
------   #    ---------
------        ---------
-------       ---------
---------    ----------
--------   ------------
-------     -----------
-------      ----------
-------       ---------
-------       ---------
-------       ---------
-------      ----------
------        ---------
------         --------
------          -------
------       -  -------
------#       -##------
------##    #  -##-----
----- ##    #  -###----
-----##    ##  --##----
---- ##    ##   --#----
---  ##    ###  -------
---  #     ###  -------
----       ###  -------
------     ####  ------
-------#   -###  ------
-------###--####-------
------####---###-------
-----####----###-------
-----###-----###-------
----####-----###-------
----###-------###------
---###--------###------
---##----------##------
---##-----------##-----
--##------------##-----
--##-------------##----
-###-------------##----
-####------------###---
-#-##------------####--
-#--###----------#-####
-*/
 
-```
-</span>
+<img src="https://gist.githubusercontent.com/felipemanga/9eaa3e96f4776aa36a0420c29d745b5d/raw/c27b632c6bcdc4cde50ab68d2671158068da54af/Walk.svg">
 
 Simply ignore the arrays you do not need and GCC will not add them to the final build.
