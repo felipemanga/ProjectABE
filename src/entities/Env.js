@@ -69,8 +69,9 @@ class Env extends IController {
 	let url = opt.element.dataset.url;
 	let srcurl = opt.element.dataset.source;
 
-	let title = opt.element.querySelector('.gameName');
-	document.title = title.dataset.name;
+	let title = opt.element.querySelector && opt.element.querySelector('.gameName');
+	if( title )
+	    document.title = title.dataset.name;
 
 	if( url == 'new' ) url = 'null';
 	

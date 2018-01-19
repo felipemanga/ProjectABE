@@ -385,7 +385,7 @@ void loop() {
 			    id: "zip",
 			    textContent:"ZIP",
 			    attr:{
-				download:"ArduboyProject"
+				download:"ArduboyProject.zip"
 			    }
 			}],
 			["a", {

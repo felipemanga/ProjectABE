@@ -78,7 +78,7 @@ class SCREEN {
 				this.saver = this.DOM.create("a", {
 				    className:"FileSaver",
 				    textContent:"GIF",
-				    attr:{download:"ArduboyRecording"},
+				    attr:{download:"ArduboyRecording.gif"},
 				    onclick:_=>this.saver.style.display = "none"
 				}, document.body);
 				
