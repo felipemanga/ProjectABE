@@ -280,7 +280,7 @@ void loop() {
 			(core.memory[ addr+1 ] << 8);
 		    if( value&0x8000 ){
 			text += "uint16: " + (value>>>0) + " (0x" + (value>>>0).toString(16) + ")\n";
-			text += "int16: " + (value) + " (0x" + (value).toString(16) + ")\n";
+			text += "int16: " + (0xFFFF0000|value) + " (0x" + (value).toString(16) + ")\n";
 		    }else
 			text += "(u)int16: " + (value) + " (0x" + (value).toString(16) + ")\n";
 
@@ -298,7 +298,7 @@ void loop() {
 			core.memory[ addr ];
 		    if( value & 0x80 ){
 			text += "uint8: " + (value>>>0) + " (0x" + (value>>>0).toString(16) + ")\n";
-			text += "int8: " + (value) + " (0x" + (value).toString(16) + ")\n";
+			text += "int8: " + (0xFFFFFF00|value) + " (0x" + (value).toString(16) + ")\n";
 		    }else
 			text += "(u)int8: " + (value) + " (0x" + (value).toString(16) + ")\n";
 		}
