@@ -132,6 +132,9 @@ class Arduboy {
 	    readBreakpoints:oldCoreIF.readBreakpoints,
 	    writeBreakpoints:oldCoreIF.writeBreakpoints
 	});
+	
+	this.state = PAUSED;
+	
     }
 
     resume(){
