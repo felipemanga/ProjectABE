@@ -438,12 +438,12 @@ void loop() {
     }
 
     onDropFile( dom, event ){
-	event.stopPropagation();
-	event.preventDefault();
-
-
+	
 	var dt = event.dataTransfer;
 	var files = dt.files;
+
+	event.stopPropagation();
+	event.preventDefault();
 
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];

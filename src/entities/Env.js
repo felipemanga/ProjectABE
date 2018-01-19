@@ -24,14 +24,14 @@ class Env extends IController {
     }
 
     onDropFile( dom, event ){
+	var dt = event.dataTransfer;
+	var files = dt.files;
+
 	event.stopPropagation();
 	event.preventDefault();
 
 	this.model.removeItem("app.AT32u4");
 	this.model.removeItem("app.srcpath");
-
-	var dt = event.dataTransfer;
-	var files = dt.files;
 
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];
