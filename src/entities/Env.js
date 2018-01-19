@@ -69,6 +69,9 @@ class Env extends IController {
 	let url = opt.element.dataset.url;
 	let srcurl = opt.element.dataset.source;
 
+	let title = opt.element.querySelector('.gameName');
+	document.title = title.dataset.name;
+
 	if( url == 'new' ) url = 'null';
 	
 	this.model.removeItem("app.AT32u4");
