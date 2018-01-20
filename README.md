@@ -28,7 +28,7 @@ https://felipemanga.github.io/ProjectABE/?url=https://site/file.hex
 Offline is similar, if you have the executable in your PATH:
 ProjectABE /path/to/file.hex
 
-If you're using Chrome (not Firefox), you can also drag-and-drop a hex/arduboy file into the game list to play it.
+You can also drag-and-drop a hex/arduboy file into the game list to play it.
 
 
 # Emulator interface

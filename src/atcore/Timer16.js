@@ -138,6 +138,7 @@ module.exports = function(addrs){
 		let WGM = (this.WGM10 << 3) | (this.WGM11 << 2) | (this.WGM12 << 1) | this.WGM13;
 		let CS  = (this.CS10) | (this.CS11 << 1) | (this.CS12 << 2);
 
+		if( WGM != this.oldWGM )
 		switch( WGM ){
 		case 0:
 		    console.log("0- Timer16=Normal TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
@@ -188,6 +189,8 @@ module.exports = function(addrs){
 		    console.log("15- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 		    break;
 		}
+
+		this.oldWGM = WGM;		
 
 		switch( CS ){
 		case 0: this.prescale = 0; break;

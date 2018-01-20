@@ -145,20 +145,20 @@ class SCREEN {
     
     
     tick(){
-		if( !this.dirty )
-			return;
+	if( !this.dirty || (this.activeBuffer == this.fb && !this.vblank) )
+	    return;
 
-		this.ctx.putImageData( this.activeBuffer, 0, 0 );
-		this.dirty = false;
-		
-		let now = performance.now();
-		let delay = (now - this.lastFrameTime);
-		if( this.isRecording && this.recordingSkip-- <= 0 ){
-			this.recordingSkip = 2;
-			this.lastFrameTime = now;
-			this.gif.addFrame( this.ctx, { copy:true, delay:45 } );
-		}
-	    
+	this.ctx.putImageData( this.activeBuffer, 0, 0 );
+	this.dirty = false;
+	
+	let now = performance.now();
+	let delay = (now - this.lastFrameTime);
+	if( this.isRecording && this.recordingSkip-- <= 0 ){
+	    this.recordingSkip = 2;
+	    this.lastFrameTime = now;
+	    this.gif.addFrame( this.ctx, { copy:true, delay:45 } );
+	}
+	
     }
 
     createBuffer(){
@@ -206,19 +206,22 @@ class SCREEN {
 	
 	for( let i=0; i<8; ++i, iOffset += 128*4 ){
 	    let offset = iOffset; // ((y+i)*128 + x) * 4;
-	    let bit = ((data >>> i) & 1) * 0xE0;
+	    let bit = ((data >>> i) & 1) * 0xFF;
 	    fbdata[ offset++ ] = bit;
 	    fbdata[ offset++ ] = bit;
 	    fbdata[ offset++ ] = bit;
 	    fbdata[ offset++ ] = bit;
 	}
 
+	this.vblank = false;
 	this.col++;
 	if( this.col > cd ){
 	    this.col = 0;
 	    this.page++;
-	    if( this.page > pd )
+	    if( this.page > pd ){
+		this.vblank = true;
 		this.page = 0;
+	    }
 	}
 
 	this.dirty = true;
@@ -282,6 +285,7 @@ class SCREEN {
     // Display Off
     cmdAE(){
 	this.activeBuffer = this.fbOFF;
+	this.dirty = true;
     }
 
     // Set Display Clock Divisor v = 0xF0
@@ -355,7 +359,9 @@ class SCREEN {
 
   // Set Contrast v = 0xCF
     cmd81( v ){
-	console.log("set contrast " + v.toString(16) );
+	// this.contrast = v;
+	this.canvas.style.opacity = v / 255;
+	// console.log("set contrast " + v.toString(16) );
     }
 
   // Set Precharge = 0xF1
@@ -371,6 +377,7 @@ class SCREEN {
   // Entire Display ON
     cmdA4( v ){
 	this.activeBuffer = v ? this.fbON : this.fb;
+	this.dirty = true;
     }
     
   // Set normal/inverse display

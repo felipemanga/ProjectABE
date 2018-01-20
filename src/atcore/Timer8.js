@@ -85,31 +85,33 @@ module.exports = function(addrs){
 
 		var MAX = 0xFF, BOTTOM = 0, WGM00 = this.WGM00, WGM01 = this.WGM01, WGM02 = this.WGM02;
 
-		if(       WGM02 == 0 && WGM01 == 0 && WGM00 == 0 ){
-                    this.mode = 0;
-                    console.log("Timer Mode: Normal (" + this.mode + ") 1");
-		}else if( WGM02 == 0 && WGM01 == 0 && WGM00 == 1 ){
-                    this.mode = 1;
-                    console.log("Timer Mode: PWM, phase correct (" + this.mode + ") 2");
-		}else if( WGM02 == 0 && WGM01 == 1 && WGM00 == 0 ){
-                    this.mode = 2;
-                    console.log("Timer Mode: CTC (" + this.mode + ") 3");
-		}else if( WGM02 == 0 && WGM01 == 1 && WGM00 == 1 ){
-                    this.mode = 3;
-                    console.log("Timer Mode: Fast PWM (" + this.mode + ") 4");
-		}else if( WGM02 == 1 && WGM01 == 0 && WGM00 == 0 ){
-                    this.mode = 4;
-                    console.log("Timer Mode: Reserved (" + this.mode + ") 5");
-		}else if( WGM02 == 1 && WGM01 == 0 && WGM00 == 1 ){
-                    this.mode = 5;
-                    console.log("Timer Mode: PWM, phase correct (" + this.mode + ") 6");
-		}else if( WGM02 == 1 && WGM01 == 1 && WGM00 == 0 ){
-                    this.mode = 6;
-                    console.log("Timer Mode: Reserved (" + this.mode + ") 7");
-		}else if( WGM02 == 1 && WGM01 == 1 && WGM00 == 1 ){
-                    this.mode = 7;
-                    console.log("Timer Mode: Fast PWM (" + this.mode + ") 8");
+		var WGM = (WGM02<<2) | (WGM02<<1) | (WGM00);
+
+		var msg = null;
+
+		switch( WGM ){
+		case 0:
+                    msg = "Timer Mode: Normal";
+		case 1:
+                    msg = "Timer Mode: PWM, phase correct";
+		case 2:
+                    msg = "Timer Mode: CTC";
+		case 3:
+                    msg = "Timer Mode: Fast PWM";
+		case 4:
+                    msg = "Timer Mode: Reserved";
+		case 5:
+                    msg = "Timer Mode: PWM, phase correct";
+		case 6:
+                    msg = "Timer Mode: Reserved";
+		case 7:
+                    msg = "Timer Mode: Fast PWM";
 		}
+		
+		if( this.mode !== WGM )
+		    console.log(`${msg} (${WGM})`);
+		
+		this.mode = WGM;
 
 		switch( this.CS ){
 		case 0: this.prescale = 0; break;
@@ -162,6 +164,8 @@ module.exports = function(addrs){
 
 		var ofc = (scaled / 0xFF) | 0;
 		this.TOV0 += ofc;
+
+		return cnt;
 
             }
 

@@ -79,6 +79,8 @@ class App {
         this.openModel( "app", done.bind(this) );
         setTimeout( done.bind(this), 1000 );
 
+	window.addEventListener("resize", _ => this.pool.call("onResizeWindow"));
+
         function done(){
             pending--;
             if( !pending )

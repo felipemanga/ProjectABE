@@ -26,6 +26,7 @@ class Arduboy {
 	this.width = 0;
 	this.height = 0;
 	this.dead = false;
+	this.skipResize = 0;
 
 	DOM.element.addEventListener( "addperiferal", evt => this.addPeriferal( evt.target.controller ) );
 
@@ -519,7 +520,15 @@ class Arduboy {
 	
     }
 
+    onResizeWindow(){
+	this.skipResize = 0;
+    }
+
     resize(){
+	if( --this.skipResize > 0 )
+	    return;
+
+	this.skipResize = 60;
 	
 	let el = this.DOM.element;
 	el.parentElement.style.maxHeight = "";
@@ -539,8 +548,6 @@ class Arduboy {
 	let ratio = 91/57;
 	if( mode != "microcard" )
 	    ratio = 626 / 1004;
-
-
 
 	if( this.height * ratio >= this.width ){
 	    
