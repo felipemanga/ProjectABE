@@ -265,6 +265,7 @@ class Arduboy {
             2:{value:{ out:{port:"PORTD", bit:1 }, in:{port:"PIND", bit:1} } },
             3:{value:{ out:{port:"PORTD", bit:0 }, in:{port:"PIND", bit:0} } },
             4:{value:{ out:{port:"PORTD", bit:4 }, in:{port:"PIND", bit:4} } },
+            30:{value:{ out:{port:"PORTD", bit:5 }, in:{port:"PIND", bit:5} } },
             5:{value:{ out:{port:"PORTC", bit:6 }, in:{port:"PINC", bit:6} } },
 	    13:{value:{out:{port:"PORTC", bit:7 }, in:{port:"PINC", bit:7} } },	    
             6:{value:{ out:{port:"PORTD", bit:7 }, in:{port:"PIND", bit:7} } },

@@ -319,6 +319,18 @@ canvas:fullscreen{
   mix-blend-mode: screen;
 }
 
+#simContainer led.tx {
+    top: 85%;
+    left: 22%;
+    width: 4%;
+}
+
+#simContainer led.rx {
+    top: 85%;
+    left: 19%;
+    width: 4%;
+}
+
 #simContainer btn {
     position: absolute;
     cursor: pointer;
