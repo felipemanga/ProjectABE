@@ -36,7 +36,7 @@ module.exports = function(addrs){
 
 		this.updateState();
 
-		// console.log(`TCCR0B:\n  FOC0A:${this.FOC0A}\n  FOC0B:${this.FOC0B}\n  WGM02:${this.WGM02}`);
+		console.log(`TCCR0B:\n  FOC0A:${this.FOC0A}\n  FOC0B:${this.FOC0B}\n  WGM02:${this.WGM02} CS:${this.CS}\n`);
 
 		// console.log( "PC=" + (this.core.pc<<1).toString(16) + " WRITE TCCR0B: #" + value.toString(16) + " : " + value );
 
@@ -91,25 +91,25 @@ module.exports = function(addrs){
 
 		switch( WGM ){
 		case 0:
-                    msg = "Timer Mode: Normal";
+                    msg = "Timer Mode: Normal"; break;
 		case 1:
-                    msg = "Timer Mode: PWM, phase correct";
+                    msg = "Timer Mode: PWM, phase correct"; break;
 		case 2:
-                    msg = "Timer Mode: CTC";
+                    msg = "Timer Mode: CTC"; break;
 		case 3:
-                    msg = "Timer Mode: Fast PWM";
+                    msg = "Timer Mode: Fast PWM"; break;
 		case 4:
-                    msg = "Timer Mode: Reserved";
+                    msg = "Timer Mode: Reserved"; break;
 		case 5:
-                    msg = "Timer Mode: PWM, phase correct";
+                    msg = "Timer Mode: PWM, phase correct"; break;
 		case 6:
-                    msg = "Timer Mode: Reserved";
+                    msg = "Timer Mode: Reserved"; break;
 		case 7:
-                    msg = "Timer Mode: Fast PWM";
+                    msg = "Timer Mode: Fast PWM"; break;
 		}
 		
 		if( this.mode !== WGM )
-		    console.log(`${msg} (${WGM})`);
+		    console.log(`${msg} (${WGM}) CS=${this.CS}`);
 		
 		this.mode = WGM;
 
@@ -162,8 +162,7 @@ module.exports = function(addrs){
 		let scaled = interval*this.prescale;
 		this.tick += scaled;
 
-		var ofc = (scaled / 0xFF) | 0;
-		this.TOV0 += ofc;
+		this.TOV0 += (cnt / 0xFF) | 0;
 
 		return cnt;
 

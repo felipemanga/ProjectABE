@@ -385,10 +385,10 @@ t1 === undefined ? t2 : t1
 		    else if( !this.getBlock() )
 			break;
 		}else{
-		    this.tick += 1000;
+		    this.tick += 100;
 		}
 		
-		if( this.tick >= this.endTick || this.tick - lastUpdate > 100 ){
+		if( this.tick >= this.endTick || this.tick - lastUpdate > 1000 ){
 		    lastUpdate = this.tick;
 		    this.updatePeriferals();
 		    while( this.history.length > 100 ) this.history.shift();
@@ -492,11 +492,8 @@ t1 === undefined ? t2 : t1
 		chunk += '\t\tthis.breakpointHit = true;\n';
 		chunk += '\t\tbreak;\n\t}\n';
 	    }
-	    doTickCheck--;
-	    if( doTickCheck <= 0 || dbg ){
-		chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
-		doTickCheck = 1;
-	    }else chunk += `\tthis.tick += ${inst.cycles};\n`;
+
+	    chunk += `\tif( (this.tick += ${inst.cycles}) >= this.endTick ) break;\n`;
 
 	    if( dbg ){
 		chunk += '\n}else{\n';

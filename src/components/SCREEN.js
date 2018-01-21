@@ -381,10 +381,16 @@ class SCREEN {
     }
     
   // Set normal/inverse display
-    cmdA6( v ){
-	console.log( "INVERSE: " + v.toString(16) );
+    cmdA6(){
+	this.canvas.style.filter = "";
+	this.canvas.style.background = "";
     }
-    
+
+    cmdA7(){
+	this.canvas.style.filter = "invert(100%)";
+	this.canvas.style.background = "black";
+    }
+
   // Display On
     cmdAF(){
 	this.activeBuffer = this.fb;
