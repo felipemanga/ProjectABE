@@ -182,6 +182,10 @@ nav button {
     bottom: 0;
 }
 
+.FileSaver A {
+    margin: 10px;
+}
+
 @keyframes blinker {  
   50% { opacity: 0; }
 }
@@ -313,6 +317,18 @@ canvas:fullscreen{
   top: 19.3%;
   left: 9%;
   mix-blend-mode: screen;
+}
+
+#simContainer led.tx {
+    top: 85%;
+    left: 22%;
+    width: 4%;
+}
+
+#simContainer led.rx {
+    top: 85%;
+    left: 19%;
+    width: 4%;
 }
 
 #simContainer btn {
@@ -756,8 +772,11 @@ canvas:fullscreen{
 #flashContainer li {
     display: inline-block;
     padding: 0;
-    height: 25px;
+    height: 100%;
     overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.7em;
+    line-height: 30px;
 }
 
 #addNewFile {
