@@ -9,6 +9,8 @@ import { Model, boot } from './lib/mvc.js';
 import * as entities from './entities/*.js';
 import * as components from './components/*.js';
 
+import Flasher from './Flasher.js';
+
 const electron = window.require('electron');
 const fs = window.require('fs');
 
@@ -25,7 +27,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 
     let url, app;
     
-    if( argv[1] ){
+    if( argv[1] && !/.*\.js$/.test(argv[1]) ){
 	let hnd = 0;
 	let watcher;
 
@@ -70,5 +72,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 	    }
 	}
     });
+
+    app.pool.add(new Flasher( app ));
 
 } );
