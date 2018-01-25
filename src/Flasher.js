@@ -30,15 +30,18 @@ class Flasher {
 	    board: 'arduboy',
 	    debug: function( d ){
 		document.title = d; // console.log(d);
+		reset();
 	    }
 	});
 	
 	avrgirl.flash( buffer, function (error) {
-	    clearTimeout( hndl );
+	    clearTimeout( hndl ); hndl = null;
+	    cleanup( error );
+	    
 	    if (error) 
 		alert(error);
 	    else
-		alert('done.');
+		document.title = "Done!";
 	});
 
 	reset();
@@ -48,10 +51,26 @@ class Flasher {
 	    if( hndl )
 		clearTimeout(hndl);
 	    
-	    setTimeout( _ => {
+	    hndl = setTimeout( _ => {
 		document.title = "Flasher timed out";
-		avrgirl = null;
+		cleanup( true );
 	    }, 10000);
+	    
+	}
+
+	function cleanup( error ){
+	    
+	    if( error ){
+		try{
+		    avrgirl.connection.serialPort.close();
+		}catch(ex){}
+	    }
+	    
+	    avrgirl = null;
+	    
+	    if( hndl )
+		clearTimeout(hndl);
+	    hndl = null;
 	    
 	}
     }
