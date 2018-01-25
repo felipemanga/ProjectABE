@@ -29,6 +29,7 @@ setTimeout( function(){
         components,
         entities,
         model:{
+	    proxy:"https://cors-anywhere.herokuapp.com/",
 	    ram:{
 		autoRun: url,
 		debuggerEnabled:true

@@ -15,12 +15,90 @@ class Env extends IController {
 	let url = this.model.getItem("ram.autoRun");
 	if( url ){
 	    this.play( {element:{dataset:{url}}} );
-	}else
+	}else{
+	    let repoName = this.model.getItem("ram.currentRepo", "");
+	    let list = this.model.getItem("app.repoList");
+	    if( !repoName )
+		repoName = Object.keys(list)[0];
+	    
+	    this.changeRepo( {element:{dataset:{
+		key:repoName,
+		url:list[repoName]
+		}}} );
             this._show();
+	}
     }
 
     exitSim(){
 	this._show();
+    }
+
+    changeRepo( dom, event ){
+	let repoName = dom.element.dataset.key;
+	this.model.setItem("ram.currentRepo", repoName);
+
+	let repoURL = dom.element.dataset.url;
+
+	this.activateRepo( repoName );
+
+	let proxy = this.model.getItem("proxy", "");
+	repoURL = (/^https?.*/.test(repoURL) ? proxy : "") + repoURL;
+
+	let age = (new Date()).valueOf() - this.model.getItem(["app", "repodata", repoName, "timestamp"], 0);
+	
+	if( age > 5 * 60 * 60 * 1000 )	
+	    fetch( repoURL )
+	    .then( rsp => rsp.json() )
+	    .then( json => this._updateRepo( repoName, json ) )
+	    .catch( err => console.warn(err) ) // might be offline, be subtle
+    }
+
+    activateRepo( repoName ){
+	let clone = JSON.parse(
+	    JSON.stringify(
+		this.model.getModel(["app", "repodata", repoName], true).data
+	    )
+	);
+	this.model.setItem("ram.repo", clone );	
+    }
+
+    _updateRepo( repoName, json ){
+	if( !json || typeof json != "object" || !Array.isArray(json.items) ){
+	    console.log("Repo JSON: ", json);
+	    return;
+	}
+
+	json.timestamp = (new Date()).valueOf();
+	
+	json.items.forEach( item => {
+	    
+	    item.author = item.author || "<<unknown>>";
+	    
+	    if(
+		item.banner && (
+		    !item.screenshots ||
+			!item.screenshots[0] ||
+			!item.screenshots[0].filename
+		))
+		item.screenshots = [{filename:item.banner}];
+	    
+	    if( item.arduboy && (
+		!item.binaries ||
+		    !item.binaries[0] ||
+		    !item.binaries[0].filename
+	    ))
+		item.binaries = [{filename:item.arduboy}]
+
+	    if( !item.sourceUrl && item.url )
+		item.sourceUrl = item.url;
+	    
+	});
+
+	this.model.setItem(["app", "repodata", repoName], json);
+
+	if( repoName == this.model.getItem("ram.currentRepo") )
+	    this.activateRepo( repoName );
+	
     }
 
     onDropFile( dom, event ){

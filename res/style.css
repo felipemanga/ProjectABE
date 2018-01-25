@@ -165,7 +165,7 @@ nav button {
     font-size: inherit;
 }
 
-#envContainer .newProject, .FileSaver, .RecordingIndicator {
+.FileSaver, .RecordingIndicator {
     text-decoration: none;
     color: white;
     background: #567;
@@ -832,3 +832,56 @@ canvas:fullscreen{
     content: attr(data-text);
 }
 
+
+#content h2, #content
+ h3 {
+    display: inline;
+}
+
+#content h3 {
+    margin-left: 10px;
+    font-style: italic;
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#leftBar {
+    min-width: 230px;
+    background-color: #234;
+}
+
+#content {
+    background: #123;
+    height: 100%;
+    overflow: auto;
+    flex-grow: 1;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#envContainer>div {
+    display: flex;
+    flex-direction: column;
+}
+
+.reponav li {
+    list-style: none;
+    margin: 10px;
+    cursor: pointer;
+}
+
+.newProject {
+    text-decoration: none;
+    color: inherit;
+    border: solid 1px #ABC;
+    padding: 3px;
+    border-radius: 4px;
+    background: #567;
+    margin-left: 22%;
+}

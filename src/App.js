@@ -321,82 +321,19 @@ class App {
 
     appModelInit( model, cb ){
 
-	let repoURL = [
-	    "http://www.crait.net/arduboy/repo2.json",
-	    "http://arduboy.ried.cl/repo.json",
-	    "repo.json"
-	];
+	let repoURLs = model.getModel("repoList");
 
-	if( navigator.userAgent.indexOf("Electron") == -1 && typeof cordova == "undefined" ){
-	    // model.setItem("proxy", "https://crossorigin.me/");
-	    model.setItem("proxy", "https://cors-anywhere.herokuapp.com/");
-	    repoURL = repoURL.map( url => (/^https?.*/.test(url) ? model.getItem("proxy") : "") + url );
-	}else{
-	    model.setItem("proxy", "");
-	}
+	model.setItem("proxy", this.root.getItem("proxy", ""));
 
-	let items = [];
-	let pending = repoURL.length;
-
-	repoURL.forEach( url =>
-			 fetch( url )
-			 .then( rsp => rsp.json() )
-			 .then( add )
-			 .catch( err => {
-			     console.log( err );
-			     done();
-			 })	
-		       );
-
-	function add( json ){
+	if( !repoURLs )
+	    model.setItem("repoList", {
+		Eried:"http://arduboy.ried.cl/repo.json",
+		Crait:"http://www.crait.net/arduboy/repo2.json",
+		TeamARG:"repo.json"
+	    });
 	
-	    if( json && json.items ){
-	    
-		json.items.forEach( item => {
-		    
-		    item.author = item.author || "<<unknown>>";
-		    
-		    if(
-			item.banner && (
-			    !item.screenshots ||
-				!item.screenshots[0] ||
-				!item.screenshots[0].filename
-			))
-			item.screenshots = [{filename:item.banner}];
-		    
-		    if( item.arduboy && (
-			!item.binaries ||
-			    !item.binaries[0] ||
-			    !item.binaries[0].filename
-		    ))
-			item.binaries = [{filename:item.arduboy}]
-
-		    if( !item.sourceUrl && item.url )
-			item.sourceUrl = item.url;
-		    
-		    items.push(item);
-		});
-	    }
-	    
-	    done();
-	    
-	}
-
-	function done(){
-	    pending--;
-
-	    if( !pending ){
-		items = items.sort((a, b) => {
-		    if( a.title > b.title ) return 1;
-		    if( a.title < b.title ) return -1;
-		    return 0;
-		});
-		model.removeItem("repo");
-		model.setItem("repo", items);
-		model.setItem("expires", (new Date()).getTime() + 60 * 60 * 1000 );
-		cb();
-	    }
-	}
+	cb();
+	
     }
 
     commit(){

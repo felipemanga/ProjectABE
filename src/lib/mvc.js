@@ -132,7 +132,7 @@ class Model {
             }
 
 	    var klength = k.length;
-	    var child = children[prop].setItem( k, v, doRaise );
+	    var child = children[prop].setItem( k, v, klength != 1 );
 
 	    if( klength == 1)
 		this.raise( prop, doRaise );
@@ -144,15 +144,26 @@ class Model {
         if( children[prop] ){
 
             if( children[prop].data !== v && v && typeof v == "object" ){
-		for( var ck in children[prop].data ){
-		    if( !(ck in v) )
-			children[prop].removeItem([ck], doRaise);
-		    else
-			children[prop].setItem([ck], v[ck], doRaise);
-		}
-		for( var ck in v ){
-		    if( !(ck in children[prop].data) )
-			children[prop].setItem([ck], v[ck], doRaise);
+		if( Array.isArray(children[prop].data) && Array.isArray(v) ){
+		    let arr = children[prop].data;
+		    while( arr.length > v.length )
+			children[prop].removeItem( [arr.length-1], null, doRaise );
+
+		    for( let i=0; i<v.length; ++i ){
+			if( v[i] !== arr[i] )
+			    children[prop].setItem( [i], v[i], doRaise );
+		    }
+		}else{
+		    for( var ck in children[prop].data ){
+			if( !(ck in v) )
+			    children[prop].removeItem([ck], null, doRaise);
+			else
+			    children[prop].setItem([ck], v[ck], doRaise);
+		    }
+		    for( var ck in v ){
+			if( !(ck in children[prop].data) )
+			    children[prop].setItem([ck], v[ck], doRaise);
+		    }
 		}
                 return this;
 	    }
@@ -180,8 +191,8 @@ class Model {
                 child = v.__model__;
             }
 
-            if( !revChildren[ child.id ] ) revChildren[ child.id ] = [ prop ];
-            else revChildren[ child.id ].push( prop );
+            if( !revChildren[ child.id ] ) revChildren[ child.id ] = [ ""+prop ];
+            else revChildren[ child.id ].push( ""+prop );
             children[ prop ] = child;
             child.parents[ this.id ] = this;
 
@@ -232,7 +243,7 @@ class Model {
         return v;
     }
 
-    removeItem(k, cb){
+    removeItem(k, cb, doRaise){
 
         var parent = (k && k.split && k.split(".")) || k;
         var key = parent.pop();
@@ -247,7 +258,7 @@ class Model {
             var child = children[key], 
                 revChildren = model.revChildren[child.id];
             
-            var index = revChildren.indexOf( key );
+            var index = revChildren.indexOf( ""+key );
             if( index == -1 ) throw "Integrity compromised";
 
             revChildren.splice(index, 1);
@@ -261,20 +272,21 @@ class Model {
 
         }
 
-        delete data[key];
+	if( Array.isArray(data) )
+	    data.splice(key, 1);
+	else
+            delete data[key];
 
-        model.raise( key, true );
+        model.raise( key, doRaise );
 	for( let pid in this.parents )
-	    this.parents[pid].raise( this.parents[pid].revChildren[ this.id ], true );
+	    this.parents[pid].raise( this.parents[pid].revChildren[ this.id ], doRaise );
 
     }
 
     raise(k, doRaise){
 
-	if( pending.find( p => p.model == this && p.key == k ) )
-	    return;
-
-        pending[pending.length++] = {model:this, key:k};
+	if( !pending.find( p => p.model == this && p.key == k ) )
+            pending[pending.length++] = {model:this, key:k};
 
         if( !doRaise )
             return;
@@ -559,6 +571,8 @@ function prepareDOM( dom, controller, _model, viewdom ){
 	let cb = v => {
 	    if( v == value )
 		element.style.visibility = style;
+	    else if( element.style.visibility == style )
+		element.style.visibility = "";
 	};
 	
 	cb( _model.getItem(path) );
