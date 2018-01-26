@@ -7,12 +7,12 @@
 
     <div class="horizontalContainer tabs">
 
-      <button click-toggle="#ideContainer@data-tab=source" click-call="initSource">Source</button>
-      <button click-toggle="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
-      <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
-      <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
-      <button click-toggle="#ideContainer@data-tab=ram" click-call="refreshRAM">RAM</button>
-      <button click-toggle="#ideContainer@data-tab=qr" id="qrc" click-call="refreshQRC">QRCode</button>
+      <button click-set="#ideContainer@data-tab=source" click-call="initSource">Source</button>
+      <button click-set="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
+      <button click-set="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
+      <button click-set="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
+      <button click-set="#ideContainer@data-tab=ram" click-call="refreshRAM">RAM</button>
+      <button click-set="#ideContainer@data-tab=qr" id="qrc" click-call="refreshQRC">QRCode</button>
       <div class="expand"> </div>
 
       <button click-call="reqReset" title="reset (F6)" class="dbgbtn">&#8635;</button>
@@ -138,9 +138,9 @@
       <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8" bind-key="KeyB,KeyS,KeyX,AltLeft,AltRight"></btn>
 
       <btn click-call="powerOff" id="PWR"></btn>
-      <btn click-toggle="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
-      <btn click-toggle="#simContainer@class=arduboy;#simContainer img@src=Arduboy (0).png" click-call="arduboyMode" id="ABM"></btn>
-      <btn click-toggle="#ideContainer@hidden=false" undefined-hide="ram.debuggerEnabled" id="DBG"></btn>
+      <btn click-set="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
+      <btn click-set="#simContainer@class=arduboy;#simContainer img@src=Arduboy (0).png" click-call="arduboyMode" id="ABM"></btn>
+      <btn click-set="#ideContainer@hidden=false" undefined-hide="ram.debuggerEnabled" id="DBG"></btn>
       <btn click-call="reset" id="RESET"></btn>
       
     </div>

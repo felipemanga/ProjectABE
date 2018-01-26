@@ -474,14 +474,15 @@ function prepareDOM( dom, controller, _model, viewdom ){
                     break;
 
                 case "toggle":
+		case "set":
 		    
                     value.split(";").forEach( sp => {
-			var vparts = sp.match(/^([^@]+)\@([^=]+)\=(.+)$/);
+			var vparts = sp.match(/^(?:([^@]+)\@)?([^=]+)\=(.*)$/);
                     
 			if( vparts )
-                            bindToggle( element, parts[0], vparts );
+                            bindAction( parts[1] == "toggle", element, parts[0], vparts );
 			else
-                            console.warn("Could not parse toggle: " + value);
+                            console.warn("Could not parse " + parts[1] + ": " + value);
 		    });
 		    
                     break;
@@ -581,11 +582,17 @@ function prepareDOM( dom, controller, _model, viewdom ){
 	
     }
 
-    function bindToggle( element, event, cmd ){
+    function bindAction( toggle, element, event, cmd ){
 	
         element.addEventListener( event, ()=>{
 	    
-            [...viewdom.element.querySelectorAll(cmd[1])].forEach( target => target.setAttribute(cmd[2], cmd[3]) );
+            [ ... (cmd[1]?viewdom.element.querySelectorAll(cmd[1]):[element]) ]
+		.forEach( target => {		    
+		    if( toggle && target.getAttribute(cmd[2]) == cmd[3] )
+			target.removeAttribute(cmd[2]);
+		    else
+			target.setAttribute(cmd[2], cmd[3]);
+		});
 	    
         });
 	

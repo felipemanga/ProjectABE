@@ -68,6 +68,7 @@ document.addEventListener( "DOMContentLoaded", () => {
         model:{
 	    ram:{
 		autoRun: url,
+		hasFlasher: true,
 		debuggerEnabled: undefined
 	    }
 	}

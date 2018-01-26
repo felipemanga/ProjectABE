@@ -142,14 +142,33 @@ class Env extends IController {
 	
     }
 
-    play( opt ){
-	
-	let url = opt.element.dataset.url;
-	let srcurl = opt.element.dataset.source;
+    preview( opt ){
+	let key = opt.element.dataset.key;
+	let item = this.model.getModel(["ram", "repo", "items", key], false);
+	item = JSON.parse( JSON.stringify(item.data) );
+	this.model.setItem("ram.preview", item);
+    }
 
-	let title = opt.element.querySelector && opt.element.querySelector('.gameName');
+    upload(){
+    }
+
+    play( opt ){
+
+	let url, srcurl, title;
+
+	if( opt.element.dataset.url ){
+	    url = opt.element.dataset.url;
+	    srcurl = opt.element.dataset.source;
+	    title = opt.element.querySelector && opt.element.querySelector('.gameName');
+	    title = title.dataset.name;
+	}else{
+	    url = this.model.getItem("ram.preview.binaries.0.filename", "");
+	    srcurl = this.model.getItem("ram.preview.sourceUrl");
+	    title = this.model.getItem("ram.preview.title");
+	}
+
 	if( title )
-	    document.title = title.dataset.name;
+	    document.title = title;
 
 	if( url == 'new' ) url = 'null';
 	
