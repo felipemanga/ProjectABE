@@ -20,7 +20,7 @@ html, body {
     background-position: center;
     background-size: 256px 128px;
     -ms-interpolation-mode: nearest-neighbor;
-	image-rendering: -moz-crisp-edges;
+    image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
 }
 
@@ -47,10 +47,12 @@ html, body {
 #envContainer {
     width: 100%;
     height: 100%;
+    position: absolute;
 }
 
 .market .gameName {
-  display: block
+  display: block;
+  margin-top: 135px;
 }
 
 .market .authorName {
@@ -69,10 +71,14 @@ html, body {
 .market {
     padding: 5px;
     margin: 0px;
-    max-width: 640px;
+    /* max-width: 640px; */
     left: 0;
     right: 0;
     margin: auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
 }
 
 h1 {
@@ -96,16 +102,20 @@ h2 {
 
 .market li {
   background-repeat: no-repeat;
-  background-position: 100%;
-  background-size: contain;
+  background-position: 50% 0;
+  background-size: 256px 128px;
   background-color: #789;
+  border: 1px solid #789;
   list-style: none;
-  margin-bottom: 5px;
+  margin: 5px;
   padding: 3px;
-  padding-right: 256px;
-  height: 64px;
+  height: 180px;
+  width: 256px;
   position: relative;
   cursor: pointer;
+  image-rendering: pixelated;
+  /* float: left; */
+  box-sizing: border-box;
 }
 
 #fileList {
@@ -165,7 +175,7 @@ nav button {
     font-size: inherit;
 }
 
-#envContainer .newProject, .FileSaver {
+.FileSaver, .RecordingIndicator {
     text-decoration: none;
     color: white;
     background: #567;
@@ -177,10 +187,27 @@ nav button {
     margin: 10px;
 }
 
-.FileSaver {
+.FileSaver, .RecordingIndicator {
     top: auto;
     bottom: 0;
 }
+
+.FileSaver A {
+    margin: 10px;
+}
+
+@keyframes blinker {  
+  50% { opacity: 0; }
+}
+
+.RecordingIndicator {
+	width: 20px;
+	height: 20px;
+	border-radius: 20px;
+	background: red;
+	animation: blinker 1s linear infinite;
+}
+
 
 #simBox{
     position: relative;
@@ -217,11 +244,20 @@ nav button {
     right: 0;
     top: 0;
     bottom: 0;
-    user-select: none;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;    
 }
 
 #simContainer>*{
     user-select: none;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;    
 }
 
 #simContainer img{
@@ -238,10 +274,29 @@ nav button {
     height: 22.5%;
     left: 18%;
     width: 64.5%;
+    -ms-interpolation-mode: nearest-neighbor;
     image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
 }
 
+canvas:-webkit-full-screen{
+  width: 100% !important;
+  left: initial !important;
+  top: initial !important;
+  bottom: initial !important;
+  height: initial !important;
+  object-fit: contain !important;
+  background-color: black !important;
+}
+canvas:-moz-full-screen{
+  width: 100% !important;
+  left: initial !important;
+  top: initial !important;
+  bottom: initial !important;
+  height: initial !important;
+  object-fit: contain !important;
+  background-color: black !important;
+}
 canvas:fullscreen{
   width: 100% !important;
   left: initial !important;
@@ -252,24 +307,14 @@ canvas:fullscreen{
   background-color: black !important;
 }
 
-canvas:-moz-full-screen{
-  width: 100% !important;
-  left: initial !important;
-  top: initial !important;
-  bottom: initial !important;
-  height: initial !important;
-  object-fit: contain !important;
-  background-color: black !important;
+.microcard canvas:-webkit-full-screen{
+    transform: rotate(-90deg) scale(0.55) !important;
 }
-
-canvas:-webkit-full-screen {
-  width: 100% !important;
-  left: initial !important;
-  top: initial !important;
-  bottom: initial !important;
-  height: initial !important;
-  object-fit: contain !important;
-  background-color: black !important;
+.microcard canvas:-moz-full-screen{
+    transform: rotate(-90deg) scale(0.55) !important;
+}
+.microcard canvas:fullscreen{
+    transform: rotate(-90deg) scale(0.55) !important;
 }
 
 #simContainer led {
@@ -282,6 +327,18 @@ canvas:-webkit-full-screen {
   top: 19.3%;
   left: 9%;
   mix-blend-mode: screen;
+}
+
+#simContainer led.tx {
+    top: 85%;
+    left: 22%;
+    width: 4%;
+}
+
+#simContainer led.rx {
+    top: 85%;
+    left: 19%;
+    width: 4%;
 }
 
 #simContainer btn {
@@ -349,6 +406,14 @@ canvas:-webkit-full-screen {
     left: 89%;
 }
 
+#ABM {
+    width: 15%;
+    height: 9%;
+    top: 84%;
+    left: 19%;
+    display: none;
+}
+
 #DBG {
     width: 21%;
     height: 10%;
@@ -381,7 +446,32 @@ canvas:-webkit-full-screen {
     display: flex;
 }
 
-#sourceContainer, #daContainer, #stateContainer, #historyContainer, #ramContainer {
+#qrc{
+    display: none;
+}
+
+#qrcContainer {
+    width: 512px;
+    height: 512px !important;
+    margin: auto;
+    max-width: 512px;
+    max-height: 512px;
+}
+
+#qrcContainer img {
+    width: 100%;
+    height: 100%;
+    -ms-interpolation-mode: nearest-neighbor;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: pixelated;
+}
+
+#sourceContainer,
+#daContainer,
+#stateContainer,
+#historyContainer,
+#ramContainer,
+#qrcContainer {
     display: none;
     height: 0;
     flex-grow: 0;
@@ -392,7 +482,8 @@ canvas:-webkit-full-screen {
 #ideContainer[data-tab=da] #daContainer,
 #ideContainer[data-tab=source] #sourceContainer,
 #ideContainer[data-tab=state] #stateContainer,
-#ideContainer[data-tab=ram] #ramContainer
+#ideContainer[data-tab=ram] #ramContainer,
+#ideContainer[data-tab=qr] #qrcContainer
 {
     display: flex;
     height: auto;
@@ -465,6 +556,14 @@ canvas:-webkit-full-screen {
     align-items: center;    
 }
 
+.tabs button {
+    border: none;
+    background: #ABC;
+    color: #234;
+    padding: 2px;
+    margin: 2px;
+}
+
 #simContainer.microcard {}
 
 #simContainer.microcard img {
@@ -531,10 +630,21 @@ canvas:-webkit-full-screen {
     display: none;
 }
 
+#simContainer.microcard #ABM {
+    display: block;
+}
+
 #simContainer.microcard #DBG {
     width: 11%;
     left: 44%;
     height: 14%;
+}
+
+#simContainer.microcard #RESET {
+    width: 7%;
+    height: 10%;
+    top: 2%;
+    left: 71%;
 }
 
 #ideContainer #ace {
@@ -560,10 +670,6 @@ canvas:-webkit-full-screen {
 #da li[pc=true] {
     background-color: aquamarine;
     color: #123;
-}
-
-#compile {
-    margin-left: auto;
 }
 
 .dbgbtn {
@@ -660,5 +766,267 @@ canvas:-webkit-full-screen {
 .invalid{ 
     border-radius: 20px 0px 0px 20px; 
     box-shadow: 0px 0px 1px 1px yellow inset; 
-} 
+}
 
+#flashContainer {
+    background-color: #123;
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#flashContainer li {
+    display: inline-block;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.7em;
+    line-height: 30px;
+}
+
+#addNewFile {
+    margin-right: 15px;
+}
+
+#fuzzyContainer {
+    display: none;
+    position: relative;
+}
+
+#fuzzyList {
+    position: absolute;
+    background: white;
+    z-index: 999;
+    margin: 0;
+    padding: 0 10px;
+    list-style: none;
+    min-width: 100%;
+    box-sizing: border-box;
+    color: black;
+    max-height: 300px;
+    overflow: auto;
+    border: solid 1px #567;
+}
+
+#codeToolTip {
+	background-color: #FFF;
+	background-image: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.1));
+	background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1));
+	border: 1px solid gray;
+	border-radius: 1px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	color: black;
+	max-width: 100%;
+	padding: 3px 4px;
+	position: absolute;
+	z-index: 999999;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	cursor: default;
+	white-space: pre;
+	word-wrap: break-word;
+	line-height: normal;
+	font-style: normal;
+	font-weight: normal;
+	letter-spacing: normal;
+	pointer-events: none;
+}
+
+#codeToolTip:after {
+    content: attr(data-text);
+}
+
+
+#content h2, #content
+ h3 {
+    display: inline;
+}
+
+#content h3 {
+    margin-left: 10px;
+    font-style: italic;
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+#leftBar {
+    min-width: 230px;
+    background-color: #234;
+}
+
+#content {
+    background: #123;
+    overflow: auto;
+    flex-grow: 1;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#envContainer>div {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    overflow: hidden;
+}
+
+.reponav li {
+    list-style: none;
+    margin: 10px;
+    cursor: pointer;
+}
+
+.newProject {
+    text-decoration: none;
+    color: inherit;
+    border: solid 1px #ABC;
+    padding: 3px;
+    border-radius: 4px;
+    background: #567;
+    margin-left: 22%;
+}
+
+@media (max-aspect-ratio: 1/1) {
+    #envContainer h1:after {
+        content:"🍔";
+        float: right;
+        margin: 0 20px;
+    }
+
+    #main{
+        display: block;
+        flex-grow: 1;
+    }
+
+    #leftbar{
+        position: absolute;
+        z-index: 1;
+        right: 20px;
+        max-height: 70%;
+        height: 260px;
+        overflow: auto;
+        display: none;
+    }
+
+    .hamburger #leftbar {
+	display: block;
+    }
+
+    #content {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+    }
+}
+
+#rightbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+}
+
+#rightbar.visible {
+    display: block;
+}
+
+#preview {
+    background: #456;
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    max-width: 700px;
+    max-height: 700px;
+}
+
+#preview .images {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 50%;
+    background: #123;
+    overflow: auto;
+}
+
+#preview .images>li {
+    list-style: none;
+    margin: 10px;
+    position: relative;
+    box-sizing: border-box;
+    display: inline;
+    white-space: nowrap;
+}
+
+#preview .images img {
+    height: 90%;
+    image-rendering:  pixelated;
+}
+
+#preview h2 {
+    display: inline;
+    float: left;
+}
+
+#preview p {
+    clear: left;
+    padding: 15px;
+    height: calc(50% - 200px);
+    overflow: auto;
+    min-height: 50px;
+}
+
+#preview h2 {
+    font-size: 40px;
+    padding: 0;
+    margin: 10px 20px;
+    box-sizing: border-box;
+}
+
+#preview .info {
+    font-size: 15px;
+    padding-left: 5px;
+}
+
+#preview .info li {
+    list-style: none;
+}
+
+#preview .actions {
+    position: absolute;
+    bottom: 0;
+    width: 100%;    
+}
+
+.actions .item {
+    float: right;
+    padding: 10px;
+    background: #abc;
+    color: #123;
+    margin: 10px;
+    border-radius: 5px;
+    border: 1px solid #9ab;
+    cursor: pointer;
+    text-decoration: none;
+}
