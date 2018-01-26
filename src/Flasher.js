@@ -11,7 +11,10 @@ class Flasher {
 	setTimeout( _ => this.doFlash(), 10 );
     }
 
-    doFlash(){
+    doFlash( tries ){
+	let ask = tries === undefined;
+	if( ask ) tries = 10;
+	
 	if( avrgirl ){
 	    alert("Flasher is busy");
 	    return;
@@ -21,7 +24,7 @@ class Flasher {
 	let source = this.app.root.getModel( path, false );
 	if( !source ) return;
 	let build = source.getItem(["build.hex"]);
-	if( !build || !confirm("Upload game to Arduboy?") ) return;
+	if( !build || (ask && !confirm("Upload game to Arduboy?")) ) return;
 
 	let hndl = null;
 	let buffer = new Buffer( build );
@@ -34,13 +37,16 @@ class Flasher {
 	    }
 	});
 	
-	avrgirl.flash( buffer, function (error) {
+	avrgirl.flash( buffer, (error) => {
 	    clearTimeout( hndl ); hndl = null;
 	    cleanup( error );
 	    
-	    if (error) 
-		alert(error);
-	    else
+	    if (error){
+		if( tries )
+		    this.doFlash( tries-- );
+		else
+		    alert(error);
+	    }else
 		document.title = "Done!";
 	});
 

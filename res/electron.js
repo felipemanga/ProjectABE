@@ -14,7 +14,7 @@ app.on('window-all-closed', function() {
 app.on('ready', function() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-      width:375,
+      width: /.*\.hex$/i.test(""+process.argv[1]) ? 375 : 1024,
       height:600,
   /* */
       webPreferences:{

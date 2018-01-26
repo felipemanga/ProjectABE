@@ -149,10 +149,15 @@ class Env extends IController {
 	this.model.setItem("ram.preview", item);
     }
 
-    upload(){
+    upload( opt ){
+	this.load( opt, _ => this.pool.call("doFlash") );
     }
-
+    
     play( opt ){
+	this.load( opt, _ => this.pool.call("runSim") );
+    }
+    
+    load( opt, cb ){
 
 	let url, srcurl, title;
 
@@ -179,22 +184,13 @@ class Env extends IController {
 
 	let build = source.getItem(["build.hex"]);
 
-	let finalURL;
+	let finalURL, proxy = this.model.getItem("app.proxy");
 	let github = url.match(/^https:\/\/raw.githubusercontent.com\/(.*)$/i);
-	if( github ){
+	if( github && proxy )
 	    finalURL = 'https://gitcdn.xyz/repo/' + github[1];
-/*
-	}else{
-	    github = url.match(/^https:\/\/github.com\/(.*)/i);
-	    if( github ){
-		finalURL = 'https://cdn.rawgit.com/' + github[1];
-	    }
-*/
-	}
 	
-	if( !finalURL ){
-	    finalURL = this.model.getItem("app.proxy") + url;
-	}
+	if( !finalURL )
+	    finalURL = proxy + url;
 	
 	if( build || url == "null" ){
 	    
@@ -203,14 +199,14 @@ class Env extends IController {
 	    else
 		this.model.setItem("app.AT32u4.url", url);
 	    
-	    this.pool.call("runSim");
+	    cb();
 	
 	} else if( /\.arduboy$/i.test(url) ){
 	    
 	    let zip = null;
 	    fetch( finalURL )
 		.then( rsp => rsp.arrayBuffer() )
-		.then( buff => this.loadArduboy(buff) )
+		.then( buff => this.loadArduboy(buff, cb) )
 		.catch( err => {
 		    console.error( err );
 		});
@@ -221,7 +217,7 @@ class Env extends IController {
 		.then( hex => {
 		    source.setItem(["build.hex"], hex);
 		    this.model.setItem("app.AT32u4.hex", hex);
-		    this.pool.call("runSim");
+		    cb();
 		})
 	}
 
@@ -240,7 +236,7 @@ class Env extends IController {
 	
     }
 
-    loadArduboy( buff ){
+    loadArduboy( buff, cb ){
 	let zip;
 	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
 	
@@ -250,7 +246,7 @@ class Env extends IController {
 	    .then( hex => {
 		source.setItem(["build.hex"], hex);
 		this.model.setItem("app.AT32u4.hex", hex);
-		this.pool.call("runSim");
+		cb();
 	    });
 
 	function fixJSON( str ){
