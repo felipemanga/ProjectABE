@@ -160,7 +160,7 @@ class Env extends IController {
 	    url = opt.element.dataset.url;
 	    srcurl = opt.element.dataset.source;
 	    title = opt.element.querySelector && opt.element.querySelector('.gameName');
-	    title = title.dataset.name;
+	    if( title ) title = title.dataset.name;
 	}else{
 	    url = this.model.getItem("ram.preview.binaries.0.filename", "");
 	    srcurl = this.model.getItem("ram.preview.sourceUrl");
