@@ -145,7 +145,7 @@ class SCREEN {
     
     
     tick(){
-	if( !this.dirty || (this.activeBuffer == this.fb && !this.vblank) )
+	if( !this.dirty ) //|| (this.activeBuffer == this.fb && !(this.col == 0 && this.page == 0) ) )
 	    return;
 
 	this.ctx.putImageData( this.activeBuffer, 0, 0 );
@@ -413,6 +413,7 @@ class SCREEN {
 	this.pageStart = v;
 	this.pageEnd   = e;
 	this.page = 0;
+	this.vblank = true;
     }
 }
 

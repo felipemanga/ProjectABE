@@ -992,7 +992,7 @@ t1 === undefined ? t2 : t1
 		USBEND: 0x0016,  // USB Endpoint Interrupt request
 		WDT: 0x0018,     //  Watchdog time-out interrupt
 		
-		TIMER1C: 0x0020,  //  CAPT Timer/Counter1 capture event
+		TIMER1CAP: 0x0020,  //  CAPT Timer/Counter1 capture event
 		TIMER1A: 0x0022,  //  COMPA Timer/Counter1 compare match A
 		TIMER1B: 0x0024,  //  COMPB Timer/Counter1 compare match B
 		TIMER1C: 0x0026,  //  COMPC Timer/Counter1 compare match C
@@ -1012,7 +1012,7 @@ t1 === undefined ? t2 : t1
 		
 		EEREADY: 0x003C,  //  EEPROM ready
 
-		TIMER3C: 0x003E,  //  CAPT Timer/Counter1 capture event
+		TIMER3CAP: 0x003E,  //  CAPT Timer/Counter1 capture event
 		TIMER3A: 0x0040,  //  COMPA Timer/Counter1 compare match A
 		TIMER3B: 0x0042,  //  COMPB Timer/Counter1 compare match B
 		TIMER3C: 0x0044,  //  COMPC Timer/Counter1 compare match C

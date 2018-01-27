@@ -65,7 +65,7 @@ module.exports = {
 	TCNT:  0x46,
 	intOV: "TIMER0O"
     }),
-/*
+/* * /
     TC1:require('./Timer16.js')({
 	TIFR:  0x36,
 	TCCR_A:0x80,
@@ -75,12 +75,17 @@ module.exports = {
 	OCR_AL: 0x88,
 	OCR_BH: 0x8B,
 	OCR_BL: 0x8A,
+	OCR_CH: 0x8D,
+	OCR_CL: 0x8C,
 	TIMSK: 0x6F,
 	TCNTH: 0x85,
-	TCNTL: 0x85,
-	intOV: "TIMER1O"
+	TCNTL: 0x84,
+	_intOV: "TIMER1O",
+	_intCOMPA: "TIMER1A",
+	intCOMPB: "TIMER1B",
+	intCOMPC: "TIMER1C"
     }),
-*/
+/* */
     TC3:require('./Timer16.js')({
 	TIFR:  0x38,
 	TCCR_A:0x90,

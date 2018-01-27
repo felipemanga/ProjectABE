@@ -6,16 +6,16 @@ module.exports = function(addrs){
 
             [addrs.TIFR]:function( value ){
 
-		this.TOV0 = value & 1;
-		this.OCF0A = (value>>1) & 1;
-		this.OCF0B = (value>>2) & 1;
-
+		this.TOVn = value & 1;
+		this.OCFnA = 0; // (value>>1) & 1;
+		this.OCFnB = 0; // (value>>2) & 1;
+		this.OCFnC = 0;
             },
 
             [addrs.TCCR_A]:function( value ){
 
-		this.WGM10  = (value>>0) & 1;
-		this.WGM11  = (value>>1) & 1;
+		this.WGMn0  = (value>>0) & 1;
+		this.WGMn1  = (value>>1) & 1;
 		this.COM0C0 = (value>>2) & 1;
 		this.COM0C1 = (value>>3) & 1;
 		this.COM0B0 = (value>>4) & 1;
@@ -33,34 +33,34 @@ module.exports = function(addrs){
 		this.ICNC1 = (value >> 7) & 1;
 		this.ICES1 = (value >> 6) & 1;
 
-		this.WGM13 = (value >> 4) & 1;
-		this.WGM12 = (value >> 3) & 1;
-		this.CS12 = (value >> 2) & 1;
-		this.CS11 = (value >> 1) & 1;
-		this.CS10= (value) & 1;
+		this.WGMn3 = (value >> 4) & 1;
+		this.WGMn2 = (value >> 3) & 1;
+		this.CSn2 = (value >> 2) & 1;
+		this.CSn1 = (value >> 1) & 1;
+		this.CSn0= (value) & 1;
 
 		this.updateState();
 
             },
 
 	    [addrs.TCCR_C]:function( value ){
-		this.FOC1A = (value>>7) & 1;
-		this.FOC1B = (value>>6) & 1;
-		this.FOC1C = (value>>5) & 1;
+		this.FOCnA = (value>>7) & 1;
+		this.FOCnB = (value>>6) & 1;
+		this.FOCnC = (value>>5) & 1;
 	    },
 
             [addrs.OCR_AH]:function( value ){
-		this.OCR0A = (value << 8) | (this.OCR0A & 0xFF);
+		this.OCRnA = (value << 8) | (this.OCRnA & 0xFF);
             },
             [addrs.OCR_AL]:function( value ){
-		this.OCR0A = value | (this.OCR0A & 0xFF00);
+		this.OCRnA = value | (this.OCRnA & 0xFF00);
             },
 
             [addrs.OCR_BH]:function( value ){
-		this.OCR0B = (value << 8) | (this.OCR0B & 0xFF);
+		this.OCRnB = (value << 8) | (this.OCRnB & 0xFF);
             },
             [addrs.OCR_BL]:function( value ){
-		this.OCR0B = value | (this.OCR0B & 0xFF00);
+		this.OCRnB = value | (this.OCRnB & 0xFF00);
             },
 
             [addrs.TCNTH]:function( value ){
@@ -72,21 +72,21 @@ module.exports = function(addrs){
 
             [addrs.TIMSK]:function( value ){
 		this.TOIE0 = value & 1;
-		this.OCIE0A = (value>>1) & 1;
-		this.OCIE0B = (value>>2) & 1;
-		this.OCIE0C = (value>>3) & 1;
+		this.OCIEnA = (value>>1) & 1;
+		this.OCIEnB = (value>>2) & 1;
+		this.OCIEnC = (value>>3) & 1;
             }
             
 	},
 
 	init:function(){
             this.tick = 0;
-            this.WGM10  = 0;
-            this.WGM11  = 0;
+            this.WGMn0  = 0;
+            this.WGMn1  = 0;
 
-	    this.OCF0A = 0;
-	    this.OCF0B = 0;
-	    this.OCF0C = 0;
+	    this.OCFnA = 0;
+	    this.OCFnB = 0;
+	    this.OCFnC = 0;
 	    
 	    this.COM0C0 = 0;
 	    this.COM0C1 = 0;
@@ -97,28 +97,29 @@ module.exports = function(addrs){
 
 	    this.ICNC1 = 0;
 	    this.ICES1 = 0;
-	    this.WGM13 = 0;
-	    this.WGM12 = 0;
-	    this.CS12 = 0;
-	    this.CS11 = 0;
-	    this.CS10 = 0;
+	    this.WGMn3 = 0;
+	    this.WGMn2 = 0;
+	    this.CSn2 = 0;
+	    this.CSn1 = 0;
+	    this.CSn0 = 0;
 	    
-            this.TOV0 = 0;
-	    this.FOC1A = 0;
-	    this.FOC1B = 0;
-	    this.FOC1C = 0;
+            this.TOVn = 0;
+	    this.FOCnA = 0;
+	    this.FOCnB = 0;
+	    this.FOCnC = 0;
 
             this.TOIE0 = 0;
-            this.OCIE0A = 0;
-            this.OCIE0B = 0;
-	    this.OCIE0C = 0;
+            this.OCIEnA = 0;
+            this.OCIEnB = 0;
+	    this.OCIEnC = 0;
 
-            this.OCR0A = 0;
-            this.OCR0B = 0;
-	    this.OCR0C = 0;	    
+            this.OCRnA = 0;
+            this.OCRnB = 0;
+	    this.OCRnC = 0;	    
 
             this.TCNT = 0;
 	    this.prescale = 0;
+	    this.TOP = 0xFFFF;
 
 	    
 	    this._update = function( tick ){
@@ -140,54 +141,58 @@ module.exports = function(addrs){
 		
 		this.tick += interval*this.prescale;
 
-		if( this.OCIE0A && oldTCNT < this.OCR0A && cnt >= this.OCR0A ){
-		    this.OCF0A++;
-		    if( this.CTC )
+		if( this.OCIEnA && oldTCNT < this.OCRnA && cnt >= this.OCRnA ){
+		    this.OCFnA++;
+		    if( this.CTC && !this.FOCnA )
 			this.TCNT = cnt = 0;
 		}
-		if( this.OCIE0B && oldTCNT < this.OCR0B && cnt >= this.OCR0B ){
-		    this.OCF0B++;
-		    if( this.CTC )
+		if( this.OCIEnB && oldTCNT < this.OCRnB && cnt >= this.OCRnB ){
+		    this.OCFnB++;
+		    if( this.CTC && !this.FOCnB )
 			this.TCNT = cnt = 0;
 		}
-		if( this.OCIE0C && oldTCNT < this.OCR0C && cnt >= this.OCR0C ){
-		    this.OCF0C++;
-		    if( this.CTC )
+		if( this.OCIEnC && oldTCNT < this.OCRnC && cnt >= this.OCRnC ){
+		    this.OCFnC++;
+		    if( this.CTC && !this.FOCnC )
 			this.TCNT = cnt = 0;
 		}
 
 		this.core.memory[ addrs.TCNTH ] = cnt >>> 8;
 		this.core.memory[ addrs.TCNTL ] = cnt & 0xFF;
 		
-		this.TOV0 += (cnt / 0xFFFF) | 0;
+		this.TOVn += (cnt / this.TOP) | 0;
 		
 	    }
 
             this.updateState = function(){
 
-		var MAX = 0xFF, BOTTOM = 0, WGM10 = this.WGM10, WGM11 = this.WGM11, WGM12 = this.WGM12, WGM13 = this.WGM13;
+		var MAX = 0xFF, BOTTOM = 0, WGMn0 = this.WGMn0, WGMn1 = this.WGMn1, WGMn2 = this.WGMn2, WGMn3 = this.WGMn3;
 		let WGM =
-		    (this.WGM13 << 3) |
-		    (this.WGM12 << 2) |
-		    (this.WGM11 << 1) |
- 		     this.WGM10;
-		let CS  = (this.CS10) | (this.CS11 << 1) | (this.CS12 << 2);
+		    (this.WGMn3 << 3) |
+		    (this.WGMn2 << 2) |
+		    (this.WGMn1 << 1) |
+ 		     this.WGMn0;
+		let CS  = (this.CSn0) | (this.CSn1 << 1) | (this.CSn2 << 2);
 
 		if( WGM != this.oldWGM ){
 		    this.CTC = false;
+		    this.TOP = 0xFFFF;
 
 		    switch( WGM ){
 		    case 0:
 			console.log("0- Timer16=Normal TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 1:
-			console.log("1- Timer16=PWM,PC8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			console.log("1- Timer16=PWM,PC8b TOP=0xFF UpdateOCRnx=imm TOVn=MAX");
+			this.TOP = 0xFF;
 			break;
 		    case 2:
 			console.log("2- Timer16=PWM,PC9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.TOP = 0x1FF;
 			break;
 		    case 3:
 			console.log("3- Timer16=PWM,PC10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.TOP = 0x3FF;
 			break;
 		    case 4:
 			console.log("4- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
@@ -195,12 +200,15 @@ module.exports = function(addrs){
 			break;
 		    case 5:
 			console.log("5- Timer16=FPWM8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.TOP = 0xFF;
 			break;
 		    case 6:
 			console.log("6- Timer16=FPWM9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.TOP = 0x1FF;
 			break;
 		    case 7:
 			console.log("7- Timer16=FPWM10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.TOP = 0x3FF;
 			break;
 		    case 8:
 			console.log("8- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
@@ -247,9 +255,12 @@ module.exports = function(addrs){
 	},
 
 	read:{
-
+	    [addrs.TCCR_C]:function( value ){
+		return 0;
+	    },
+	    
             [addrs.TIFR]:function(){
-		return ((!!this.TOV0)&1) | (this.OCF0A<<1) | (this.OCF0B<<2);
+		return ((!!this.TOVn)&1) | (this.OCFnA<<1) | (this.OCFnB<<2);
             },
 
             [addrs.TCNTH]:function(){
@@ -277,23 +288,23 @@ module.exports = function(addrs){
 
 	    if( ie ){
 
-		if( this.OCF0A > 0 && this.OCIE0A ){
-		    this.OCF0A--;
+		if( this.OCFnA > 0 && this.OCIEnA && !this.FOCnA ){
+		    this.OCFnA = 0;
 		    return addrs.intCOMPA;
 		}
 
-		if( this.OCF0B > 0 && this.OCIE0B ){
-		    this.OCF0B--;
+		if( this.OCFnB > 0 && this.OCIEnB && !this.FOCnB ){
+		    this.OCFnB = 0;
 		    return addrs.intCOMPB;
 		}
 
-		if( this.OCF0C > 0 && this.OCIE0C ){
-		    this.OCF0C--;
+		if( this.OCFnC > 0 && this.OCIEnC && !this.FOCnC ){
+		    this.OCFnC = 0;
 		    return addrs.intCOMPC;
 		}
 		
-		if( this.TOV0 > 0 && this.TOIE0 ){
-		    this.TOV0--;
+		if( this.TOVn > 0 && this.TOIE0 ){
+		    this.TOVn = 0;
 		    return addrs.intOV;
 		}
 		

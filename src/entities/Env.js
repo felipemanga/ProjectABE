@@ -213,7 +213,17 @@ class Env extends IController {
 
 	}else{
 	    fetch( finalURL )
-		.then( rsp => rsp.text() )
+		.then( rsp => {
+		    if( rsp.ok )
+			return rsp.text();
+		    else if( finalURL != url && proxy ){
+			return new Promise((ok, nok) => {
+			    fetch( proxy + url )
+				.then( rsp => rsp.ok ? ok(rsp.text()) : nok("error") )
+				.catch( ex => nok(ex) );
+			});
+		    }
+		})
 		.then( hex => {
 		    source.setItem(["build.hex"], hex);
 		    this.model.setItem("app.AT32u4.hex", hex);
