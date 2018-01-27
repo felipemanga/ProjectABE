@@ -968,5 +968,12 @@ module.exports = [
 	impl:[
 	    'Rd ← (Rd >>> 4) | (Rd << 4)'
 	    ]
+    },
+    {
+	name: "WDR",
+	str: '1001010110101000',
+	impl:[
+	    ''
+	    ]
     }
 ];
