@@ -388,7 +388,7 @@ t1 === undefined ? t2 : t1
 		    this.tick += 100;
 		}
 		
-		if( this.tick >= this.endTick || this.tick - lastUpdate > 100 ){
+		if( this.tick >= this.endTick || this.tick - lastUpdate > 500 ){
 		    lastUpdate = this.tick;
 		    this.updatePeriferals();
 		    while( this.history.length > 100 ) this.history.shift();
