@@ -6,6 +6,9 @@ class SOUND {
     
     constructor( DOM ){
 	this.DOM = DOM;
+
+	if( typeof AudioContext == "undefined" )
+	    return;
 	
 	this.pool.add(this);
 
@@ -23,6 +26,7 @@ class SOUND {
 	this.prevDelta = 0;
 	this.prevDelta2 = 0;
 	this.error = 0;
+	this.error2 = 0;
 
 	DOM.element.controller = this;
 	DOM.element.dispatchEvent( new Event("addperiferal", {bubbles:true}) );
@@ -96,31 +100,55 @@ class SOUND {
 	onLowToHigh:function( tick ){
 	    tick = (tick * this.cycles)>>>0;
 	    let it = this.bufferStart2, ch1 = this.ch2Buffer;
-
-	    let delta = Math.min( this.ch2Buffer.length - it - 1, tick - this.previousTick2 );
+	    let delta = tick - this.previousTick2;
 	    this.prevDelta2 = delta;
+	    this.previousTick2 = tick;
+
+	    if( it >= ch1.length ){
+		this.error2 = 0;
+		return;
+	    }
+	    
+	    while( this.error2-->0 && it < ch1.length ) ch1[it++] = 0.5;
+
+	    let max = this.ch2Buffer.length - it;
+	    
+	    if( delta > max && delta < max + ch1.length ) this.error2 = delta - max;
+	    else this.error2 = 0;
+	    delta = Math.min( max, delta );
 	    	    
 	    for( ; delta; delta-- )
 		ch1[it++] = 0;
 	    ch1[it] = 0.25;
 	    this.bufferStart2 = it;
 	    
-	    this.previousTick2 = tick;
 	},
 	
 	onHighToLow:function( tick ){
 	    tick = (tick * this.cycles)>>>0;
-	    let it = this.bufferStart, ch1 = this.ch2Buffer;
-	    
-	    let delta = Math.min( this.ch2Buffer.length - it - 1, tick - this.previousTick2 );
+	    let it = this.bufferStart2, ch1 = this.ch2Buffer;
+	    let delta = tick - this.previousTick2;
 	    this.prevDelta2 = delta;
+	    this.previousTick2 = tick;
+
+	    if( it >= ch1.length ){
+		this.error2 = 0;
+		return;
+	    }
+	    
+	    while( this.error2-->0 && it < ch1.length ) ch1[it++] = 0;
+
+	    let max = this.ch2Buffer.length - it;
+
+	    if( delta > max && delta < max + ch1.length ) this.error2 = delta - max;
+	    else this.error2 = 0;
+	    delta = Math.min( max, delta );
 	    	    
 	    for( ; delta; delta-- )
 		ch1[it++] = 0.25;
 	    ch1[it] = 0;
 	    this.bufferStart2 = it;
 	    
-	    this.previousTick2 = tick;
 
 	}
     }
