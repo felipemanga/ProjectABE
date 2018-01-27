@@ -268,11 +268,13 @@ class App {
 		    if( model.getItem("color") === undefined )
 			model.setItem("color", Math.random()*10 | 0);
 
-		    if( model.getItem("expires") > (new Date()).getTime() ){
+		    if( model.version === 1 ){
 			model.dirty = false;
 			cb.call();
 			return;
 		    }
+
+		    model.setItem("version", 1);
 
 		    model.setItem("color", Math.random()*10 | 0);
 		    
