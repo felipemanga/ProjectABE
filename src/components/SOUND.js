@@ -109,7 +109,7 @@ class SOUND {
 		return;
 	    }
 	    
-	    while( this.error2-->0 && it < ch1.length ) ch1[it++] = 0.5;
+	    while( this.error2-->0 && it < ch1.length ) ch1[it++] = 0.25;
 
 	    let max = this.ch2Buffer.length - it;
 	    
@@ -201,7 +201,7 @@ class SOUND {
 		    d--;
 		    if( d == 0 ){
 			if( v ) v = 0;
-			else v = 0.5;
+			else v = 0.25;
 			d = this.prevDelta2;
 		    }
 		    
