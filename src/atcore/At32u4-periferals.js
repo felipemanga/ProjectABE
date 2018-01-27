@@ -65,7 +65,7 @@ module.exports = {
 	TCNT:  0x46,
 	intOV: "TIMER0O"
     }),
-
+/*
     TC1:require('./Timer16.js')({
 	TIFR:  0x36,
 	TCCR_A:0x80,
@@ -79,6 +79,26 @@ module.exports = {
 	TCNTH: 0x85,
 	TCNTL: 0x85,
 	intOV: "TIMER1O"
+    }),
+*/
+    TC3:require('./Timer16.js')({
+	TIFR:  0x38,
+	TCCR_A:0x90,
+	TCCR_B:0x91,
+	TCCR_C:0x92,
+	TCNTH: 0x94,
+	TCNTL: 0x95,
+	OCR_AH: 0x99,
+	OCR_AL: 0x98,
+	OCR_BH: 0x9B,
+	OCR_BL: 0x9A,
+	OCR_CH: 0x9D,
+	OCR_CL: 0x9C,
+	TIMSK: 0x71,
+	intOV: "TIMER3O",
+	intCOMPA: "TIMER3A",
+	intCOMPB: "TIMER3B",
+	intCOMPC: "TIMER3C"
     }),
 
     USART:require('./At328P-USART.js'),

@@ -33,11 +33,11 @@ module.exports = function(addrs){
 		this.ICNC1 = (value >> 7) & 1;
 		this.ICES1 = (value >> 6) & 1;
 
-		this.WGM13 = (value >> 5) & 1;
-		this.WGM12 = (value >> 4) & 1;
-		this.CS12 = (value >> 3) & 1;
-		this.CS11 = (value >> 2) & 1;
-		this.CS10= (value >> 1) & 1;
+		this.WGM13 = (value >> 4) & 1;
+		this.WGM12 = (value >> 3) & 1;
+		this.CS12 = (value >> 2) & 1;
+		this.CS11 = (value >> 1) & 1;
+		this.CS10= (value) & 1;
 
 		this.updateState();
 
@@ -53,7 +53,7 @@ module.exports = function(addrs){
 		this.OCR0A = (value << 8) | (this.OCR0A & 0xFF);
             },
             [addrs.OCR_AL]:function( value ){
-		this.OCR0A = value | (this.OCRA & 0xFF00);
+		this.OCR0A = value | (this.OCR0A & 0xFF00);
             },
 
             [addrs.OCR_BH]:function( value ){
@@ -74,6 +74,7 @@ module.exports = function(addrs){
 		this.TOIE0 = value & 1;
 		this.OCIE0A = (value>>1) & 1;
 		this.OCIE0B = (value>>2) & 1;
+		this.OCIE0C = (value>>3) & 1;
             }
             
 	},
@@ -82,6 +83,10 @@ module.exports = function(addrs){
             this.tick = 0;
             this.WGM10  = 0;
             this.WGM11  = 0;
+
+	    this.OCF0A = 0;
+	    this.OCF0B = 0;
+	    this.OCF0C = 0;
 	    
 	    this.COM0C0 = 0;
 	    this.COM0C1 = 0;
@@ -106,11 +111,19 @@ module.exports = function(addrs){
             this.TOIE0 = 0;
             this.OCIE0A = 0;
             this.OCIE0B = 0;
+	    this.OCIE0C = 0;
 
-            this.time = 0;
+            this.OCR0A = 0;
+            this.OCR0B = 0;
+	    this.OCR0C = 0;	    
+
+            this.TCNT = 0;
+	    this.prescale = 0;
 
 	    
 	    this._update = function( tick ){
+		if( !this.prescale )
+		    return;
 
 		tick = tick || this.core.tick;
 		
@@ -118,15 +131,33 @@ module.exports = function(addrs){
 		var interval = (ticksSinceOVF / this.prescale) | 0;
 		if( !interval )
                     return;
+
+		var oldTCNT = this.TCNT;
 		
 		var cnt = (this.TCNT += interval);
 
 		this.TCNT &= 0xFFFF;
-		this.core.memory[ addrs.TCNTH ] = cnt >>> 8;
-		this.core.memory[ addrs.TCNTL ] = cnt & 0xFF;
-		
 		
 		this.tick += interval*this.prescale;
+
+		if( this.OCIE0A && oldTCNT < this.OCR0A && cnt >= this.OCR0A ){
+		    this.OCF0A++;
+		    if( this.CTC )
+			this.TCNT = cnt = 0;
+		}
+		if( this.OCIE0B && oldTCNT < this.OCR0B && cnt >= this.OCR0B ){
+		    this.OCF0B++;
+		    if( this.CTC )
+			this.TCNT = cnt = 0;
+		}
+		if( this.OCIE0C && oldTCNT < this.OCR0C && cnt >= this.OCR0C ){
+		    this.OCF0C++;
+		    if( this.CTC )
+			this.TCNT = cnt = 0;
+		}
+
+		this.core.memory[ addrs.TCNTH ] = cnt >>> 8;
+		this.core.memory[ addrs.TCNTL ] = cnt & 0xFF;
 		
 		this.TOV0 += (cnt / 0xFFFF) | 0;
 		
@@ -135,59 +166,68 @@ module.exports = function(addrs){
             this.updateState = function(){
 
 		var MAX = 0xFF, BOTTOM = 0, WGM10 = this.WGM10, WGM11 = this.WGM11, WGM12 = this.WGM12, WGM13 = this.WGM13;
-		let WGM = (this.WGM10 << 3) | (this.WGM11 << 2) | (this.WGM12 << 1) | this.WGM13;
+		let WGM =
+		    (this.WGM13 << 3) |
+		    (this.WGM12 << 2) |
+		    (this.WGM11 << 1) |
+ 		     this.WGM10;
 		let CS  = (this.CS10) | (this.CS11 << 1) | (this.CS12 << 2);
 
-		if( WGM != this.oldWGM )
-		switch( WGM ){
-		case 0:
-		    console.log("0- Timer16=Normal TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 1:
-		    console.log("1- Timer16=PWM,PC8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 2:
-		    console.log("2- Timer16=PWM,PC9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 3:
-		    console.log("3- Timer16=PWM,PC10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 4:
-		    console.log("4- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 5:
-		    console.log("5- Timer16=FPWM8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 6:
-		    console.log("6- Timer16=FPWM9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 7:
-		    console.log("7- Timer16=FPWM10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 8:
-		    console.log("8- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 9:
-		    console.log("9- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 10:
-		    console.log("10- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 11:
-		    console.log("11- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 12:
-		    console.log("12- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 13:
-		    console.log("13- Timer16=RESERVED");
-		    break;
-		case 14:
-		    console.log("14- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
-		case 15:
-		    console.log("15- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
-		    break;
+		if( WGM != this.oldWGM ){
+		    this.CTC = false;
+
+		    switch( WGM ){
+		    case 0:
+			console.log("0- Timer16=Normal TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 1:
+			console.log("1- Timer16=PWM,PC8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 2:
+			console.log("2- Timer16=PWM,PC9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 3:
+			console.log("3- Timer16=PWM,PC10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 4:
+			console.log("4- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.CTC = true;
+			break;
+		    case 5:
+			console.log("5- Timer16=FPWM8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 6:
+			console.log("6- Timer16=FPWM9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 7:
+			console.log("7- Timer16=FPWM10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 8:
+			console.log("8- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 9:
+			console.log("9- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 10:
+			console.log("10- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 11:
+			console.log("11- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 12:
+			console.log("12- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			this.CTC = true;
+			break;
+		    case 13:
+			console.log("13- Timer16=RESERVED");
+			break;
+		    case 14:
+			console.log("14- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    case 15:
+			console.log("15- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			break;
+		    }
 		}
 
 		this.oldWGM = WGM;		
@@ -237,6 +277,21 @@ module.exports = function(addrs){
 
 	    if( ie ){
 
+		if( this.OCF0A > 0 && this.OCIE0A ){
+		    this.OCF0A--;
+		    return addrs.intCOMPA;
+		}
+
+		if( this.OCF0B > 0 && this.OCIE0B ){
+		    this.OCF0B--;
+		    return addrs.intCOMPB;
+		}
+
+		if( this.OCF0C > 0 && this.OCIE0C ){
+		    this.OCF0C--;
+		    return addrs.intCOMPC;
+		}
+		
 		if( this.TOV0 > 0 && this.TOIE0 ){
 		    this.TOV0--;
 		    return addrs.intOV;
