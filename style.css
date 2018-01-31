@@ -47,10 +47,12 @@ html, body {
 #envContainer {
     width: 100%;
     height: 100%;
+    position: absolute;
 }
 
 .market .gameName {
-  display: block
+  display: block;
+  margin-top: 135px;
 }
 
 .market .authorName {
@@ -69,10 +71,14 @@ html, body {
 .market {
     padding: 5px;
     margin: 0px;
-    max-width: 640px;
+    /* max-width: 640px; */
     left: 0;
     right: 0;
     margin: auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
 }
 
 h1 {
@@ -96,16 +102,20 @@ h2 {
 
 .market li {
   background-repeat: no-repeat;
-  background-position: 100%;
-  background-size: contain;
+  background-position: 50% 0;
+  background-size: 256px 128px;
   background-color: #789;
+  border: 1px solid #789;
   list-style: none;
-  margin-bottom: 5px;
+  margin: 5px;
   padding: 3px;
-  padding-right: 256px;
-  height: 64px;
+  height: 180px;
+  width: 256px;
   position: relative;
   cursor: pointer;
+  image-rendering: pixelated;
+  /* float: left; */
+  box-sizing: border-box;
 }
 
 #fileList {
@@ -165,7 +175,7 @@ nav button {
     font-size: inherit;
 }
 
-#envContainer .newProject, .FileSaver, .RecordingIndicator {
+.FileSaver, .RecordingIndicator {
     text-decoration: none;
     color: white;
     background: #567;
@@ -832,3 +842,191 @@ canvas:fullscreen{
     content: attr(data-text);
 }
 
+
+#content h2, #content
+ h3 {
+    display: inline;
+}
+
+#content h3 {
+    margin-left: 10px;
+    font-style: italic;
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+#leftBar {
+    min-width: 230px;
+    background-color: #234;
+}
+
+#content {
+    background: #123;
+    overflow: auto;
+    flex-grow: 1;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#envContainer>div {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    overflow: hidden;
+}
+
+.reponav li {
+    list-style: none;
+    margin: 10px;
+    cursor: pointer;
+}
+
+.newProject {
+    text-decoration: none;
+    color: inherit;
+    border: solid 1px #ABC;
+    padding: 3px;
+    border-radius: 4px;
+    background: #567;
+    margin-left: 22%;
+}
+
+@media (max-aspect-ratio: 1/1) {
+    #envContainer h1:after {
+        content:"🍔";
+        float: right;
+        margin: 0 20px;
+    }
+
+    #main{
+        display: block;
+        flex-grow: 1;
+    }
+
+    #leftbar{
+        position: absolute;
+        z-index: 1;
+        right: 20px;
+        max-height: 70%;
+        height: 260px;
+        overflow: auto;
+        display: none;
+    }
+
+    .hamburger #leftbar {
+	display: block;
+    }
+
+    #content {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+    }
+}
+
+#rightbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+}
+
+#rightbar.visible {
+    display: block;
+}
+
+#preview {
+    background: #456;
+    width: 80%;
+    height: 80%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    max-width: 700px;
+    max-height: 700px;
+}
+
+#preview .images {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 50%;
+    background: #123;
+    overflow: auto;
+}
+
+#preview .images>li {
+    list-style: none;
+    margin: 10px;
+    position: relative;
+    box-sizing: border-box;
+    display: inline;
+    white-space: nowrap;
+}
+
+#preview .images img {
+    height: 90%;
+    image-rendering:  pixelated;
+}
+
+#preview h2 {
+    display: inline;
+    float: left;
+}
+
+#preview p {
+    clear: left;
+    padding: 15px;
+    height: calc(50% - 200px);
+    overflow: auto;
+    min-height: 50px;
+}
+
+#preview h2 {
+    font-size: 40px;
+    padding: 0;
+    margin: 10px 20px;
+    box-sizing: border-box;
+}
+
+#preview .info {
+    font-size: 15px;
+    padding-left: 5px;
+}
+
+#preview .info li {
+    list-style: none;
+}
+
+#preview .actions {
+    position: absolute;
+    bottom: 0;
+    width: 100%;    
+}
+
+.actions .item {
+    float: right;
+    padding: 10px;
+    background: #abc;
+    color: #123;
+    margin: 10px;
+    border-radius: 5px;
+    border: 1px solid #9ab;
+    cursor: pointer;
+    text-decoration: none;
+}
