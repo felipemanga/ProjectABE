@@ -1,5 +1,16 @@
 var nextUID = 0;
 
+if( !Object.getOwnPropertyDescriptors ){
+    Object.getOwnPropertyDescriptors = function( value ){
+	var o = {};
+	Object.getOwnPropertyNames(value)
+	    .forEach(function(k){
+		o[k] = Object.getOwnPropertyDescriptor(value, k);
+	    });
+	return o;
+    };
+}
+
 function getUID(){
     return ++nextUID;
 }

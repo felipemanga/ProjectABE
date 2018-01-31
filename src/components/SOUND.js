@@ -7,8 +7,11 @@ class SOUND {
     constructor( DOM ){
 	this.DOM = DOM;
 
-	if( typeof AudioContext == "undefined" )
-	    return;
+	if( typeof AudioContext == "undefined" ){
+	    if( typeof webkitAudioContext == "undefined" )
+		return;
+	    window.AudioContext = webkitAudioContext;
+	}
 	
 	this.pool.add(this);
 
