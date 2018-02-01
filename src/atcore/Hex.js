@@ -29,7 +29,7 @@ const Hex = {
     },
 
     parse( src, buffer ){
-
+	let max = 0;
         let state = 0, size = 0, num, byte, offset, sum = 0;
 
         for( let i=0, l=src.length; i<l; ){
@@ -78,7 +78,7 @@ const Hex = {
                 break;
 
             case 3:
-                if( num === 1 ) return;
+                if( num === 1 ) return max + 1;
 		if( num === 3 || num === 5 ){
 		    state++;
 		}else if( num !== 0 ) throw 'Unsupported record type: ' + num;
@@ -87,6 +87,7 @@ const Hex = {
                 break;
             
             case 4:
+		if( offset > max ) max = offset;
                 buffer[offset++] = num;
 	    case 5:
                 sum += num;
@@ -106,6 +107,8 @@ const Hex = {
             }
 
         }
+
+	return max + 1;
 
     }
 

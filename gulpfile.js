@@ -142,6 +142,34 @@ gulp.task('build', function () {
     .on("error", swallowError);
 });
 
+gulp.task('nw-build', function () {
+
+  var b = browserify({
+    entries: './src/nw.js',
+    debug: true
+  });
+
+  b.plugin(sourcemapify, {root:'../'});
+
+  b.transform(babelify, {
+      plugins:[
+        ["transform-class-properties"],
+        ["import-glob"]
+      ],
+      presets:[
+        ["env", {targets:{uglify:[]}}
+      ]
+  ]});
+
+  return b
+	.bundle()
+	.on("end", () => {
+	    reload.changed("app.js");
+	})
+    .pipe(fs.createWriteStream("build/app.js", {encoding:"UTF-8"}))
+    .on("error", swallowError);
+});
+
 
 gulp.task('web-build', function () {
 
@@ -225,6 +253,11 @@ gulp.task('android', sequence('clean', 'pg-copy', 'pg-move', 'pg-build', 'cordov
 
 gulp.task('watch', ['build', 'copy'], function(){
     gulp.watch('./src/**/*', ['build']);
+    gulp.watch('./res/**/*', ['copy']);
+});
+
+gulp.task('nw-watch', ['nw-build', 'copy'], function(){
+    gulp.watch('./src/**/*', ['nw-build']);
     gulp.watch('./res/**/*', ['copy']);
 });
 
