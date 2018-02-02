@@ -20,8 +20,16 @@ document.addEventListener( "DOMContentLoaded", () => {
     let url, app, width = 1024;
     
     if( argv[0] && !/.*\.js$/.test(argv[0]) ){
-	let hnd = 0;
+	let hnd = 0, hex;
 	let watcher;
+
+	try{
+	    hex = fs.readFileSync(argv[0]);
+	}catch( ex ){
+	    alert("Could not open file: ", argv[0]);
+	    nw.App.quit();
+	    return;
+	}
 
 	function watch(){
 
@@ -35,7 +43,18 @@ document.addEventListener( "DOMContentLoaded", () => {
 		    if( hnd ) clearTimeout(hnd);
 		    hnd = setTimeout(
 			_=>{
+			    try{
+				hex = fs.readFileSync(argv[0]);			    
+			    }catch( ex ){
+				watch();
+				return;
+			    }
+			    
+			    URL.revokeObjectURL( url );
+			    url = URL.createObjectURL( new Blob([hex], {type: 'text/x-hex'}) );
+
 			    app.root.removeItem("app.AT32u4");
+
 			    app.root.setItem("app.AT32u4.url", url);
 			    app.pool.call("loadFlash");
 			    watch();
@@ -47,8 +66,8 @@ document.addEventListener( "DOMContentLoaded", () => {
 	}
 
 	watch();
-	
-	url = "file://" + argv[0].replace(/\\/g, "/");
+
+	url = URL.createObjectURL( new Blob([hex], {type: 'text/x-hex'}) );
 	
     }else{
 	
