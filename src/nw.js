@@ -17,7 +17,7 @@ document.addEventListener( "DOMContentLoaded", () => {
     const argv = nw.App.argv;
     bind(Store).to(IStore).singleton();
 
-    let url, app;
+    let url, app, width = 1024;
     
     if( argv[0] && !/.*\.js$/.test(argv[0]) ){
 	let hnd = 0;
@@ -60,6 +60,11 @@ document.addEventListener( "DOMContentLoaded", () => {
 	}
 	
     }
+
+    if( url )
+	width = 375;
+
+    nw.Window.get().resizeTo( width, 600 );
 
     app = boot({
         main:App,
