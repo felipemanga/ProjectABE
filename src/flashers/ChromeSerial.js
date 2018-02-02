@@ -90,7 +90,7 @@ class ChromeSerial {
 	let source = this.app.root.getModel( path, false );
 	if( !source ) return;
 	let build = source.getItem(["build.hex"]);
-	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?")) ) return;
+	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?\nRemember to press and hold the Up button on the Arduboy.")) ) return;
 
 	let buffer = Hex.parse( build ).data;
 	let size = buffer.length;
@@ -245,7 +245,7 @@ class ChromeSerial {
 	function reset(){
 	    if( resetCount >= 10 ){
 		state = "done";
-		message = "Could not connect to device. Did you hold the Up button?";
+		message = "Could not connect to device.\nDid you hold the Up button?";
 		return;
 	    }
 
@@ -285,6 +285,7 @@ class ChromeSerial {
 	}
 
 	busy = true;
+	var firstTry = true;
 	
 	let hnd = setInterval( _ => {
 
@@ -295,14 +296,19 @@ class ChromeSerial {
 	    }else
 		serial.getDevices().then( list => {
 
+		    let found = !firstTry;
+
 		    list.forEach( device => {
 
 			let c = compat.find( fp => match(device, fp) );
 			
-			if( devices[ device.path ] && match( device, devices[device.path].fp) )
+			if( devices[ device.path ] && match( device, devices[device.path].fp) ){
+			    found = true;
 			    return;
+			}
 
 			if( c ){
+			    found = true;
 			    device = devices[ device.path ] = Object.assign({ fp:c }, c, device );
 			    device.onMatch();
 			}else{
@@ -310,6 +316,13 @@ class ChromeSerial {
 			}
 
 		    });
+
+		    if( !found && firstTry ){
+			state = "done";
+			message = "Arduboy not found";
+		    }
+
+		    firstTry = false;
 
 		});
 	    

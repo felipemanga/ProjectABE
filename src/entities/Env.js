@@ -129,6 +129,8 @@ class Env extends IController {
 	    fr.onload = evt => {
 		this.model.removeItem("app.AT32u4");		
 		this.model.setItem("app.AT32u4.hex", fr.result);
+		let source = this.model.getModel( this.model.getItem("app.srcpath"), true );
+		source.setItem(["build.hex"], fr.result);
 		this.pool.call("runSim");
 	    };
 	    fr.readAsText(file);

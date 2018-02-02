@@ -452,7 +452,7 @@ void loop() {
 		loadImageFile.call( this, file );
 	    if( /.*\.zip$/i.test(file.name) )
 		loadZipFile.call( this, file );
-	    if( /.*\.(cpp|ino|h|hpp)/i.test(file.name) )
+	    if( /.*\.(cpp|ino|h|hpp)$/i.test(file.name) )
 		loadSourceFile.call( this, file );
 	}
 

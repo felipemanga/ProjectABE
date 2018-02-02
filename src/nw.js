@@ -50,6 +50,15 @@ document.addEventListener( "DOMContentLoaded", () => {
 	
 	url = "file://" + argv[0].replace(/\\/g, "/");
 	
+    }else{
+	
+	let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
+	if( match ){
+	    url = match[1];
+	    if( /^https?%.*/.test(url) )
+		url = decodeURIComponent(url);
+	}
+	
     }
 
     app = boot({
@@ -61,7 +70,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 	    ram:{
 		autoRun: url,
 		hasFlasher: true,
-		debuggerEnabled: undefined
+		debuggerEnabled: /* */ undefined /*/ true /* */
 	    }
 	}
     });
