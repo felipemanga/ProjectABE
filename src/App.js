@@ -75,12 +75,23 @@ class App {
 
         setInterval( this.commit.bind(this), 3000 );
 
-        var pending = 2;
+        var pending = 2, dropFile = event => {
+	    this.pool.call("onDropFile", new DOM(event.target), event);
+	};
+
         this.openModel( "app", done.bind(this) );
         setTimeout( done.bind(this), 1000 );
 
 	window.addEventListener("resize", _ => this.pool.call("onResizeWindow"));
+	document.body.addEventListener("dragenter", cancelEvent);
+	document.body.addEventListener("dragover", cancelEvent);
+	document.body.addEventListener("drop", dropFile);
 
+	function cancelEvent( event ){
+	    event.stopPropagation();
+	    event.preventDefault();
+	}
+	
         function done(){
             pending--;
             if( !pending )
