@@ -196,6 +196,7 @@ void loop() {
 	editor.resize(true);
 	
 	editor.session.on( "change", _ => this.commit() );
+	editor.session.setOptions({ tabSize: 2 });
 
 	let getLineAddress = ( line ) => {
 	    var file = this.DOM.currentFile.value;

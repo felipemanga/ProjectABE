@@ -80,17 +80,17 @@ class ChromeSerial {
     }
 
     onPressKeyU(){
-	setTimeout( _ => this.doFlash(), 10 );
+	setTimeout( _ => this.doFlash( true ), 10 );
     }
 
-    doFlash(){
+    doFlash( mustConfirm ){
 	if( busy ) return;
 	let path = this.app.root.getItem("app.srcpath");
 	if( !path ) return;
 	let source = this.app.root.getModel( path, false );
 	if( !source ) return;
 	let build = source.getItem(["build.hex"]);
-	if( !build || !confirm("Upload game to Arduboy?") ) return;
+	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?")) ) return;
 
 	let buffer = Hex.parse( build ).data;
 	let size = buffer.length;
