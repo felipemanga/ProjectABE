@@ -1,4 +1,8 @@
-import Hex from '../atcore/Hex.js';
+// import Hex from '../atcore/Hex.js';
+
+var Hex = require('intel-hex');
+
+var busy = false;
 
 function abtostr( buffer ){
     let str = '';
@@ -80,6 +84,7 @@ class ChromeSerial {
     }
 
     doFlash(){
+	if( busy ) return;
 	let path = this.app.root.getItem("app.srcpath");
 	if( !path ) return;
 	let source = this.app.root.getModel( path, false );
@@ -87,8 +92,9 @@ class ChromeSerial {
 	let build = source.getItem(["build.hex"]);
 	if( !build || !confirm("Upload game to Arduboy?") ) return;
 
-	let buffer = new Uint8Array( 28672 );
-	let size = Hex.parse( build, buffer );
+	let buffer = Hex.parse( build ).data;
+	let size = buffer.length;
+	let resetCount = 0;
 
 	let state = "search", message, devices = {}, compat = [
 	    {
@@ -196,20 +202,20 @@ class ChromeSerial {
 		    flashChunkSize = fcs;
 		    return erase(id);
 		})
-		.then( ok => serial.write( id, [d['A'], 0, 0]) )
+		.then( ok => serial.write( id, [d('A'), 0, 0]) )
 		.then( ok => {
 		    return new Promise( (ok, nok) => {
 			let p = 0;
 			send();
 			
 			function send(){
-			    if( p == size ){
+			    if( p >= size ){
 				ok();
 				return;
 			    }
 				
-			    let e = Math.min( flashChunkSize, size - p );
-			    let chunk = buffer.slice(p, p+e);
+			    let chunk = buffer.slice(p, p+flashChunkSize);
+			    let e = chunk.length;
 			    p += e;
 			    serial
 				.write( id, [d('B'), (e >> 8) & 0xFF, e & 0xFF, d('F'), ... chunk])
@@ -224,7 +230,7 @@ class ChromeSerial {
 		.then( ok => serial.disconnect( id ) )
 		.then( ok => {
 		    state = "done";
-		    message = "done " + ok;
+		    message = "Done!";
 		    // forget(this);
 		})	    
 		.catch( _ => {
@@ -237,6 +243,12 @@ class ChromeSerial {
 	}
 
 	function reset(){
+	    if( resetCount >= 10 ){
+		state = "done";
+		message = "Could not connect to device. Did you hold the Up button?";
+		return;
+	    }
+
 	    let connectionId;
 	    
 	    serial.connect( this.path, { bitrate:1200 } )
@@ -252,6 +264,7 @@ class ChromeSerial {
 		.then( ok => serial.wait( 10 ) )
 		.then( ok => {
 		    console.log("Reset complete", connectionId );
+		    resetCount++;
 		    forget(this);
 		})
 		.catch( _ => {
@@ -270,12 +283,15 @@ class ChromeSerial {
 	    
 	    return true;
 	}
+
+	busy = true;
 	
 	let hnd = setInterval( _ => {
 
 	    if( state != "search" ){
 		clearInterval( hnd );
 		alert( message );
+		busy = false;
 	    }else
 		serial.getDevices().then( list => {
 

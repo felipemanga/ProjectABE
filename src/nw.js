@@ -11,26 +11,15 @@ import * as components from './components/*.js';
 
 import Flasher from './flashers/ChromeSerial.js';
 
-/*
-const electron = window.require('electron');
-const fs = window.require('fs');
-
-electron.webFrame.registerURLSchemeAsPrivileged('file', { bypassCSP: true });
-
-const remote = electron.remote;
-const argv = remote.getGlobal('argv');
-*/
-const argv = nw.App.argv;
+const fs = window.require("fs");
 
 document.addEventListener( "DOMContentLoaded", () => {
-
+    const argv = nw.App.argv;
     bind(Store).to(IStore).singleton();
-
-//    console.log( argv );
 
     let url, app;
     
-    if( argv[1] && !/.*\.js$/.test(argv[1]) ){
+    if( argv[0] && !/.*\.js$/.test(argv[0]) ){
 	let hnd = 0;
 	let watcher;
 
@@ -40,7 +29,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 		watcher.close();
 
 	    watcher = fs.watch(
-		argv[1],
+		argv[0],
 		{ persistent:false },
 		_ => {
 		    if( hnd ) clearTimeout(hnd);
@@ -59,7 +48,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 
 	watch();
 	
-	url = "file://" + argv[1].replace(/\\/g, "/");
+	url = "file://" + argv[0].replace(/\\/g, "/");
 	
     }
 
