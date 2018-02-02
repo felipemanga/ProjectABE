@@ -96,6 +96,11 @@ class ChromeSerial {
 	let size = buffer.length;
 	let resetCount = 0;
 
+	if( size > 28672 ){
+	    alert("Sketch is too big!");
+	    return;
+	}
+
 	let state = "search", message, devices = {}, compat = [
 	    {
 		productId:0x8036,
