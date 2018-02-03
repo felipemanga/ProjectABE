@@ -86,7 +86,7 @@ h1 {
 }
 
 h2 {
-    margin-left: 50px;
+    margin: 30px 20px 10px 30px;
     font-style: italic;
 }
 
@@ -842,6 +842,18 @@ canvas:fullscreen{
     content: attr(data-text);
 }
 
+.embed #content {
+    display: none;
+}
+
+#embed {
+    flex-grow: 1;
+    display: none;
+}
+
+.embed #embed {
+    display: block;
+}
 
 #content h2, #content
  h3 {
@@ -866,6 +878,10 @@ canvas:fullscreen{
     background-color: #234;
 }
 
+#leftBar ul {
+    margin-top: 0;
+}
+
 #content {
     background: #123;
     overflow: auto;
@@ -883,7 +899,11 @@ canvas:fullscreen{
     overflow: hidden;
 }
 
-.reponav li {
+.linknav {
+    overflow: auto;
+}
+
+.reponav li, .linknav li {
     list-style: none;
     margin: 10px;
     cursor: pointer;
