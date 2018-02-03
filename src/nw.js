@@ -100,5 +100,22 @@ document.addEventListener( "DOMContentLoaded", () => {
     });
 
     app.pool.add(new Flasher( app ));
+    app.pool.add({
+	embed(url){
+	    
+	    let parent = document.getElementById("embed");
+	    let wv = parent.children[0];
+
+	    document.getElementById("main").classList.add("embed");
+
+	    if( !wv ){
+		wv = document.createElement("webview");
+		parent.appendChild( wv );
+	    }
+
+	    wv.src = url;
+
+	}
+    });
 
 } );

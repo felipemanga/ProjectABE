@@ -452,8 +452,8 @@ function prepareDOM( dom, controller, _model, viewdom ){
             var key = element.attributes[i].name;
             var value = element.attributes[i].value;
 
-            var parts = key.split("-");
-            
+            var parts = key.replace(/-[0-9]+$/, "").split("-");
+
             if( parts.length == 2 )
                 switch( parts[1] ){
 		case "hide":

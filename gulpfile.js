@@ -113,7 +113,8 @@ function swallowError (error) {
 }
 
 gulp.task('build', function () {
-
+    throw "Deprecated. Use nw-build instead";
+    
   var b = browserify({
     entries: './src/pc.js',
     debug: true

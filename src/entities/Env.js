@@ -144,15 +144,28 @@ class Env extends IController {
 	
     }
 
+    embed( dom, evt ){
+	if( dom && evt )
+	    this.pool.call("embed", evt.target.dataset.url);
+    }
+
     preview( opt ){
 	let key = opt.element.dataset.key;
 	let item = this.model.getModel(["ram", "repo", "items", key], false);
 	item = JSON.parse( JSON.stringify(item.data) );
+	try{
+	    item.aburl = 'arduboy:' + item.binaries[0].filename;
+	}catch( ex ){
+	    item.aburl = '';
+	}
 	this.model.setItem("ram.preview", item);
     }
 
     upload( opt ){
-	this.load( opt, _ => this.pool.call("doFlash") );
+	if( this.model.getItem("ram.hasFlasher") )
+	    this.load( opt, _ => this.pool.call("doFlash") );
+	else
+	    window.open( this.model.getItem("ram.preview.aburl") );
     }
     
     play( opt ){

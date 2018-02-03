@@ -35,6 +35,10 @@ setTimeout( function(){
 		debuggerEnabled:true
 	    }
 	}
+    }).pool.add({
+	embed(url){
+	    window.open(url);
+	}
     });
 
 }, 2000);
