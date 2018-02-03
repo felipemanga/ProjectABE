@@ -130,7 +130,7 @@ class ChromeSerial {
 		serial.write( id, 'S' ).then( ok => serial.read( id ) )
 		    .then( data => {
 			data = abtostr(data);
-			if( data !== 'CATERIN' ){
+			if( data !== 'CATERIN' && data !== 'ARDUBOY' ){
 			    state = "done";
 			    message = "Unsupported device: " + data;
 			    throw new Error(message);
