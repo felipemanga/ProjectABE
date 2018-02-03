@@ -148,6 +148,7 @@ class ChromeSerial {
 			    throw new Error('Buffered memory access not supported.');
 			}
 			flashChunkSize = (data[1]<<8) + data[2];// d.readUInt16BE(1);
+			resetCount = 0;
 		    })
 		    .then( ok => serial.write(id,'t'))
 		    .then( ok => serial.write(id,'TD'))
@@ -296,14 +297,18 @@ class ChromeSerial {
 
 	    if( state != "search" ){
 		clearInterval( hnd );
-		alert( message );
+		// alert( message );
+		document.title = message;
 		busy = false;
 	    }else
 		serial.getDevices().then( list => {
 
 		    let found = !firstTry;
+		    let keepAlive = {};
 
 		    list.forEach( device => {
+
+			keepAlive[ device.path ] = true;
 
 			let c = compat.find( fp => match(device, fp) );
 			
@@ -328,6 +333,11 @@ class ChromeSerial {
 		    }
 
 		    firstTry = false;
+
+		    for( var k in devices ){
+			if( !keepAlive[k] )
+			    forget(k);
+		    }
 
 		});
 	    
