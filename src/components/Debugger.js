@@ -3,12 +3,11 @@ import JSZip from 'jszip/dist/jszip.min.js';
 import DOM from '../lib/dry-dom.js';
 import loadImage from '../lib/image.js';
 
-const compiler = "https://projectabe.herokuapp.com/";
-
 class Debugger {
 
     static "@inject" = {
         pool:"pool",
+	compiler:"Compiler",
         model: [Model, {scope:"root"}]
     }
 
@@ -1111,100 +1110,39 @@ void loop() {
 		src[key] = this.source.data[key];
 	}
 
-	/*
-	let mainFile = null;
-	Object.keys(src).forEach( k => {
-	    if( /.*\.ino$/.test(k) ){
-		
-		if( !mainFile || k == this.DOM.currentFile.value ){
-		    
-		    if( mainFile )
-			delete src[mainFile];
-		    
-		    mainFile = k;
-		    
-		}else delete src[k];
-		
-	    }
-	});
-	*/
-
 	this.initQRCGen();
-
-	fetch( compiler + "build", {
-	    method:"POST",
-	    body:JSON.stringify( src )
-	})
-	    .then( rsp => rsp.text() )
-	    .then( txt => {
-
-		this.compileId = parseInt(txt);
-		this.pollCompilerService();
+	this.compiler.build( src )
+	    .then( data => {
 		
-	    })
-	    .catch( err => {
-		
-		core.history.push( err.toString() );
-		this.DOM.element.setAttribute("data-tab", "history");
-		this.refreshHistory();
 		this.DOM.compile.style.display = "initial";
-		
-	    });
-    }
+		this.model.removeItem("app.AT32u4");
 
-    pollCompilerService(){
-	
-	fetch( compiler + "poll?id=" + this.compileId )
-	    .then( rsp => rsp.text() )
-	    .then( txt => {
-		
-		if( txt == "DESTROYED" ){
-		    
-		    this.compileId = null;
-		    this.compile();
-		    return;
-		    
-		}else if( txt[0] == "{" ){
-		    
-		    let data = JSON.parse( txt );
-		    this.model.removeItem("app.AT32u4");
+		if( data.path )
+		    this.updateQRCode( data.path );
 
-		    this.updateQRCode( compiler + data.path );
-		    
-		    fetch( compiler + data.path )
-			.then( rsp => rsp.text() )
-			.then( text => {
-			    
-			    this.model.setItem("app.AT32u4.hex", text);
-			    this.source.setItem(["build.hex"], text);
-			    this.pool.call("loadFlash");
-			});
-
+		if( data.disassembly ){
 		    this.initHints( data.disassembly );
-		    this.DOM.compile.style.display = "initial";
-		    
 		    this.source.setItem(["disassembly.s"], data.disassembly);
-		    
-		}else if( /^ERROR[\s\S]*/.test(txt) ){
-
-		    txt.split("\n").forEach( p => core.history.push(p) );
-
-		    this.DOM.element.setAttribute("data-tab", "history");
-		    this.refreshHistory();
-		    this.DOM.compile.style.display = "initial";
-		    
-		}else
-		    setTimeout( _ => this.pollCompilerService(), 3000 );
+		}
+		
+		this.model.setItem("app.AT32u4.hex", data.hex);
+		this.source.setItem(["build.hex"], data.hex);
+		this.pool.call("loadFlash");		
 		
 	    })
 	    .catch( err => {
-		
-		core.history.push( err.toString() );
+
+		if( typeof err != "string" )
+		    err = err.toString();
+		    
+		err.split("\n").forEach( p => core.history.push(p) );
+
 		this.DOM.element.setAttribute("data-tab", "history");
 		this.refreshHistory();
 		this.DOM.compile.style.display = "initial";
-		
+
 	    });
+
     }
     
     refreshRAM( ignoreAuto ){

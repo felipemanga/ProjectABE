@@ -6,6 +6,8 @@ import IStore from './store/IStore.js';
 import Store from './store/NW.js';
 import { Model, boot } from './lib/mvc.js';
 
+import LocalCompiler from './compilers/LocalCompiler.js';
+
 import * as entities from './entities/*.js';
 import * as components from './components/*.js';
 
@@ -16,6 +18,7 @@ const fs = window.require("fs");
 document.addEventListener( "DOMContentLoaded", () => {
     const argv = nw.App.argv;
     bind(Store).to(IStore).singleton();
+    bind(LocalCompiler).to('Compiler').singleton();
 
     let url, app, width = 1024;
     

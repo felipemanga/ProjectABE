@@ -7,6 +7,8 @@ import IStore from './store/IStore.js';
 import Store from './store/Forage.js';
 import { Model, boot } from './lib/mvc.js';
 
+import CloudCompiler from './compilers/CloudCompiler.js';
+
 import * as entities from './entities/*.js';
 import * as components from './components/*.js';
 
@@ -14,6 +16,7 @@ document.addEventListener( "DOMContentLoaded", () => {
 setTimeout( function(){
 
     bind(Store).to(IStore).singleton();
+    bind(CloudCompiler).to('Compiler').singleton();
 
     let url;
     let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
