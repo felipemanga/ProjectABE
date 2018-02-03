@@ -302,7 +302,10 @@ class SCREEN {
     cmdA0(){ this.segmentRemap = 0; }
     cmdA1(){ this.segmentRemap = 1; }
 
-    cmdA5(){ console.log("multiplex something or other");  }; // multiplex something or other
+    cmdA5(){
+	this.activeBuffer = this.fbON;
+	this.dirty = true;
+    };
 
     cmd0(){ this.colStart = this.colStart&0xF0 | 0; }
     cmd1(){ this.colStart = this.colStart&0xF0 | 0x1; }
@@ -375,8 +378,8 @@ class SCREEN {
     }
 
   // Entire Display ON
-    cmdA4( v ){
-	this.activeBuffer = v ? this.fbON : this.fb;
+    cmdA4(){
+	this.activeBuffer = this.fb;
 	this.dirty = true;
     }
     
