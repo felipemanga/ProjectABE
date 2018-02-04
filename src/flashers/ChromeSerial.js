@@ -336,7 +336,7 @@ class ChromeSerial {
 
 		    for( var k in devices ){
 			if( !keepAlive[k] )
-			    forget(k);
+			    forget(devices[k]);
 		    }
 
 		});
