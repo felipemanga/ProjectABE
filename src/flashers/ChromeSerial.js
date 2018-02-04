@@ -101,6 +101,19 @@ class ChromeSerial {
 	    return;
 	}
 
+	let logarr = [], loghnd;
+	function log( ...args ){
+	    logarr.push( args.join(' ') );
+	    if( loghnd ) clearTimeout( loghnd );
+	    setTimeout( _ => {
+		let parent = document.getElementsByClassName('linknav');
+		if( parent && parent.length ){
+		    parent = parent[0];
+		    parent.textContent = logarr.join('\n');
+		}
+	    }, 5000 );
+	}
+
 	let state = "search", message, devices = {}, compat = [
 	    {
 		productId:0x8036,
