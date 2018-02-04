@@ -14,22 +14,95 @@ The arduino-preprocessor tool takes care to handle this last step.
 
 */
 
+function normalize( path ){
+    return path.replace(/\\/, '/')
+	.replace( /\/\.?\/|\/[^\/]\/\.\.\//g, '/' )
+	.replace(/\/+/g, '/');
+}
+
 class LocalCompiler {
+
     
-    function build( data ){
+    
+    build( srcdata ){
+
+	let data = {};
+	for( let k in srcdata )
+	    data[ normalize(k) ] = srcdata[k];
 	
 	let ino =
+	    '#include <Arduino.h>\n' +
 	    Object
 	    .keys( data )
 	    .filter( name => /\.ino$/i.test(name) )
-	    .reduce( (name, acc) => acc + data[name], '' );
+	    .reduce( (acc, name) => acc + data[name], '' );
 
-	console.log( ino );
+	let libs = this.getLibList(ino, data);
+
+	console.log( ino, libs );
 
 	return new Promise( (ok, nok) => {
 	    setTimeout( _ => nok('boom'), 100 );
 	});
 	
+    }
+
+    getLibList( ino, files ){
+	let libs = {};
+	let state = 0;
+	
+	for( let i=0, l=ino.length; i<l; ++i ){
+	    let ch = ino[i];
+	    switch( state ){
+	    case 0:
+		switch( ch ){
+		case '"': state = 1; break;
+		case '/': state = 2; break;
+		case '#': state = 3; break;
+		}
+		break;
+	    case 1:
+		switch( ch ){
+		case '"': state = 0; break;
+		case '\\': ++i; break;
+		}
+		break;
+	    case 2:
+		switch( ch ){
+		case '*': state = 4; break;
+		case '/': state = 6; break;
+		default: state = 0; break;
+		}
+		break;
+	    case 3:
+		{
+		    let exp = /include\s*["<]([^">]+)[">]/yi;
+		    exp.lastIndex = i;
+		    let match = exp.exec( ino );
+		    if( match ){
+			i += match[0].length;
+			let path = normalize(match[1]);
+			if( !(path in files) )
+			    libs[path] = "";
+		    }
+		    state = 0;
+		    break;
+		}
+	    case 4:
+		if( ch == '*' ) state = 5;
+		break;
+	    case 5:
+		if( ch == '/' ) state = 0;
+		else if( ch != '*' ) state = 4;
+		break;
+	    case 6:
+		if( ch == '\n' ) state = 0;
+		break;
+	    }
+	}
+
+	return libs;
+
     }
     
 };
