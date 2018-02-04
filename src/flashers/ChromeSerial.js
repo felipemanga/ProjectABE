@@ -113,6 +113,11 @@ class ChromeSerial {
 		onMatch: upload
 	    },
 	    {
+		productId:0x8037,
+		vendorId:9025,
+		onMatch: reset
+	    },
+	    {
 		productId:0x0037,
 		vendorId:9025,
 		onMatch: upload
@@ -120,8 +125,15 @@ class ChromeSerial {
 	];
 
 	function forget( obj ){
+	    
+	    if( obj.connectionId )
+		serial.disconnect( obj.connectionId );
+
+	    obj.connectionId = 0;
+	    
 	    if( devices[obj.path] == obj )
 		delete devices[obj.path];
+	    
 	}
 
 	function prepare( id ){
@@ -198,7 +210,8 @@ class ChromeSerial {
 	    serial.connect( this.path, { bitrate:57600 } )
 		.then( desc => {
 
-		    id = desc.connectionId;
+		    id = this.connectionId = desc.connectionId;
+
 		    console.log( "Uploading to ", desc );
 
 		    return prepare(id);
@@ -226,25 +239,25 @@ class ChromeSerial {
 			    serial
 				.write( id, [d('B'), (e >> 8) & 0xFF, e & 0xFF, d('F'), ... chunk])
 				.then( ok => { send(); } )
-				.catch( err => nok("Transmission error: ", err ) );
+				.catch( err => nok("Transmission error: " + err ) );
 			};
 		    });
 		})
 		.then( ok => fuseCheck( id ) )
 		.then( ok => serial.flush( id ) )
 		.then( ok => serial.wait( 500 ) )
-		.then( ok => serial.disconnect( id ) )
+		.then( ok => {
+		    this.connectionId = 0;
+		    serial.disconnect( id )
+		})
 		.then( ok => {
 		    state = "done";
 		    message = "Done!";
 		    // forget(this);
 		})	    
-		.catch( _ => {
-
-		    console.warn("Could not connect to ", this.path);
+		.catch( ex => {
+		    document.title = "ERROR: " + ex.toString();
 		    forget(this);
-		    return;
-
 		});
 	}
 
@@ -259,15 +272,17 @@ class ChromeSerial {
 	    
 	    serial.connect( this.path, { bitrate:1200 } )
 		.then( obj =>{
-		    connectionId = obj.connectionId;
+		    connectionId = this.connectionId = obj.connectionId;
 		    return serial.wait( 10 );
 		})
 		.then( ok => serial.setControlSignals( connectionId, {dtr:true, rts:true} ) )
 		.then( ok => serial.setControlSignals( connectionId, {dtr:false, rts:false} ) )
 		.then( ok => serial.flush( connectionId ) )
 		.then( ok => serial.wait( 500 ) )
-		.then( ok => serial.disconnect( connectionId ) )
-		.then( ok => serial.wait( 10 ) )
+		.then( ok => {
+		    this.connectionId = 0;
+		    serial.disconnect( connectionId );
+		})
 		.then( ok => {
 		    console.log("Reset complete", connectionId );
 		    resetCount++;
