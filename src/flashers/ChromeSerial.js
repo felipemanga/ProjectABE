@@ -20,7 +20,7 @@ let idReadMap = {};
 let serial = {
     wait:function( time ){
 	return new Promise( (ok, nok) => {
-	    setTimeout( ok, time );
+	    setTimeout( _ => ok(true), time );
 	});
     },
 
@@ -63,7 +63,7 @@ Object.keys(chrome.serial).forEach( k => {
 	return new Promise( (ok, nok) => {
 	    let full = [...args, (arg) => {
 		if( !arg ) nok();
-		ok( arg );
+		else ok( arg );
 	    }];
 	    try{
 		chrome.serial[k].apply( chrome.serial, full );
@@ -74,6 +74,8 @@ Object.keys(chrome.serial).forEach( k => {
     };
 });
 
+let _logcontainer;
+
 class ChromeSerial {
     constructor( app ){
 	this.app = app;
@@ -81,6 +83,11 @@ class ChromeSerial {
 
     onPressKeyU(){
 	setTimeout( _ => this.doFlash( true ), 10 );
+    }
+
+    onPressEscape(){
+	if( _logcontainer )
+	    _logcontainer.style.display = "none";
     }
 
     doFlash( mustConfirm ){
@@ -101,17 +108,27 @@ class ChromeSerial {
 	    return;
 	}
 
-	let logarr = [], loghnd;
+	_logcontainer = document.getElementsByTagName("log");
+	if( _logcontainer[0] )
+	    _logcontainer = _logcontainer[0];
+	else{
+	    _logcontainer = document.createElement("log");
+	    document.body.appendChild( _logcontainer );
+	}
+	    
 	function log( ...args ){
-	    logarr.push( args.join(' ') );
-	    if( loghnd ) clearTimeout( loghnd );
-	    setTimeout( _ => {
-		let parent = document.getElementsByClassName('linknav');
-		if( parent && parent.length ){
-		    parent = parent[0];
-		    parent.textContent = logarr.join('\n');
-		}
-	    }, 5000 );
+	    if( !_logcontainer ) return;
+	    let c = document.createElement("div");
+	    c.textContent = args.join(" ");
+	    _logcontainer.appendChild( c );
+	}
+	function active(){
+	    return !_logcontainer || (_logcontainer && _logcontainer.style.display == "block");
+	}
+	if( _logcontainer ){
+	    while( _logcontainer.children.length )
+		_logcontainer.removeChild( _logcontainer.children[0] );
+	    _logcontainer.style.display = "block";
 	}
 
 	let state = "search", message, devices = {}, compat = [
@@ -139,8 +156,10 @@ class ChromeSerial {
 
 	function forget( obj ){
 	    
+	    log( obj.path, "Forgetting ", obj.connectionId );
+	    
 	    if( obj.connectionId )
-		serial.disconnect( obj.connectionId );
+		serial.disconnect( obj.connectionId ).then( _ => {} ).catch( _ => {} );
 
 	    obj.connectionId = 0;
 	    
@@ -225,13 +244,14 @@ class ChromeSerial {
 
 		    id = this.connectionId = desc.connectionId;
 
-		    console.log( "Uploading to ", desc );
+		    log( this.path, "Uploading" );
 
 		    return prepare(id);
 
 		})
 		.then( fcs => {
 		    flashChunkSize = fcs;
+		    log( this.path, "FCS: ", flashChunkSize );
 		    return erase(id);
 		})
 		.then( ok => serial.write( id, [d('A'), 0, 0]) )
@@ -252,24 +272,33 @@ class ChromeSerial {
 			    serial
 				.write( id, [d('B'), (e >> 8) & 0xFF, e & 0xFF, d('F'), ... chunk])
 				.then( ok => { send(); } )
-				.catch( err => nok("Transmission error: " + err ) );
+				.catch( err => nok(new Error("Transmission error: " + err) ) );
 			};
 		    });
 		})
-		.then( ok => fuseCheck( id ) )
-		.then( ok => serial.flush( id ) )
-		.then( ok => serial.wait( 500 ) )
 		.then( ok => {
-		    this.connectionId = 0;
-		    serial.disconnect( id )
+		    log( this.path, "FuseCheck"); 
+		    fuseCheck( id );
 		})
+		.then( ok => serial.flush( id ) )
+		.then( ok => serial.wait( 100 ) )
 		.then( ok => {
-		    state = "done";
-		    message = "Done!";
-		    // forget(this);
-		})	    
+		    log( this.path, "Complete. Disconnect Arduboy.");
+		    
+		    let ping = () => {
+			serial.write( id, [d('g'), 0, 0, 0])
+			    .then( ok => serial.wait(1000) )
+			    .then( ok => {
+				ping();
+			    })
+			    .catch( err => forget( this ) );
+		    }
+
+		    ping();
+
+		})
 		.catch( ex => {
-		    document.title = "ERROR: " + ex.toString();
+		    log( this.path, "Error", ex );
 		    forget(this);
 		});
 	}
@@ -282,27 +311,40 @@ class ChromeSerial {
 	    }
 
 	    let connectionId;
+
+	    log( this.path, ": Reset started" );
 	    
 	    serial.connect( this.path, { bitrate:1200 } )
 		.then( obj =>{
 		    connectionId = this.connectionId = obj.connectionId;
+		    log( this.path, "Connected" );
 		    return serial.wait( 10 );
 		})
-		.then( ok => serial.setControlSignals( connectionId, {dtr:true, rts:true} ) )
-		.then( ok => serial.setControlSignals( connectionId, {dtr:false, rts:false} ) )
-		.then( ok => serial.flush( connectionId ) )
+		.then( ok => {
+		    log( this.path, "DTR=true" );
+		    return serial.setControlSignals( connectionId, {dtr:true, rts:true} )
+		})
+		.then( ok => {
+		    log( this.path, "DTR=false" );
+		    return serial.setControlSignals( connectionId, {dtr:false, rts:false} )
+		})
+		.then( ok => {
+		    log( this.path, "flush" );
+		    return serial.flush( connectionId );
+		})
 		.then( ok => serial.wait( 500 ) )
 		.then( ok => {
+		    log( this.path, "disconnecting" );
 		    this.connectionId = 0;
 		    serial.disconnect( connectionId );
 		})
 		.then( ok => {
-		    console.log("Reset complete", connectionId );
+		    log( this.path, "Reset complete" );
 		    resetCount++;
 		    forget(this);
 		})
-		.catch( _ => {
-		    console.warn("Error resetting ", this.path);
+		.catch( err => {
+		    log( this.path, "Reset Error", err );
 		    forget(this);
 		});
 
@@ -320,18 +362,19 @@ class ChromeSerial {
 
 	busy = true;
 	var firstTry = true;
+
+	document.title = "Searching for Arduboy. You might need to press UP for it to flash.";
 	
 	let hnd = setInterval( _ => {
 
-	    if( state != "search" ){
+	    if( !active() ){
 		clearInterval( hnd );
 		// alert( message );
-		document.title = message;
+		log( message );
 		busy = false;
 	    }else
 		serial.getDevices().then( list => {
 
-		    let found = !firstTry;
 		    let keepAlive = {};
 
 		    list.forEach( device => {
@@ -341,12 +384,10 @@ class ChromeSerial {
 			let c = compat.find( fp => match(device, fp) );
 			
 			if( devices[ device.path ] && match( device, devices[device.path].fp) ){
-			    found = true;
 			    return;
 			}
 
 			if( c ){
-			    found = true;
 			    device = devices[ device.path ] = Object.assign({ fp:c }, c, device );
 			    device.onMatch();
 			}else{
@@ -354,13 +395,6 @@ class ChromeSerial {
 			}
 
 		    });
-
-		    if( !found && firstTry ){
-			state = "done";
-			message = "Arduboy not found";
-		    }
-
-		    firstTry = false;
 
 		    for( var k in devices ){
 			if( !keepAlive[k] )
