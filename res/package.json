@@ -1,6 +1,4 @@
 {
-  "name": "ProjectABE",
-  "version": "0.6.8",
-  "license": "MIT",
-  "main": "electron.js"
+    "name":"ProjectABE",
+    "main":"index.html"
 }

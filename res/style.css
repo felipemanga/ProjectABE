@@ -875,6 +875,7 @@ log {
     background-color: #345;
     padding: 10px;
     box-sizing: border-box;
+    z-index: 99;
 }
 
 #main {

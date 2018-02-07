@@ -1,0 +1,4 @@
+cp -r build/* ../ProjectABEOffline/linux-x64/www/
+cp -r build/* ../ProjectABEOffline/win32/www/
+cp -r build/* ../ProjectABEOffline/osx-x64/ProjectABE.app/Contents/Resources/app.nw/
+

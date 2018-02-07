@@ -278,20 +278,23 @@ class ChromeSerial {
 		})
 		.then( ok => {
 		    // log( this.path, "FuseCheck"); 
-		    fuseCheck( id );
+		    return fuseCheck( id );
 		})
 		.then( ok => serial.flush( id ) )
-		.then( ok => serial.wait( 100 ) )
 		.then( ok => {
 		    log( this.path, "Complete. Disconnect Arduboy.", id );
 		    
 		    let ping = () => {
+			// log( this.path, "PING" );
 			serial.write( id, [d('g'), 0, 0, 0])
 			    .then( ok => serial.wait(1000) )
 			    .then( ok => {
 				ping();
 			    })
-			    .catch( err => forget( this ) );
+			    .catch( err => {
+				// log( this.path, "Expected error", err );
+				forget( this );
+			    });
 		    }
 
 		    ping();
