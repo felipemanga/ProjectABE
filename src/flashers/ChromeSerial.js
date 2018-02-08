@@ -390,6 +390,9 @@ class ChromeSerial {
 
 			keepAlive[ device.path ] = true;
 
+			if( /.*Bluetooth.*/.test(device.path) || /.*tty\.usbmodem.*/.test(device.path) )
+			    return;			
+
 			let c = compat.find( fp => match(device, fp) );
 			
 			if( devices[ device.path ] && match( device, devices[device.path].fp) ){
