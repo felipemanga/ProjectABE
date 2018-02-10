@@ -1,4 +1,5 @@
 // import Hex from '../atcore/Hex.js';
+import DOM from '../lib/dry-dom.js';
 
 var Hex = require('intel-hex');
 
@@ -62,7 +63,7 @@ Object.keys(chrome.serial).forEach( k => {
     serial[k] = function( ...args ){
 	return new Promise( (ok, nok) => {
 	    let full = [...args, (arg) => {
-		if( !arg ) nok();
+		if( !arg || chrome.runtime.lastError ) nok( chrome.runtime.lastError );
 		else ok( arg );
 	    }];
 	    try{
@@ -74,11 +75,119 @@ Object.keys(chrome.serial).forEach( k => {
     };
 });
 
-let _logcontainer;
+let _logcontainer, _log, _verbose, dom, hnd;
+
+function log( ...args ){
+
+    verbose( ...args );
+
+    if( !_logcontainer ) return;
+    
+    _log.create("div", {textContent:args.join(" ").replace(/^#[^:]+:\s*/, '')});
+    
+    while( _log.length > 1 )
+	_log.shift();
+
+}
+
+function verbose( ...args ){
+    
+    console.log( ...args );
+    
+    if( !_logcontainer )
+	return;
+    
+    _verbose.create("div", {textContent:args.join(" ")});
+    
+}
+
+function active(){
+    return !_logcontainer || (_logcontainer && _logcontainer.style.display == "block");
+}
 
 class ChromeSerial {
     constructor( app ){
 	this.app = app;
+    }
+
+    init(){
+	
+	if( typeof document == "undefined" )
+	    return;
+	
+	let container = document.getElementsByTagName("log");
+	if( !container.length ){
+	    container = [ (new DOM(document.body)).create("log", {
+		style:{
+		    position:'fixed',
+		    top: 0,
+		    left: 0,
+		    right: 0,
+		    bottom: 0,
+		    background: 'rgba(0,0,0,0.5)',
+		    margin: 0,
+		    padding: 0
+		},
+		onclick:(evt)=>{
+		    if( evt.target == _logcontainer )
+			_logcontainer.style.display = 'none';
+		}
+	    }, [
+		['div', {
+		    id:'logWindow',
+		    style:{
+			position: 'absolute',
+			background:'#789',
+			border: '1px solid #123',
+			width: '100%',
+			maxWidth:'640px',
+			height: '100px',
+			maxHeight: '480px',
+			overflow: 'auto',
+			margin: 'auto',
+			left: 0,
+			right: 0,
+			top: 0,
+			bottom: 0,
+			padding: '10px'
+		    },
+		    ondblclick: _=>{
+			if( dom.log.style.display == "none" ){
+			    dom.log.style.display = "flex";
+			    dom.verbose.style.display = "none";
+			} else {
+			    dom.log.style.display = "none";
+			    dom.verbose.style.display = "block";
+			}
+		    }
+		}, [
+		    ['div', {id:'log', style:{
+			fontSize:'2em',
+			textAlign: 'center',
+			height: '100%',
+			display: 'flex',
+			flexDirection: 'column',
+			justifyContent: 'center'
+		    }}],
+		    ['div', {id:'verbose', style:{display:'none'}}]
+		]]
+	    ]) ];
+	}
+	
+	if( _logcontainer == container[0] ){
+	    _logcontainer.style.display = "block";
+	    _log.clear();
+	    _verbose.clear();
+	    return;
+	}
+	_logcontainer = container[0];
+
+	dom = (new DOM(_logcontainer)).index(['id', 'class']);
+	_log = new DOM(dom.log);
+	_verbose = new DOM(dom.verbose);
+	_logcontainer.style.display = "block";
+	_log.clear();	
+	_verbose.clear();
     }
 
     onPressKeyU(){
@@ -97,7 +206,9 @@ class ChromeSerial {
 	let source = this.app.root.getModel( path, false );
 	if( !source ) return;
 	let build = source.getItem(["build.hex"]);
-	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?\nRemember to press and hold the Up button on the Arduboy.")) ) return;
+	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?")) ) return;
+
+	this.init();
 
 	let buffer = Hex.parse( build ).data;
 	let size = buffer.length;
@@ -106,29 +217,6 @@ class ChromeSerial {
 	if( size > 28672 ){
 	    alert("Sketch is too big!");
 	    return;
-	}
-
-	_logcontainer = document.getElementsByTagName("log");
-	if( _logcontainer[0] )
-	    _logcontainer = _logcontainer[0];
-	else{
-	    _logcontainer = document.createElement("log");
-	    document.body.appendChild( _logcontainer );
-	}
-	    
-	function log( ...args ){
-	    if( !_logcontainer ) return;
-	    let c = document.createElement("div");
-	    c.textContent = args.join(" ");
-	    _logcontainer.appendChild( c );
-	}
-	function active(){
-	    return !_logcontainer || (_logcontainer && _logcontainer.style.display == "block");
-	}
-	if( _logcontainer ){
-	    while( _logcontainer.children.length )
-		_logcontainer.removeChild( _logcontainer.children[0] );
-	    _logcontainer.style.display = "block";
 	}
 
 	let state = "search", message, devices = {}, compat = [
@@ -155,8 +243,9 @@ class ChromeSerial {
 	];
 
 	function forget( obj ){
-	    
-	    log( obj.path, "Forgetting ", obj.connectionId );
+
+	    // if( obj.connectionId && devices[obj.path] == obj )	    
+	    verbose(`#${obj.connectionId}[${obj.path}]: Forgetting`);
 	    
 	    if( obj.connectionId )
 		serial.disconnect( obj.connectionId ).then( _ => {} ).catch( _ => {} );
@@ -238,20 +327,20 @@ class ChromeSerial {
 	}
 
 	function upload(){
-	    let id, flashChunkSize;
+	    let id, flashChunkSize, done = false;
 	    serial.connect( this.path, { bitrate:57600 } )
 		.then( desc => {
 
 		    id = this.connectionId = desc.connectionId;
 
-		    log( this.path, "Uploading", id );
+		    log( `#${id}[${this.path}]: Uploading` );
 
 		    return prepare(id);
 
 		})
 		.then( fcs => {
 		    flashChunkSize = fcs;
-		    // log( this.path, "FCS: ", flashChunkSize );
+		    verbose( `#${id}[${this.path}]: `, "FCS: ", flashChunkSize );
 		    return erase(id);
 		})
 		.then( ok => serial.write( id, [d('A'), 0, 0]) )
@@ -277,22 +366,23 @@ class ChromeSerial {
 		    });
 		})
 		.then( ok => {
-		    // log( this.path, "FuseCheck"); 
+		    verbose( `#${id}[${this.path}]: `, "FuseCheck"); 
 		    return fuseCheck( id );
 		})
 		.then( ok => serial.flush( id ) )
 		.then( ok => {
-		    log( this.path, "Complete. Disconnect Arduboy.", id );
-		    
+		    log( `#${id}[${this.path}]: Upload complete. Disconnect Arduboy.` );
+		    done = true;
+
 		    let ping = () => {
-			// log( this.path, "PING" );
+			// log( `#${id}[${this.path}]: `, "PING" );
 			serial.write( id, [d('g'), 0, 0, 0])
 			    .then( ok => serial.wait(1000) )
 			    .then( ok => {
 				ping();
 			    })
 			    .catch( err => {
-				// log( this.path, "Expected error", err );
+				// log( `#${id}[${this.path}]: `, "Expected error", err );
 				forget( this );
 			    });
 		    }
@@ -301,7 +391,10 @@ class ChromeSerial {
 
 		})
 		.catch( ex => {
-		    log( this.path, "Error", ex );
+		    if( !done )
+			log( `#${id}[${this.path}]: ERROR `, ex && ex.message || ex );
+		    else
+			verbose( `#${id}[${this.path}]: EXPECTED `, ex && ex.message || ex );
 		    forget(this);
 		});
 	}
@@ -313,46 +406,50 @@ class ChromeSerial {
 		return;
 	    }
 
-	    let connectionId;
+	    let id = 0, done = false;
 
-	    log( this.path, ": Reset started" );
+	    log( `#${id}[${this.path}]: Reset started` );
 	    
 	    serial.connect( this.path, { bitrate:1200 } )
 		.then( obj =>{
-		    connectionId = this.connectionId = obj.connectionId;
-		    log( this.path, "Connected", connectionId );
+		    id = this.connectionId = obj.connectionId;
+		    verbose( `#${id}[${this.path}]: `, "Connected" );
 		    return serial.wait( 10 );
 		})
 		.then( ok => {
-		    // log( this.path, "DTR=true" );
-		    return serial.setControlSignals( connectionId, {dtr:true, rts:true} )
+		    verbose( `#${id}[${this.path}]: `, "DTR=true" );
+		    return serial.setControlSignals( id, {dtr:true, rts:true} )
 		})
 		.then( ok => {
-		    // log( this.path, "DTR=false" );
-		    return serial.setControlSignals( connectionId, {dtr:false, rts:false} )
+		    done = true;
+		    verbose( `#${id}[${this.path}]: `, "DTR=false" );
+		    return serial.setControlSignals( id, {dtr:false, rts:false} )
 		})
 		.then( ok => {
-		    // log( this.path, "flush" );
-		    return serial.flush( connectionId );
+		    verbose( `#${id}[${this.path}]: `, "flush" );
+		    return serial.flush( id );
 		})
 		.then( ok => serial.wait( 500 ) )
 		.then( ok => {
 		    
-		    // log( this.path, "disconnecting" );
+		    verbose( `#${id}[${this.path}]: `, "disconnecting" );
 		    this.connectionId = 0;
-		    serial.disconnect( connectionId )
+		    serial.disconnect( id )
 			.then( ok => {
-			    log( this.path, "Reset complete" );
+			    verbose( `#${id}[${this.path}]: `, "Reset complete (A)" );
 			    resetCount++;
 			})
 			.catch( err => {
-			    log( this.path, "Reset complete" );
+			    verbose( `#${id}[${this.path}]: `, "Reset complete (B)" );
 			    resetCount++;
 			});
 		    
 		})
 		.catch( err => {
-		    log( this.path, "Reset Error", err );
+		    if( !done )
+			verbose( `#${id}[${this.path}]: `, "Reset Error", err );
+		    else
+			verbose( `#${id}[${this.path}]: `, "Reset complete (C)" );
 		    forget(this);
 		});
 
@@ -371,15 +468,21 @@ class ChromeSerial {
 	busy = true;
 	var firstTry = true;
 
-	log("Flash mode - press Esc to exit");
+	log("Uploader - press Esc to exit");
 	log("Searching for Arduboy.");
+
+	if( hnd )
+	    clearInterval( hnd );
 	
-	let hnd = setInterval( _ => {
+	hnd = setInterval( _ => {
 
 	    if( !active() ){
 		clearInterval( hnd );
 		// alert( message );
-		log( message );
+
+		if( message )
+		    log( message );
+
 		busy = false;
 	    }else
 		serial.getDevices().then( list => {

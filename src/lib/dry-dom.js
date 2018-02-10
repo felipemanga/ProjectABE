@@ -2,11 +2,32 @@ module.exports = DOM;
 
 function DOM( element ){
 
-    if( !element && document && document.body )
+    if( !element && typeof document !== "undefined" && document.body )
         element = document.body;
 
     this.element = element;
 
+    Object.defineProperties( this, {
+
+	length:{
+	    enumerable: false,
+
+	    get:function(){
+		if( !element || !element.children )
+		    return 0;
+		return element.children.length;
+	    },
+	    
+	    set:function( l ){
+		while( l > element.children.length )
+		    this.pop();
+		return element.children.length;
+	    }
+	    
+	}
+
+    });
+    
 }
 
 var spare = null;
@@ -23,10 +44,11 @@ function prototype( obj ){
     
     var desc = {};
     for( var k in obj ){
-        desc[k] = {
-            enumerable:false,
-            value: obj[k]
-        }
+        desc[k] = Object.assign(
+	    {},
+	    Object.getOwnPropertyDescriptor( obj, k ),
+	    { enumerable:false }
+	);
     }
 
     var ret = {};
@@ -145,6 +167,29 @@ var impl = {
 
         }
 
+    },
+
+    shift:function(){
+
+	let c = this.element.firstChild;
+	if( c )
+	    this.element.removeChild(c);
+	return c;
+
+    },
+
+    pop:function(){
+
+	let c = this.element.lastChild;
+	if( c )
+	    this.element.removeChild(c);
+	return c;
+	
+    },
+
+    clear:function(){
+	while( this.element.children.length )
+	    this.element.removeChild( this.element.lastChild );
     },
 
     index:function( keys, multiple, property ){
