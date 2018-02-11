@@ -1,3 +1,5 @@
+import gif1b from '../lib/gif1b.js';
+
 class SCREEN {
     static "@inject" = {
 	pool:"pool"
@@ -51,61 +53,71 @@ class SCREEN {
 
     toggleGIFRecording(){
 	
-		let gif = this.gif;
-		if( !gif ){
-			
-			gif = this.gif = new GIF({
-				workerScript:"gif.worker.js",
-				width: this.canvas.width,
-				height: this.canvas.height
-			});
+	let gif = this.gif;
+	if( !gif ){
+	    this.lastFrameTime = performance.now();
 
-			this.lastFrameTime = performance.now();
+	    if( !this.blinker )
+		this.blinker = this.DOM.create(
+		    "span", {
+			className:"RecordingIndicator"
+		    },
+		    document.body
+		);
 
-			if( !this.blinker )
-			    this.blinker = this.DOM.create(
-				"span", {
-				    className:"RecordingIndicator"
-				},
-				document.body
-			    );
-			
-			gif.on('finished', (blob, data) => {
+	    /* * /
+	    gif = this.gif = new GIF({
+		workerScript:"gif.worker.js",
+		width: this.canvas.width,
+		height: this.canvas.height
+	    });
+	    gif.on('finished', (blob, data) => this._onFinishedRecording(data) );
+	    /*/
+	    gif = this.gif = new gif1b();
+	    /* */
 
-				
-			    if( !this.saver ){
-				
-				this.saver = this.DOM.create("a", {
-				    className:"FileSaver",
-				    textContent:"GIF",
-				    attr:{download:"ArduboyRecording.gif"},
-				    onclick:_=>this.saver.style.display = "none"
-				}, document.body);
-				
-			    }else
-				URL.revokeObjectURL( this.saver.href );
-				
-			    this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
-			    this.saver.style.display = "block";
-			    this.gif = null;
-				
-			});
-
-		}
-		
-		
-		if( this.isRecording ){
-			this.blinker.style.display = "none";
-			gif.render();
-		}else{
-			this.blinker.style.display = "block";
-			if( this.saver )
-				this.saver.style.display = "none";
-		}
-		
-		this.isRecording = !this.isRecording;
+	}
+	
+	
+	if( this.isRecording ){
+	    this.blinker.style.display = "none";
+	    /* * /
+	    gif.render();
+	    /*/
+	    this._onFinishedRecording( gif.write() );
+	    /* */
+	}else{
+	    this.blinker.style.display = "block";
+	    if( this.saver )
+		this.saver.style.display = "none";
+	}
+	
+	this.isRecording = !this.isRecording;
 	
     }
+
+
+    _onFinishedRecording(data){
+
+	
+	if( !this.saver ){
+	    
+	    this.saver = this.DOM.create("a", {
+		className:"FileSaver",
+		textContent:"GIF",
+		attr:{download:"ArduboyRecording.gif"},
+		onclick:_=>this.saver.style.display = "none"
+	    }, document.body);
+	    
+	}else
+	    URL.revokeObjectURL( this.saver.href );
+	
+	this.saver.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
+	this.saver.style.display = "block";
+	this.gif = null;
+	
+    };
+    
 
     setActiveView(){
 		this.pool.remove(this);
@@ -156,7 +168,11 @@ class SCREEN {
 	if( this.isRecording && this.recordingSkip-- <= 0 ){
 	    this.recordingSkip = 2;
 	    this.lastFrameTime = now;
-	    this.gif.addFrame( this.ctx, { copy:true, delay:45 } );
+	    /* * /
+	    this.gif.addFrame( this.ctx, { copy:true, delay:delay/10 } );
+	    /*/
+	    this.gif.add( this.activeBuffer, delay );
+	    /* */
 	}
 	
     }
