@@ -180,60 +180,60 @@ module.exports = function(addrs){
 
 		    switch( WGM ){
 		    case 0:
-			console.log("0- Timer16=Normal TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("0- Timer16=Normal TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 1:
-			console.log("1- Timer16=PWM,PC8b TOP=0xFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("1- Timer16=PWM,PC8b TOP=0xFF UpdateOCRnx=imm TOVn=MAX");
 			this.TOP = 0xFF;
 			break;
 		    case 2:
-			console.log("2- Timer16=PWM,PC9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("2- Timer16=PWM,PC9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.TOP = 0x1FF;
 			break;
 		    case 3:
-			console.log("3- Timer16=PWM,PC10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("3- Timer16=PWM,PC10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.TOP = 0x3FF;
 			break;
 		    case 4:
-			console.log("4- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("4- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.CTC = true;
 			break;
 		    case 5:
-			console.log("5- Timer16=FPWM8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("5- Timer16=FPWM8b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.TOP = 0xFF;
 			break;
 		    case 6:
-			console.log("6- Timer16=FPWM9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("6- Timer16=FPWM9b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.TOP = 0x1FF;
 			break;
 		    case 7:
-			console.log("7- Timer16=FPWM10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("7- Timer16=FPWM10b TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.TOP = 0x3FF;
 			break;
 		    case 8:
-			console.log("8- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("8- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 9:
-			console.log("9- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("9- Timer16=PWMPFC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 10:
-			console.log("10- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("10- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 11:
-			console.log("11- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("11- Timer16=PWMPC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 12:
-			console.log("12- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("12- Timer16=CTC TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			this.CTC = true;
 			break;
 		    case 13:
-			console.log("13- Timer16=RESERVED");
+			// console.log("13- Timer16=RESERVED");
 			break;
 		    case 14:
-			console.log("14- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("14- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    case 15:
-			console.log("15- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
+			// console.log("15- Timer16=FPWM TOP=0xFFFF UpdateOCRnx=imm TOVn=MAX");
 			break;
 		    }
 		}

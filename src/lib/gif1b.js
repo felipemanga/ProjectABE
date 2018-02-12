@@ -70,15 +70,15 @@ class gif1b {
     }
 
     lzw( data, width ){
-	let out;
-	let CC = 4, EOI = 5, nc = 0, op = 0, opoff = 0, bits = 3;
-	let table, string;
+	var out;
+	const CC = 4, EOI = 5;
+	var nc = 0, op = 0, opoff = 0, bits = 3;
+	var table, string;
 
 	let end = () => {
-	    out[0] = op;
-	    // if( opoff )
-		op++;
-	    this.blocks.push( out.slice(0, op+1) );
+	    out[0] = op-1;
+	    // op++;
+	    this.blocks.push( out.slice(0, op) );
 	}
 
 
@@ -87,7 +87,7 @@ class gif1b {
 	    let needsCC = !!out;
 
 	    if( out ){
-		write(CC);
+		// write(table[CC], 0);
 		end();
 	    }
 	    
@@ -96,51 +96,70 @@ class gif1b {
 	    nc = 0;
 	    table = [];
 	    string = table;
-	    (table[0] = []).code = nc++;
-	    (table[1] = []).code = nc++;
-	    table.length = nc = EOI+1;
+	    table[0] = [,,nc++];
+	    table[1] = [,,nc++];
+	    table[2] = [];
+	    table[3] = [];
+	    table[CC] = [,,CC];
+	    table[EOI] = [,,EOI];
+	    nc = CC+2;
 	    op = 0;
 	    opoff = 0;
 	    out[op++] = 0;
-	    bits = 3;
-	    if( needsCC )
-		write(CC);
+
+	    write(table[CC], 0);
+
 	}
 
 	for( let i=0; i<data.length; i+=4 ){
-	    if( bits > 12 || !(op%128) ){
+	    if( !out || ((op > 128 || bits>11) && !((bits+opoff)%8)) ){
 		if( string )
-		    write( string.code );
+		    write( string, 0 );
 		init();
 	    }
 	    
 	    let ch = data[i] > 128 ? 1 : 0;
-	    if( string[ch] ){
+	    if( string[ch] )
 		string = string[ch];
-	    }else{
-		write( string.code );
-		(string[ch] = []).code = nc++;
-		string = table[ch];
-	    }
+	    else
+		write( string, ch );
 	}
 
-	write( string.code );
+	write( string, 0 );
 	op++;
 	end();
+	this.blocks.push( BYTE(0) );
 
 	function mask( bits ){
 	    return ((~0)>>>(31-(bits-1)));
 	}
 
-	function write( v ){
-	    out[op] |= v << opoff;
+	function write( arr, next ){
+	    if( arr == table )
+		return;
+
+	    let code = arr[2]|0;
+	    // console.log( code );
+
+	    out[op] |= code << opoff;
 	    opoff += bits;
-	    if( opoff >= 8 ){
+	    while( opoff >= 8 ){
 		opoff -= 8;
 		op++;
-		out[op] = v >>> (bits - opoff);
+		out[op] = code >>> (bits - opoff);
 	    }
-	    if( v == mask(bits) ) bits++;
+
+	    if( nc == mask(bits)+1 )
+		bits++;
+	    
+	    if( arr != table[CC] ){
+		arr[next] = [,,nc++];
+		string = table[ next ];
+	    }else{
+		string = table;
+		bits = 3;
+	    }
+
 	}
 	
     }
