@@ -53,7 +53,7 @@ class SCREEN {
 
     toggleGIFRecording(){
 	
-	let gif = this.gif;
+	let gif = this.gif1b;
 	if( !gif ){
 	    this.lastFrameTime = performance.now();
 
@@ -66,14 +66,13 @@ class SCREEN {
 		);
 
 	    /* * /
-	    gif = this.gif = new GIF({
+	    (this.gif = new GIF({
 		workerScript:"gif.worker.js",
 		width: this.canvas.width,
 		height: this.canvas.height
-	    });
-	    gif.on('finished', (blob, data) => this._onFinishedRecording(data) );
+	    })).on('finished', (blob, data) => this._onFinishedRecording(data) );
 	    /*/
-	    gif = this.gif = new gif1b();
+	    this.gif1b = new gif1b();
 	    /* */
 
 	}
@@ -82,9 +81,9 @@ class SCREEN {
 	if( this.isRecording ){
 	    this.blinker.style.display = "none";
 	    /* * /
-	    gif.render();
+	    this.gif.render();
 	    /*/
-	    this._onFinishedRecording( gif.write() );
+	    this._onFinishedRecording1b( this.gif1b.write() );
 	    /* */
 	}else{
 	    this.blinker.style.display = "block";
@@ -116,8 +115,29 @@ class SCREEN {
 	this.saver.style.display = "block";
 	this.gif = null;
 	
-    };
+    }
     
+    _onFinishedRecording1b(data){
+
+	
+	if( !this.saver1b ){
+	    
+	    this.saver1b = this.DOM.create("a", {
+		className:"FileSaver",
+		textContent:"GIF",
+		attr:{download:"ArduboyRecording.gif"},
+		onclick:_=>this.saver1b.style.display = "none"
+	    }, document.body);
+	    
+	}else
+	    URL.revokeObjectURL( this.saver1b.href );
+	
+	this.saver1b.href = URL.createObjectURL( new Blob([data.buffer], { type:'image/gif' } ) );
+	this.saver1b.style.display = "block";
+	this.gif1b = null;
+	
+    }
+
 
     setActiveView(){
 		this.pool.remove(this);
@@ -170,8 +190,8 @@ class SCREEN {
 	    this.lastFrameTime = now;
 	    /* * /
 	    this.gif.addFrame( this.ctx, { copy:true, delay:delay/10 } );
-	    /*/
-	    this.gif.add( this.activeBuffer, delay );
+	    //*/
+	    this.gif1b.add( this.activeBuffer, delay );
 	    /* */
 	}
 	
