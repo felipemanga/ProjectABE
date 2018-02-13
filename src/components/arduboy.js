@@ -2,11 +2,14 @@ import { IController, Model, IView } from '../lib/mvc.js';
 import { getPolicy } from 'dry-di';
 import Atcore from '../atcore/Atcore.js';
 import Hex from '../atcore/Hex.js';
+import * as skins from '../skins/*.js';
 
 const LOADING = 0;
 const RUNNING = 1;
 const PAUSED  = 2;
 const STEP    = 3;
+
+const emptySkin = {elements:{}}, skinList = Object.keys(skins);
 
 class Arduboy {
 
@@ -34,9 +37,11 @@ class Arduboy {
 	this.periferals = [];
 
 	this.update = this._update.bind( this );
-	this.resize();
+
 	this.loadFlash();
-	this.arduboyMode();
+
+	this.initSkin( skins.Arduboy );
+	this.resize();
 
 	setTimeout( _ => this._update(), 5 );
 	
@@ -177,22 +182,90 @@ class Arduboy {
 	this.powerOff();
     }
 
+    onPressF3(){
+	for( let i=0, l=skinList.length; i<l; ++i ){
+	    let name = skinList[i];
+	    let skin = skins[name];
+	    if( skin == this.skin ){
+		this.initSkin( skins[ skinList[(i+1)%skinList.length] ] );
+		return true;
+	    }
+	}
+    }
+
+    initSkin( skin ){
+
+	if( this.skin && this.skin != emptySkin && skin != emptySkin ){
+	    this.initSkin( emptySkin );
+	}
+
+	this.skin = skin;
+	this.width = 0;
+	document.body.style.background = skin.background;
+	this.pool.call( "CRTFade", skin.CRTFade );
+
+	let root = this.DOM.element;
+
+	for( let qs in skin.elements ){
+	    let settings = skin.elements[qs];
+	    let eseqs = emptySkin.elements[qs] = emptySkin.elements[qs] || {};
+	    
+	    Array.from(root.querySelectorAll(qs)).forEach( e => {
+		
+		for( let path in settings ){
+
+		    eseqs[path] = "";
+
+		    let value = settings[path], obj = e, prop;
+		    
+		    path = path.split(".");
+		    prop = path.pop();
+		    
+		    if( path.length ){
+			while( path.length )
+			    obj = obj[path.shift()];
+		    }else{
+			if( prop in e.style && !(prop in e) )
+			    obj = e.style;
+		    }
+
+		    if( typeof obj[prop] == "object" || e == obj ){
+			if( value && typeof value == "object" )
+			    Object.assign( obj[prop], value );
+			else
+			    e.setAttribute(prop, value);
+		    }else
+			obj[prop] = value;
+		    
+		}
+		
+	    });
+	}
+
+	if( !skin.remap ){
+	    this.pool.call("remapKey", {
+		ArrowUp:"ArrowUp",
+		ArrowRight:"ArrowRight",
+		ArrowDown:"ArrowDown",
+		ArrowLeft:"ArrowLeft"
+	    });
+	}else{
+	    this.pool.call("remapKey", {
+		ArrowUp:"ArrowRight",
+		ArrowRight:"ArrowDown",
+		ArrowDown:"ArrowLeft",
+		ArrowLeft:"ArrowUp"
+	    });
+	}
+
+    }
+
     arduboyMode(){
-	this.pool.call("remapKey", {
-	    ArrowUp:"ArrowUp",
-	    ArrowRight:"ArrowRight",
-	    ArrowDown:"ArrowDown",
-	    ArrowLeft:"ArrowLeft"
-	});
+	this.initSkin( skins.Arduboy );
     }
 
     microcardMode(){
-	this.pool.call("remapKey", {
-	    ArrowUp:"ArrowRight",
-	    ArrowRight:"ArrowDown",
-	    ArrowDown:"ArrowLeft",
-	    ArrowLeft:"ArrowUp"
-	});
+	this.initSkin( skins.Microcard );
     }
 
     setActiveView(){
@@ -200,10 +273,11 @@ class Arduboy {
     }
 
     powerOff(){
-		this.pool.remove(this);
-		console.error = this._error;
-		this.dead = true;
-		this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
+	this.pool.remove(this);
+	document.body.setAttribute("style", "");
+	console.error = this._error;
+	this.dead = true;
+	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }
 
     initCore( preserve ){
@@ -537,24 +611,19 @@ class Arduboy {
 	
 	let maxHeight = el.parentElement.clientHeight;
 	let maxWidth  = el.parentElement.clientWidth;
-	let mode = el.className;
 
-	if( this.width == maxWidth && this.height == maxHeight && this.mode == mode )
+	if( this.width == maxWidth && this.height == maxHeight )
 	    return;
 	
 	this.width = maxWidth;
 	this.height = maxHeight;
-	this.mode = mode;
 
-	let ratio = 91/57;
-	if( mode != "microcard" )
-	    ratio = 626 / 1004;
+	let ratio = this.skin.width / this.skin.height;
 
 	if( this.height * ratio >= this.width ){
 	    
 	    el.parentElement.style.maxWidth = el.style.width = this.width + "px";
 	    el.style.height = (this.width / ratio) + "px";
-
 	    
 	}else{
 	    

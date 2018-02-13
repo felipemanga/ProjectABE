@@ -271,12 +271,9 @@ nav button {
 #simContainer canvas {
     position: absolute;
     top: 8.7%;
-    height: 22.5%;
+    height: 20.518%;
     left: 18%;
     width: 64.5%;
-    -ms-interpolation-mode: nearest-neighbor;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: pixelated;
 }
 
 canvas:-webkit-full-screen{
@@ -329,104 +326,12 @@ canvas:fullscreen{
   mix-blend-mode: screen;
 }
 
-#simContainer led.tx {
-    top: 85%;
-    left: 22%;
-    width: 4%;
-}
-
-#simContainer led.rx {
-    top: 85%;
-    left: 19%;
-    width: 4%;
-}
-
 #simContainer btn {
     position: absolute;
     cursor: pointer;
     --background: rgba(255,255,255,0.5);
 }
 
-#simContainer #Up {
-  top: 49%;
-  left: 16%;
-  width: 14%;
-  height: 10%;
-}
-
-#simContainer #Left {
-  top: 57%;
-  left: 2%;
-  width: 15%;
-  height: 9%;
-}
-
-
-#simContainer #Down {
-  top: 65%;
-  left: 16%;
-  width: 14%;
-  height: 10%;
-}
-
-#simContainer #Right {
-  top: 58%;
-  left: 28%;
-  width: 15%;
-  height: 9%;
-}
-
-#simContainer #A {
-    top: 59%;
-    left: 64%;
-    width: 14%;
-    height: 8%;
-    border-radius: 50%;
-}
-
-#simContainer #B {
-    top: 54%;
-    left: 79%;
-    width: 15%;
-    height: 9%;
-    border-radius: 50%;
-}
-
-#simContainer #PWR {
-    width: 14%;
-    height: 7%;
-    top: 0;
-    left: 15%;
-}
-
-#MCM {
-    width: 6%;
-    height: 9%;
-    top: 25%;
-    left: 89%;
-}
-
-#ABM {
-    width: 15%;
-    height: 9%;
-    top: 84%;
-    left: 19%;
-    display: none;
-}
-
-#DBG {
-    width: 21%;
-    height: 10%;
-    bottom: 0;
-    left: 41%;
-}
-
-#RESET {
-    width: 7%;
-    height: 4%;
-    bottom: 3%;
-    left: 20%;
-}
 
 #ideContainer {
     position: relative;
@@ -564,87 +469,10 @@ canvas:fullscreen{
     margin: 2px;
 }
 
-#simContainer.microcard {}
-
-#simContainer.microcard img {
+*[data-pixelated=true]{
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
-}
-
-#simContainer.microcard #screen {
-    transform: rotate(-90deg);
-    top: 32%;
-    height: 34%;
-    width: 38%;
-    left: 30.5%;
-}
-
-#simContainer.microcard #Right {
-    top: 20%;
-    left: 16%;
-    width: 9%;
-    height: 14%;
-}
-
-#simContainer.microcard #Left {
-    top: 46%;
-    left: 16%;
-    width: 9%;
-    height: 14%;
-}
-
-#simContainer.microcard #Up {
-    top: 31%;
-    width: 10%;
-    left: 7%;
-    height: 16%;
-}
-
-#simContainer.microcard #Down {
-    top: 31%;
-    width: 10%;
-    left: 24%;
-    height: 16%;
-}
-
-#simContainer.microcard #A {
-    top: 38%;
-    width: 9%;
-    left: 72%;
-    height: 15%;
-}
-
-#simContainer.microcard #B {
-    top: 28%;
-    width: 9%;
-    left: 82%;
-    height: 15%;
-}
-
-#simContainer.microcard #PWR {
-    left: 18%;
-    height: 14%;
-}
-
-#simContainer.microcard #MCM {
-    display: none;
-}
-
-#simContainer.microcard #ABM {
-    display: block;
-}
-
-#simContainer.microcard #DBG {
-    width: 11%;
-    left: 44%;
-    height: 14%;
-}
-
-#simContainer.microcard #RESET {
-    width: 7%;
-    height: 10%;
-    top: 2%;
-    left: 71%;
+    -ms-interpolation-mode: nearest-neighbor;
 }
 
 #ideContainer #ace {

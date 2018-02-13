@@ -30,6 +30,7 @@ class SCREEN {
 	this.fbOFF = this.createBuffer();
 	this.activeBuffer = this.fbON;
 	this.dirty = true;
+	this.fade = false;
 
 	this.fbON.data.fill(0xFF);
 
@@ -49,6 +50,14 @@ class SCREEN {
 	
 	this.reset();
 	
+    }
+
+    CRTFade( enabled ){
+	this.fade = enabled;
+    }
+
+    toggleCRTFade(){
+	this.fade = !this.fade;
     }
 
     toggleGIFRecording(){
@@ -215,14 +224,13 @@ class SCREEN {
 	this.mode = 0;
 	this.clockDivisor = 0x80;
 	this.cmd = [];
-	this.fb.data.fill(0);
 	this.colStart = 0;
 	this.colEnd = 127;
 	this.pageStart = 0;
 	this.pageEnd = 7;
 	this.col = 0;
 	this.page = 0;
-	this.fb.data.fill(0);
+	this.fb.data.fill(0xFF);
 	this.dirty = true;
     }
 
@@ -239,14 +247,28 @@ class SCREEN {
 	let y = (ps + this.page) * 8;
 	let fbdata = this.fb.data;
 	let iOffset = (y*128 + x) * 4;
-	
-	for( let i=0; i<8; ++i, iOffset += 128*4 ){
-	    let offset = iOffset; // ((y+i)*128 + x) * 4;
-	    let bit = ((data >>> i) & 1) * 0xFF;
-	    fbdata[ offset++ ] = bit;
-	    fbdata[ offset++ ] = bit;
-	    fbdata[ offset++ ] = bit;
-	    fbdata[ offset++ ] = bit;
+
+	if( !this.fade ){
+	    
+	    for( let i=0; i<8; ++i, iOffset += 128*4 ){
+		let offset = iOffset; // ((y+i)*128 + x) * 4;
+		let bit = ((data >>> i) & 1) * 0xFF;
+		// fbdata[ offset++ ] = bit;
+		// fbdata[ offset++ ] = bit;
+		// fbdata[ offset++ ] = bit;
+		fbdata[ offset+3 ] = bit;
+	    }
+	    
+	}else{
+
+	    for( let i=0; i<8; ++i, iOffset += 128*4 ){
+		let offset = iOffset; // ((y+i)*128 + x) * 4;
+		let bit = ((data >>> i) & 1) * 0xFF;
+		if( !bit )
+		    bit = fbdata[ offset+3 ] >> 1;
+		fbdata[ offset+3 ] = bit;
+	    }
+	    
 	}
 
 	this.vblank = false;

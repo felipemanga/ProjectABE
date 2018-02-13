@@ -119,8 +119,8 @@
   <div id="simBox">
     
     <div id="simContainer" class="verticalContainer" data-inject="arduboy" poweroff-call="onEndSim">
-      <img src="Arduboy ({{app.color}}).png" />
-      <canvas data-inject="SCREEN" id="screen" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
+      <img id="bg"/>
+      <canvas data-inject="SCREEN" id="screen" data-pixelated="true" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
       </canvas>
       <btn data-inject="SOUND" pin-ch1="cpu.5" pin-ch2="cpu.13"></btn>
       <led data-inject="LED" style="background-color: #F00" pin-on="cpu.10"></led>
@@ -138,8 +138,8 @@
       <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8" bind-key="KeyB,KeyS,KeyX,AltLeft,AltRight"></btn>
 
       <btn click-call="powerOff" id="PWR"></btn>
-      <btn click-set="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
-      <btn click-set="#simContainer@class=arduboy;#simContainer img@src=Arduboy (0).png" click-call="arduboyMode" id="ABM"></btn>
+      <btn click-call="microcardMode" id="MCM"></btn>
+      <btn click-call="arduboyMode" id="ABM"></btn>
       <btn click-set="#ideContainer@hidden=false" undefined-hide="ram.debuggerEnabled" id="DBG"></btn>
       <btn click-call="reset" id="RESET"></btn>
       
