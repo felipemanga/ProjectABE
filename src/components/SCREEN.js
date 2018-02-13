@@ -149,11 +149,40 @@ class SCREEN {
 
 
     setActiveView(){
-		this.pool.remove(this);
+	this.pool.remove(this);
+    }
+
+    onPressKeyP(){
+	let c = document.createElement("canvas");
+	c.width = this.canvas.width * 4;
+	c.height = this.canvas.height * 4;
+	c.setAttribute('style', `
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+        `);
+	let ctx = c.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
+	ctx.msImageSmoothingEnabled = false;
+	ctx.fillStyle = "black";
+	ctx.fillRect(0,0,c.width,c.height);
+	ctx.drawImage( this.canvas, 0, 0, c.width, c.height );
+	let url = c.toDataURL("image/png");
+	// window.open( url );
+	
+	let saver = this.DOM.create("a", {
+	    href: url,
+	    className:"FileSaver",
+	    textContent:"PNG",
+	    attr:{download:"ArduboyCapture.png"},
+	    onclick:_=> document.body.removeChild( saver )
+	}, document.body);
+
     }
 
     onPressKeyR(){
-		this.toggleGIFRecording();
+	this.toggleGIFRecording();
     }
 
     onPressKeyF(){
