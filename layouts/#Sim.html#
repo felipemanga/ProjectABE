@@ -1,27 +1,68 @@
 <div id="fb">
   
-  <div id="ideContainer" class="verticalContainer" data-inject="Debugger">
+  <div id="ideContainer" class="verticalContainer" data-inject="Debugger"
+	ondragenter="event.stopPropagation(); event.preventDefault();"
+	ondragover="event.stopPropagation(); event.preventDefault();"
+	drop-call="onDropFile">
 
     <div class="horizontalContainer tabs">
 
-      <button click-toggle="#ideContainer@data-tab=source" click-call="initSource">Source</button>
-      <button click-toggle="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
-      <button click-toggle="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
-      <button click-toggle="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
+      <button click-set="#ideContainer@data-tab=source" click-call="initSource">Source</button>
+      <button click-set="#ideContainer@data-tab=da" click-call="refreshDa">Disassembly</button>
+      <button click-set="#ideContainer@data-tab=history" click-call="refreshHistory">Log</button>
+      <button click-set="#ideContainer@data-tab=state" click-call="refreshState">CPU</button>
+      <button click-set="#ideContainer@data-tab=ram" click-call="refreshRAM">RAM</button>
+      <button click-set="#ideContainer@data-tab=qr" id="qrc" click-call="refreshQRC">QRCode</button>
+      <div class="expand"> </div>
+
+      <button click-call="reqReset" title="reset (F6)" class="dbgbtn">&#8635;</button>
+      <button click-call="reqStep" title="step (F7)" class="dbgbtn">&#8677;</button>
+      <button click-call="reqResume" title="resume (F8)" class="dbgbtn">&#8594;</button>
       
+      <div class="expand"> </div>
+    </div>
+
+    <div class="verticalContainer" id="qrcContainer">
     </div>
 
     <div class="verticalContainer" id="sourceContainer">
       <div class="horizontalContainer tabs">
+	<button click-call="addNewFile" id="addNewFile" title="Add New File">+</button>
 	<label>
 	  File:
-	  <select id="currentFile" change-call="changeSourceFile">
-	    <option value="{{ke
+	  <select
+	    id="currentFile"
+	    change-call="changeSourceFile"
+	    data-src-indirect="app.srcpath"
+	    data-sort="key"
+	    title="Ctrl-P"
+	    >
+	    <option value="{{key}}">{{key}}</option>
 	  </select>
 	</label>
-	<button click-call="compile">&#10148;</button>
+	<div id="fuzzyContainer">
+	  <input
+	    id="fuzzy"
+	    keydown-call="endFuzzyFind"
+	    input-call="updateFuzzyFind"
+	    blur-call="cancelFuzzyFind"
+	    >
+	  <ul id="fuzzyList" data-src="ram.fuzzy">
+	    <li id="fuzzy{{key}}" mousedown-call="endFuzzyFind">{{value}}</li>
+	  </ul>
+	</div>
+	<button click-call="renameFile" id="rename" title="Rename current file">Rename</button>
+	<button click-call="deleteFile" id="delete" title="Delete current file">Delete</button>
+	<button click-call="compile" id="compile" title="Ctrl+Enter">Build</button>
+	<button click-call="zip" title="Download source zip">Download</button>
       </div>
-      <div id="ace"></div>
+      <div class="horizontalContainer tabs">
+	<ul id="flashContainer" data-src="ram.blocksizes">
+	  <li title="{{value.name}}: {{value.bytes}}b" style="width:{{value.size}}; color:{{value.color}}; background:{{value.anticolor}}">{{value.name}}</li>
+	</ul>
+      </div>
+      <div id="ace" change-call="commit"></div>
+      <div id="codeToolTip"></div>
     </div>
     
     <div class="verticalContainer" id="historyContainer">
@@ -34,11 +75,34 @@
       <ul id="history"></ul>
     </div>
     
+    <div class="verticalContainer" id="ramContainer">
+      <div class="horizontalContainer tabs">
+	<button click-call="refreshRAM">Refresh</button>
+	<label>
+	  <input type="checkbox" id="autoRefreshRAM" change-call="refreshRAM"> auto
+	</label>
+      </div>
+      <div>
+	<ul id="RAM" click-call="openRAMTT"></ul>
+	<div id="RAMTT">
+	  <div id="RAMTTclose" click-call="closeRAMTT">X</div>
+	  <div id="RAMTTaddr"></div>
+	  <div>Value:</div>
+	  <input id="RAMTTvalue" change-call="setTTvalue">
+	  <div>Comment:</div>
+	  <input id="comment" change-call="setTTComment">
+	  <div>Break after:</div>
+	  <label><input type="checkbox" change-call="toggleRAMReadBP" id="RAMTTread"> read</label>
+	  <label><input type="checkbox" change-call="toggleRAMWriteBP" id="RAMTTwrite"> write</label>
+	</div>
+      </div>
+    </div>
+    
     <div class="verticalContainer" id="daContainer">
       <div class="horizontalContainer tabs">
 	<label>Address:<input id="daAddress" value="0000" change-call="refreshDa"></label>
       </div>
-      <ul id="da"></ul>
+      <ul id="da" mousewheel-call="onScrollDA"></ul>
     </div>
 
     <div class="verticalContainer" id="stateContainer">
@@ -55,12 +119,16 @@
   <div id="simBox">
     
     <div id="simContainer" class="verticalContainer" data-inject="arduboy" poweroff-call="onEndSim">
-      <img src="Arduboy ({{app.color}}).png" />
+      <img id="bg"/>
       <canvas data-inject="SCREEN" id="screen" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
       </canvas>
+      <btn data-inject="SOUND" pin-ch1="cpu.5" pin-ch2="cpu.13"></btn>
       <led data-inject="LED" style="background-color: #F00" pin-on="cpu.10"></led>
       <led data-inject="LED" style="background-color: #0F0" pin-on="cpu.11"></led>
       <led data-inject="LED" style="background-color: #00F" pin-on="cpu.9"></led>
+
+      <led data-inject="LED" style="background-color: #FA0" class="tx" pin-on="cpu.30"></led>
+      <led data-inject="LED" style="background-color: #F00" class="rx" pin-on="cpu.17"></led>
       
       <btn data-inject="BTN" id="Up" active="low" pin-on="cpu.A0" bind-key="ArrowUp"></btn>
       <btn data-inject="BTN" id="Down" active="low" pin-on="cpu.A3" bind-key="ArrowDown"></btn>
@@ -70,8 +138,10 @@
       <btn data-inject="BTN" id="B" active="low" pin-on="cpu.8" bind-key="KeyB,KeyS,KeyX,AltLeft,AltRight"></btn>
 
       <btn click-call="powerOff" id="PWR"></btn>
-      <btn click-toggle="#simContainer@class=microcard;#simContainer img@src=mc.png" click-call="microcardMode" id="MCM"></btn>
-      <btn click-toggle="#ideContainer@hidden=false" id="DBG"></btn>
+      <btn click-set="" click-call="microcardMode" id="MCM"></btn>
+      <btn click-set="#simContainer@class=arduboy;#simContainer img@src=Arduboy (0).png" click-call="arduboyMode" id="ABM"></btn>
+      <btn click-set="#ideContainer@hidden=false" undefined-hide="ram.debuggerEnabled" id="DBG"></btn>
+      <btn click-call="reset" id="RESET"></btn>
       
     </div>
     
