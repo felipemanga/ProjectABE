@@ -118,7 +118,7 @@ class gif1b {
 		init();
 	    }
 	    
-	    let ch = data[i] > 128 ? 1 : 0;
+	    let ch = data[i+3] > 128 ? 1 : 0;
 	    if( string[ch] )
 		string = string[ch];
 	    else
