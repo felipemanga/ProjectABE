@@ -6,4 +6,5 @@ node_modules
 service
 dist
 .gradle
-res-linux
+dist*
+bin

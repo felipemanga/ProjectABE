@@ -265,6 +265,9 @@ class Arduboy {
 	    });
 	}
 
+	if( skin != emptySkin )
+	    this.pool.call("onSetSkin", skin);
+
     }
 
     arduboyMode(){

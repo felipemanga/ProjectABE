@@ -14,10 +14,16 @@ The arduino-preprocessor tool takes care to handle this last step.
 
 */
 
+const PATH = window.require('path');
+
 function normalize( path ){
+    /* * /
     return path.replace(/\\/, '/')
 	.replace( /\/\.?\/|\/[^\/]\/\.\.\//g, '/' )
 	.replace(/\/+/g, '/');
+    /*/
+    return PATH.normalize( path );
+    /* */
 }
 
 class LocalCompiler {
@@ -76,13 +82,13 @@ class LocalCompiler {
 		break;
 	    case 3:
 		{
-		    let exp = /include\s*["<]([^">]+)[">]/yi;
+		    let exp = /include\s*(["<])([^">]+)[">]/yi;
 		    exp.lastIndex = i;
 		    let match = exp.exec( ino );
 		    if( match ){
 			i += match[0].length;
-			let path = normalize(match[1]);
-			if( !(path in files) )
+			let path = normalize(match[2]);
+			if( match[1] == "<" || !(path in files) )
 			    libs[path] = "";
 		    }
 		    state = 0;

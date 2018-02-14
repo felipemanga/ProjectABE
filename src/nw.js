@@ -26,7 +26,9 @@ document.addEventListener( "DOMContentLoaded", () => {
 
     let url, file = argv._[0], skin=argv.skin, app, width = 1024;
 
-    if( file ){
+    if( file && /^https?:.*/i.test(file) ){
+	url = file;
+    }else if( file ){
 	let hnd = 0, hex;
 	let watcher;
 
@@ -87,10 +89,8 @@ document.addEventListener( "DOMContentLoaded", () => {
 	
     }
 
-    if( url )
-	width = 375;
-
-    nw.Window.get().resizeTo( width, 600 );
+    if( !url )
+	nw.Window.get().resizeTo( width, 600 );
 
     app = boot({
         main:App,
@@ -109,6 +109,10 @@ document.addEventListener( "DOMContentLoaded", () => {
 
     app.pool.add(new Flasher( app ));
     app.pool.add({
+	onSetSkin( skin ){
+	    nw.Window.get().resizeTo( skin.width, skin.height );
+	},
+	
 	embed(url){
 	    
 	    let parent = document.getElementById("embed");
