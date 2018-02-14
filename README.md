@@ -29,6 +29,15 @@ ProjectABE /path/to/file.hex
 
 You can also drag-and-drop a hex/arduboy file into the game list to play it.
 
+### Build comparison
+
+
+| Feature | Browser | Windows | Linux | OS X  | Android |
+| ------- | :-----: | :-----: | :---: | :---: | :---: |
+| Emulator | Yes | Yes | Yes | Yes | Yes |
+| IDE | Yes | No | No | No | Yes |
+| Uploader | No | Yes | Yes | Yes | No |
+
 
 # Emulator interface
 
