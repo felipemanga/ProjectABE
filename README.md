@@ -12,8 +12,7 @@ ArduBoyEmulator and IDE in HTML5
      mkdir build
      gulp copy
      gulp web-build
-     cd build
-     serve .
+     serve build
 
      
 # Running the emulator
@@ -37,25 +36,39 @@ You can play by touching the buttons, if you have a touchscreen. If your device 
 
 Press **F** to toggle fullscreen mode.
 
-You can start/stop recording a GIF of the game by pressing **R**.
+You can start/stop recording a GIF of the game by pressing **R**. If you want a PNG screenshot, press **P**.
 
-To exit a game and go back to the list, click on the **power button** above the screen.
+To exit a game and go back to the list, press **Esc** or click on the **power button** above the screen.
 
 Some games look/play better on a vertical screen, like [1942](https://felipemanga.github.io/ProjectABE/?url=https://raw.githubusercontent.com/eried/ArduboyCollection/master/Arcade%2F1943%2F1943.hex) or [Breakout-V](https://felipemanga.github.io/ProjectABE/?url=http://www.crait.net/arduboy/breakoutv/app.hex). The emulator can be put in vertical mode by clicking on the **chip in the lower-right** of the Arduboy's screen.
 
-If you want to debug the game you're currently playing, click on the **USB port** (bottom-center, online version only, for now).
+Aside from the standard Arduboy and Microcard, other skins are available. Press **F3** to cycle through them. You can specify which skin to load by adding a parameter to the URL (`?hex=game.hex&skin=Tama`) or the commandline (`ProjectABE --skin=Tama game.hex`).
 
+If you want to debug the game you're currently playing, click on the **USB port** (bottom-center, online version only, for now).
+To upload the game to your Arduboy, press **U** (offline version only).
+
+### Keyboard shortcut summary:
+- **Arrow keys**: Corresponds to the arrow keys on the device
+- **Ctrl/A/Z**: Button A
+- **Alt/B/S/X**: Button B
+- **F**: Fullscreen
+- **R**: Record GIF
+- **P**: PNG screenshot
+- **Esc**: Exit game
+- **F3**: Change skin
+- **U**: Upload to physical device
+- **F6**: Reset game
 
 # IDE / Debugger
 
 ProjectABE includes an IDE (based on the awesome [Ace](https://ace.c9.io) editor). It allows you to write, build and debug Arduboy games in your browser, without installing anything on your computer. Since it's a work-in-progress, the edges are still rough, but it's already possible to make entire games in it (see [Hello, Commander](https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander)).
 
 IDE Keyboard shortcuts:
-- Ctrl-Enter: Build and run
-- Ctrl-P: Jump to file
-- F6: Reset
-- F7: Step-In
-- F8: Resume
+- **Ctrl-Enter**: Build and run
+- **Ctrl-P**: Jump to file
+- **F6**: Reset
+- **F7**: Step-In
+- **F8**: Resume
 
 If you have an existing project, you can drag-and-drop code (or a zip file containing code) into the editor. If your project is on github or bitbucket, the IDE can load your code from there by pointing ProjectABE to your repository like this:
 https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander
