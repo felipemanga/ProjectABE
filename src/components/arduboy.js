@@ -40,7 +40,12 @@ class Arduboy {
 
 	this.loadFlash();
 
-	this.initSkin( skins.Arduboy );
+	let skin = skins[
+	    this.root.getItem("ram.skin", null) ||
+	    this.root.getItem("app.skinName", "Arduboy")
+	] || skins.Arduboy;
+
+	this.initSkin( skin );
 	this.resize();
 
 	setTimeout( _ => this._update(), 5 );
@@ -187,7 +192,9 @@ class Arduboy {
 	    let name = skinList[i];
 	    let skin = skins[name];
 	    if( skin == this.skin ){
-		this.initSkin( skins[ skinList[(i+1)%skinList.length] ] );
+		name = skinList[(i+1)%skinList.length];
+		this.root.setItem("app.skinName", name);
+		this.initSkin( skins[ name ] );
 		return true;
 	    }
 	}
