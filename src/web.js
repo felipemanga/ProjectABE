@@ -34,6 +34,7 @@ setTimeout( function(){
         model:{
 	    proxy:"https://cors-anywhere.herokuapp.com/",
 	    ram:{
+		skin: (location.search.match(/[?&]skin=([^&]+)/)||[])[1],
 		autoRun: url,
 		debuggerEnabled:true
 	    }

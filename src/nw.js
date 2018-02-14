@@ -1,5 +1,6 @@
 import {bind, inject, getInstanceOf} from 'dry-di';
 
+import minimist from 'minimist';
 
 import App from './App.js';
 import IStore from './store/IStore.js';
@@ -17,20 +18,22 @@ import Flasher from './flashers/ChromeSerial.js';
 const fs = window.require("fs");
 
 document.addEventListener( "DOMContentLoaded", () => {
-    const argv = nw.App.argv;
+    
+    const argv = minimist(nw.App.argv);//.slice(1).filter( f=>!/.*\.js$/.test(f) ));
+    
     bind(Store).to(IStore).singleton();
     bind(LocalCompiler).to('Compiler').singleton();
 
-    let url, app, width = 1024;
-    
-    if( argv[0] && !/.*\.js$/.test(argv[0]) ){
+    let url, file = argv._[0], skin=argv.skin, app, width = 1024;
+
+    if( file ){
 	let hnd = 0, hex;
 	let watcher;
 
 	try{
-	    hex = fs.readFileSync(argv[0]);
+	    hex = fs.readFileSync(file);
 	}catch( ex ){
-	    alert("Could not open file: ", argv[0]);
+	    alert("Could not open file: " + JSON.stringify(argv));
 	    nw.App.quit();
 	    return;
 	}
@@ -41,14 +44,14 @@ document.addEventListener( "DOMContentLoaded", () => {
 		watcher.close();
 
 	    watcher = fs.watch(
-		argv[0],
+		file,
 		{ persistent:false },
 		_ => {
 		    if( hnd ) clearTimeout(hnd);
 		    hnd = setTimeout(
 			_=>{
 			    try{
-				hex = fs.readFileSync(argv[0]);			    
+				hex = fs.readFileSync(file);			    
 			    }catch( ex ){
 				watch();
 				return;
@@ -96,6 +99,7 @@ document.addEventListener( "DOMContentLoaded", () => {
         entities,
         model:{
 	    ram:{
+		skin,
 		autoRun: url,
 		hasFlasher: true,
 		debuggerEnabled: /* * / undefined /*/ true /* */
