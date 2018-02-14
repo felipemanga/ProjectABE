@@ -84,7 +84,7 @@ You can also drag-and-drop images to have them converted into source code, ready
 
 Simply ignore the arrays you do not need and GCC will not add them to the final build.
 
-###IDE Keyboard shortcuts:
+### IDE Keyboard shortcuts:
 
 | Key | Function |
 | :---: | --- |
