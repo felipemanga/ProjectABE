@@ -56,28 +56,24 @@ Aside from the standard Arduboy and Microcard, other skins are available. Press 
 If you want to debug the game you're currently playing, click on the **USB port** (bottom-center, online version only, for now).
 To upload the game to your Arduboy, press **U** (offline version only).
 
-### Keyboard shortcut summary:
-- **Arrow keys**: Corresponds to the arrow keys on the device
-- **Ctrl/A/Z**: Button A
-- **Alt/B/S/X**: Button B
-- **F**: Fullscreen
-- **R**: Record GIF
-- **P**: PNG screenshot
-- **Esc**: Exit game
-- **F3**: Change skin
-- **U**: Upload to physical device
-- **F6**: Reset game
+### Keyboard bindings:
+
+| Key | Function |
+| :---: | -------- |
+| Arrow keys | Arrow keys |
+| Ctrl/A/Z | Button A |
+| Alt/B/S/X | Button B |
+| F | Fullscreen |
+| R | Record GIF |
+| P | PNG screenshot |
+| Esc | Exit game |
+| F3 | Change skin |
+| U | Upload to physical device |
+| F6 | Reset game |
 
 # IDE / Debugger
 
 ProjectABE includes an IDE (based on the awesome [Ace](https://ace.c9.io) editor). It allows you to write, build and debug Arduboy games in your browser, without installing anything on your computer. Since it's a work-in-progress, the edges are still rough, but it's already possible to make entire games in it (see [Hello, Commander](https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander)).
-
-IDE Keyboard shortcuts:
-- **Ctrl-Enter**: Build and run
-- **Ctrl-P**: Jump to file
-- **F6**: Reset
-- **F7**: Step-In
-- **F8**: Resume
 
 If you have an existing project, you can drag-and-drop code (or a zip file containing code) into the editor. If your project is on github or bitbucket, the IDE can load your code from there by pointing ProjectABE to your repository like this:
 https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander
@@ -87,3 +83,13 @@ You can also drag-and-drop images to have them converted into source code, ready
 <img src="https://cdn.rawgit.com/felipemanga/9eaa3e96f4776aa36a0420c29d745b5d/raw/c27b632c6bcdc4cde50ab68d2671158068da54af/Walk.svg">
 
 Simply ignore the arrays you do not need and GCC will not add them to the final build.
+
+###IDE Keyboard shortcuts:
+
+| Key | Function |
+| :---: | --- |
+| Ctrl-Enter | Build and run |
+| Ctrl-P | Jump to file |
+| F6 | Reset |
+| F7 | Step-In |
+| F8 | Resume |
