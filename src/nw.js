@@ -7,8 +7,8 @@ import IStore from './store/IStore.js';
 import Store from './store/NW.js';
 import { Model, boot } from './lib/mvc.js';
 
-// import LocalCompiler from './compilers/LocalCompiler.js';
-import LocalCompiler from './compilers/CloudCompiler.js';
+import LocalCompiler from './compilers/LocalCompiler.js';
+// import LocalCompiler from './compilers/CloudCompiler.js';
 
 import * as entities from './entities/*.js';
 import * as components from './components/*.js';
