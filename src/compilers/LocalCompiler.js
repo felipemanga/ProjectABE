@@ -4,6 +4,7 @@ const fs = window.require('fs');
 const os = window.require('os');
 const chproc = window.require('child_process');
 import { IController, Model, IView } from '../lib/mvc.js';
+import IStore  from '../store/IStore.js';
 
 function normalize( path ){
     return PATH.normalize( path );
@@ -12,7 +13,8 @@ function normalize( path ){
 class LocalCompiler {
 
     static "@inject" = {
-	model: [Model, {scope:"root"}]
+	model: [Model, {scope:"root"}],
+	store: IStore
     }
 
     constructor(){
@@ -105,7 +107,7 @@ class LocalCompiler {
 		console.log("LSP: ", lsp); 
 		this.model.setItem("ram.localSourcePath", lsp);
 		for( let k in srcdata )
-		    fs.writeFileSync(lsp + PATH.sep + k, srcdata[k]);
+		    this.store.saveFile( lsp + PATH.sep + k, srcdata[k] );
 	    }
 	    if( !lbp )
 		lbp = fs.mkdtempSync("ProjectABE_build");

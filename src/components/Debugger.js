@@ -1,4 +1,5 @@
 import { IController, Model, IView } from '../lib/mvc.js';
+import IStore  from '../store/IStore.js';
 import JSZip from 'jszip/dist/jszip.min.js';
 import DOM from '../lib/dry-dom.js';
 import loadImage from '../lib/image.js';
@@ -17,7 +18,8 @@ class Debugger {
     static "@inject" = {
         pool:"pool",
 	compiler:"Compiler",
-        model: [Model, {scope:"root"}]
+        model: [Model, {scope:"root"}],
+	store: IStore
     }
 
     constructor( DOM ){
@@ -411,34 +413,17 @@ void loop() {
 		alert("Error: New name not available");
 		return false;
 	    }
-	    
-	    let paths = fulltarget.split(/[\/\\]+/),
-		acc = paths.shift();
-	    while( paths.length > 1 ){
-		acc = acc + path.sep + paths.shift();
-		if( fs.existsSync(acc) )
-		    continue;
-		try{
-		    fs.mkdirSync( acc );
-		}catch( err ){
-		    if( err.code !== 'EEXIST' ){
-			alert("Could not create directory " + acc);
-			return false;
-		    }
-		}
-	    }
 
-	    try{
-		fs.writeFileSync( fulltarget, src );
-	    }catch( err ){
+	    let err = this.store.saveFile( fulltarget, src );
+	    if( err ){
 		alert("Error: " + err);
 		return false;
 	    }
 
 	    try{
 		fs.unlinkSync(file);
-	    }catch( err ){
-		alert("Error: " + err);
+	    }catch( ex ){
+		alert("Error: " + ex);
 		return false;
 	    }
 	}) === false )
@@ -1181,23 +1166,17 @@ void loop() {
 	    clearTimeout( this.saveHandles[filePath] );
 
 	if( force ){
-	    console.log("Writing " + filePath);
-	    try{
-		fs.writeFileSync( filePath, code );
-	    }catch( err ){
+	    let err = this.store.saveFile( filePath, code );
+	    if( err )
 		alert("Error saving " + filePath + ":\n" + err);
-	    }
 	}else
 	    this.saveHandles[filePath] = setTimeout( write.bind(this, filePath, code), 3000 );
 
 	function write( filePath, code ){
 
-	    console.log("Writing " + filePath);
-	    
-	    fs.writeFile( filePath, code, err => {
-		if( err )
-		    alert("Error saving " + filePath + ":\n" + err);
-	    });
+	    let err = this.store.saveFile( filePath, code );
+	    if( err )
+		alert("Error saving " + filePath + ":\n" + err);
 	    
 	}
 	

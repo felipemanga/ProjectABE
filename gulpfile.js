@@ -12,8 +12,7 @@ var gulp = require('gulp'),
     zip = require("gulp-zip"),
     sequence = require("gulp-sequence"),
     reload = require("gulp-livereload"),
-    {execFile, execFileSync} = require("child_process"),
-    asar = require('asar');
+    {execFile, execFileSync} = require("child_process");
 
 var fs = require('fs');
 
@@ -114,6 +113,8 @@ function swallowError (error) {
 
 gulp.task('build', function () {
     throw "Deprecated. Use nw-build instead";
+    
+    var asar = require('asar');
     
   var b = browserify({
     entries: './src/pc.js',

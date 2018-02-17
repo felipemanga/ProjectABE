@@ -97,6 +97,33 @@ class IStore {
 
     }
 
+    saveFile( k, v ){
+	console.log("Writing " + k);
+	
+	let paths = k.split(/[\/\\]+/),
+	    acc = paths.shift();
+	while( paths.length > 1 ){
+	    acc = acc + '/' + paths.shift();
+	    if( fs.existsSync(acc) )
+		continue;
+	    try{
+		fs.mkdirSync( acc );
+	    }catch( err ){
+		if( err.code !== 'EEXIST' ){
+		    alert("Could not create directory " + acc);
+		    return false;
+		}
+	    }
+	}
+
+	try{
+	    fs.writeFileSync( k, v );
+	}catch( err ){
+	    return err;
+	}
+	
+    }
+
 }
 
 module.exports = IStore;
