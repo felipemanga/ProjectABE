@@ -24,8 +24,12 @@ class LocalCompiler {
 	
     }
 
+    getSketchDir(){
+	return [os.homedir(), 'Arduino'].join(PATH.sep);
+    }
+
     getUserGames( out ){
-	let dirs, sketchDir = [os.homedir(), 'Arduino'].join(PATH.sep);
+	let dirs, sketchDir = this.getSketchDir();
 	try{
 	    dirs = fs.readdirSync( sketchDir );
 	}catch(ex){
@@ -75,7 +79,11 @@ class LocalCompiler {
 	    if( !fs.existsSync( x + PATH.sep + 'arduino' + ext ) )
 		return false;
 	    
-	    let exec = x + PATH.sep + 'arduino' + ext;
+	    let exec = x + PATH.sep + 'arduino_debug' + ext;
+
+	    if( !fs.existsSync(exec) ){
+		exec = x + PATH.sep + 'arduino' + ext;
+	    }
 	    
 	    try{
 		exec = fs.readlinkSync( exec );
