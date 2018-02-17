@@ -19,7 +19,7 @@ class Flasher {
 	    alert("Flasher is busy");
 	    return;
 	}
-	let path = this.app.root.getItem("app.srcpath");
+	let path = this.app.root.getItem("ram.srcpath");
 	if( !path ) return;
 	let source = this.app.root.getModel( path, false );
 	if( !source ) return;

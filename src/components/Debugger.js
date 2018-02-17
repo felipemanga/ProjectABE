@@ -3,6 +3,15 @@ import JSZip from 'jszip/dist/jszip.min.js';
 import DOM from '../lib/dry-dom.js';
 import loadImage from '../lib/image.js';
 
+let fs, path;
+
+if( window.require ){
+    try{
+	fs = window.require('fs');
+	path = window.require('path');
+    }catch(ex){}
+}
+
 class Debugger {
 
     static "@inject" = {
@@ -63,13 +72,14 @@ class Debugger {
 	    return true;
 	
 	this.source = this.model.getModel(
-	    this.model.getItem("app.srcpath"),
+	    this.model.getItem("ram.srcpath"),
 	    true
 	) || new Model();
 
 	let promise = null;
 
 	let srcurl = this.model.getItem("ram.srcurl", "");
+	let lsp = this.model.getItem("ram.localSourcePath", "");
 
 	if( /.*\.ino$/.test(srcurl) ){
 	    
@@ -90,6 +100,38 @@ class Debugger {
 		.then( rsp => rsp.arrayBuffer() )
 		.then( buff => JSZip.loadAsync( buff ) )
 		.then( z => this.importZipSourceFiles(z) );
+
+	}else if( lsp && fs ){
+	    
+	    let readDir = ( d ) => {
+		fs.readdir( d, (err, files) => {
+
+		    if( !files ){
+			console.log("Could not read " + d);
+			console.log( err );
+			return;
+		    }
+		    
+		    files.forEach( file => {
+
+			if( file[0] == '.' )
+			    return;
+		    
+			let ffp = d + path.sep + file;
+			if( fs.lstatSync(ffp).isDirectory() )
+			    return readDir( ffp );
+			
+			if( /.*\.(h|hpp|c|cpp|ino)$/i.test(file) )
+			    fs.readFile( ffp, 'utf-8', (err,txt) => {
+				if( !err )
+				    this.addNewFile( ffp, txt );
+			    });
+		    } );
+		    
+		} );
+	    }
+
+	    setTimeout( _ => readDir( lsp ), 100 );
 
 	}else if( !Object.keys(this.source.data).length ){
 	    this.addNewFile(
@@ -164,18 +206,6 @@ void loop() {
 	this.initEditor();
 
 	return true;
-	
-	let main = null;
-	for( let k in this.source ){
-	    if( /.*\.ino$/.test(k) ){
-		main = k;
-		break;
-	    }		
-	}
-
-	if( main !== null )
-	    this.DOM.currentFile.value = main;
-
 	
     }
 
@@ -323,11 +353,33 @@ void loop() {
 
     }
 
+    local( cb ){
+	let lsp = this.model.getItem("ram.localSourcePath", "");
+	
+	if( !lsp || !fs )
+	    return;
+	
+	let filePath = path.resolve( lsp, this.DOM.currentFile.value );
+	
+	return cb( filePath, lsp );
+    }
+
     deleteFile(){
 	if( !this.initSource() ) return;
 
 	if( !confirm("Are you sure you want to delete " + this.DOM.currentFile.value + "?") )
 	    return;
+
+	if( local( file => {
+	    try{
+		fs.unlinkSync(file);
+	    }catch( err ){
+		alert("Unable to delete: " + err);
+		return false;
+	    }
+	} ) === false )
+	    return;
+	
 	this.source.removeItem([this.DOM.currentFile.value]);
 	this.DOM.currentFile.value = Object.keys(this.source.data)[0];
 	this.changeSourceFile();
@@ -337,9 +389,62 @@ void loop() {
 	if( !this.initSource() ) return;
 
 	let current = this.DOM.currentFile.value;
-	let target = prompt("Rename " + current + " to:").trim();
-	if( target == "" ) return;
+	let shortCurrent = current;
+	
+	let lsp = this.model.getItem("ram.localSourcePath", "");
+	if( current.startsWith(lsp) )
+	    shortCurrent = current.substr(lsp.length+1);
+	
+	let target = prompt("Rename " + shortCurrent + " to:", shortCurrent);
+	target = (target||"").trim();
+	
+	if( target == "" || target == shortCurrent )
+	    return;
+	
 	let src = this.source.getItem([current]);
+
+	if( this.local( file => {
+	    target = lsp + path.sep + target;
+	    
+	    let fulltarget = path.resolve( target );
+	    if( fs.existsSync(target) ){
+		alert("Error: New name not available");
+		return false;
+	    }
+	    
+	    let paths = fulltarget.split(/[\/\\]+/),
+		acc = paths.shift();
+	    while( paths.length > 1 ){
+		acc = acc + path.sep + paths.shift();
+		if( fs.existsSync(acc) )
+		    continue;
+		try{
+		    fs.mkdirSync( acc );
+		}catch( err ){
+		    if( err.code !== 'EEXIST' ){
+			alert("Could not create directory " + acc);
+			return false;
+		    }
+		}
+	    }
+
+	    try{
+		fs.writeFileSync( fulltarget, src );
+	    }catch( err ){
+		alert("Error: " + err);
+		return false;
+	    }
+
+	    try{
+		fs.unlinkSync(file);
+	    }catch( err ){
+		alert("Error: " + err);
+		return false;
+	    }
+	}) === false )
+	    return;
+	
+
 	this.source.removeItem([current]);
 	this.source.setItem([target], src);
 	this.DOM.currentFile.value = target;
@@ -654,7 +759,14 @@ void loop() {
 
     changeSourceFile(){
 	if( !this.code ) return;
-	this.code.setValue( this.source.getItem([ this.DOM.currentFile.value ],"") );
+	this.disableCommits = true;
+	try{
+	    this.code.setValue( this.source.getItem([ this.DOM.currentFile.value ],"") );
+	}catch( ex ){
+	    throw ex;
+	}finally{
+	    this.disableCommits = false;
+	}
 	this.changeBreakpoints();
     }
 
@@ -1045,8 +1157,50 @@ void loop() {
 	
     }
 
-    commit(){
-	this.source.setItem( [this.DOM.currentFile.value], this.code.getValue() );
+    saveHandles = {}
+    disableCommits = false;
+
+    commit( force ){
+
+	if( this.disableCommits )
+	    return;
+	
+	let code = this.code.getValue();
+
+	let old = this.source.getItem( [this.DOM.currentFile.value] );
+
+	this.source.setItem( [this.DOM.currentFile.value], code );
+	let lsp = this.model.getItem("ram.localSourcePath", "");
+	
+	if( (old === code && !force) || !lsp || !fs )
+	    return;
+
+	let filePath = path.resolve( lsp, this.DOM.currentFile.value );
+
+	if( this.saveHandles[filePath] )
+	    clearTimeout( this.saveHandles[filePath] );
+
+	if( force ){
+	    console.log("Writing " + filePath);
+	    try{
+		fs.writeFileSync( filePath, code );
+	    }catch( err ){
+		alert("Error saving " + filePath + ":\n" + err);
+	    }
+	}else
+	    this.saveHandles[filePath] = setTimeout( write.bind(this, filePath, code), 3000 );
+
+	function write( filePath, code ){
+
+	    console.log("Writing " + filePath);
+	    
+	    fs.writeFile( filePath, code, err => {
+		if( err )
+		    alert("Error saving " + filePath + ":\n" + err);
+	    });
+	    
+	}
+	
     }
 
     initQRCGen(){
@@ -1099,19 +1253,30 @@ void loop() {
     compile(){
 	if( this.DOM.compile.style.display == "none" )
 	    return;
+
+	this.commit( true );	
 	
-	this.DOM.compile.style.display = "none";
-
-	this.commit();
-
-	let src = {};
+	let src = {}, main = null, base = null;
 	for( let key in this.source.data ){
 	    if( /.*\.(?:hpp|h|c|cpp|ino)$/i.test(key) )
 		src[key] = this.source.data[key];
+	    if( /.*\.ino$/i.test(key) ){
+		let mainParts = key.split(/[/\\]/);
+		let parentDir = mainParts.pop();
+		if( !main || ((parentDir == key || parentDir + "-master" == key) && base.length<mainParts.length) ){
+		    main = key;
+		    base = mainParts;
+		}
+	    }
 	}
 
+	if( !main )
+	    return alert("Project does not contain an ino file");
+	
+	this.DOM.compile.style.display = "none";
+
 	this.initQRCGen();
-	this.compiler.build( src )
+	this.compiler.build( src, main )
 	    .then( data => {
 		
 		this.DOM.compile.style.display = "initial";

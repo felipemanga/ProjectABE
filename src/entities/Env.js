@@ -8,7 +8,8 @@ class Env extends IController {
         store:IStore,
         pool:"pool",
         viewFactory:[IView, {controller:Env}],
-        model: [Model, {scope:"root"}]
+        model: [Model, {scope:"root"}],
+	userGameSource:"Compiler"
     }
 
     exitSplash(){
@@ -16,20 +17,30 @@ class Env extends IController {
 	if( url ){
 	    this.play( {element:{dataset:{url}}} );
 	}else{
-	    let repoName = this.model.getItem("ram.currentRepo", "");
-	    let list = this.model.getItem("app.repoList");
-	    if( !repoName )
-		repoName = Object.keys(list)[0];
-	    
-	    this.changeRepo( {element:{dataset:{
-		key:repoName,
-		url:list[repoName]
-		}}} );
+	    this._init();
             this._show();
-	}
+	}	
+    }
+
+    _init(){
+	let repoName = this.model.getItem("ram.currentRepo", "");
+	let list = this.model.getItem("app.repoList");
+	if( !repoName )
+	    repoName = Object.keys(list)[0];
+	
+	this.changeRepo( {element:{dataset:{
+	    key:repoName,
+	    url:list[repoName]
+	}}} );
+	
+	list = [];
+	this.userGameSource.getUserGames(list);
+	this.model.setItem("app.projList", list);
+	
     }
 
     exitSim(){
+	this._init();
 	this._show();
     }
 
@@ -109,12 +120,12 @@ class Env extends IController {
 	event.preventDefault();
 
 	this.model.removeItem("app.AT32u4");
-	this.model.removeItem("app.srcpath");
+	this.model.removeItem("ram.srcpath");
 
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];
 	    
-	    this.model.setItem('app.srcpath', ["app", "sources", file.name]);
+	    this.model.setItem('ram.srcpath', ["app", "sources", file.name]);
 	    
 	    if( /.*\.hex$/i.test(file.name) )
 		return loadFileHex.call( this, file );
@@ -129,7 +140,7 @@ class Env extends IController {
 	    fr.onload = evt => {
 		this.model.removeItem("app.AT32u4");		
 		this.model.setItem("app.AT32u4.hex", fr.result);
-		let source = this.model.getModel( this.model.getItem("app.srcpath"), true );
+		let source = this.model.getModel( this.model.getItem("ram.srcpath"), true );
 		source.setItem(["build.hex"], fr.result);
 		this.pool.call("runSim");
 	    };
@@ -182,13 +193,17 @@ class Env extends IController {
     
     load( opt, cb ){
 
-	let url, srcurl, title;
+	let url, srcurl, localsrc, title;
 
 	if( opt.element.dataset.url ){
 	    url = opt.element.dataset.url;
 	    srcurl = opt.element.dataset.source;
-	    title = opt.element.querySelector && opt.element.querySelector('.gameName');
-	    if( title ) title = title.dataset.name;
+	    localsrc = opt.element.dataset.lsp;
+	    title = opt.element.dataset.title;
+	    if( !title ){
+		title = opt.element.querySelector && opt.element.querySelector('.gameName');
+		if( title ) title = title.dataset.name;
+	    }
 	}else{
 	    url = this.model.getItem("ram.preview.binaries.0.filename", "");
 	    srcurl = this.model.getItem("ram.preview.sourceUrl");
@@ -198,12 +213,14 @@ class Env extends IController {
 	if( title )
 	    document.title = title;
 
-	if( url == 'new' ) url = 'null';
+	if( !url || url == 'new' )
+	    url = 'null';
 	
 	this.model.removeItem("app.AT32u4");
-	this.model.removeItem("app.srcpath");
-	this.model.setItem('app.srcpath', ["app", "sources", url]);
-	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
+	this.model.removeItem("ram.srcpath");
+	this.model.setItem("ram.localSourcePath", localsrc);
+	this.model.setItem('ram.srcpath', ["app", "sources", localsrc||url]);
+	let source = this.model.getModel( this.model.getItem("ram.srcpath"), true);
 
 	let build = source.getItem(["build.hex"]);
 
@@ -271,7 +288,7 @@ class Env extends IController {
 
     loadArduboy( buff, cb ){
 	let zip;
-	let source = this.model.getModel( this.model.getItem("app.srcpath"), true);
+	let source = this.model.getModel( this.model.getItem("ram.srcpath"), true);
 	
 	JSZip.loadAsync( buff )
 	    .then( z => (zip=z).file("info.json").async("text") )

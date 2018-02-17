@@ -744,7 +744,7 @@ log {
     overflow: auto;
 }
 
-.reponav li, .linknav li {
+.reponav li, .linknav li, .projectsnav li {
     list-style: none;
     margin: 10px;
     cursor: pointer;

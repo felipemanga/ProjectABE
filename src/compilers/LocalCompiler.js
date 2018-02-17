@@ -1,86 +1,61 @@
-/*
-
-
-To convert the Sketch into a valid C++ file, a number of actions are needed:
-
-If the Sketch is composed by many .ino files, those files are concatenated together into a single .ino.cpp file
-An #inlcude <Arduino.h> is added at the beginning of the Sketch if not already present
-All needed libraries are detected and include paths are discovered
-All #include directives are replaced with the actual content of the files included (this is made with a run of gcc or another command line compatible compiler with the -E flag)
-and finally:
-
-The resulting file is preprocessed to automatically add missing function prototypes (forward declarations)
-The arduino-preprocessor tool takes care to handle this last step.
-
-*/
-
 const PATH = window.require('path');
 const process = window.require('process');
 const fs = window.require('fs');
 const os = window.require('os');
 const chproc = window.require('child_process');
+import { IController, Model, IView } from '../lib/mvc.js';
 
 function normalize( path ){
-    /* * /
-    return path.replace(/\\/, '/')
-	.replace( /\/\.?\/|\/[^\/]\/\.\.\//g, '/' )
-	.replace(/\/+/g, '/');
-    /*/
     return PATH.normalize( path );
-    /* */
 }
 
 class LocalCompiler {
+
+    static "@inject" = {
+	model: [Model, {scope:"root"}]
+    }
 
     constructor(){
 	
 	this.compilerPath = "";
 	this.compilerExec = "";
-	this.includePaths = [];
-	this.libraries = {};
-	this.flags = [
-	    '-mmcu=atmega32u4',
-	    '-DF_CPU=16000000L',
-	    '-DARDUINO=10805',
-	    '-DARDUINO_AVR_LEONARDO',
-	    '-DARDUINO_ARCH_AVR',
-	    '-DUSB_VID=0x2341',
-	    '-DUSB_PID=0x8036',
-	    '-DUSB_MANUFACTURER="Unknown"',
-	    '-DUSB_PRODUCT="Arduino Leonardo"'
-	];
-
-	let home = [os.homedir(), 'Arduino', 'libraries'].join(PATH.sep);
-	if( fs.existsSync( home ) )
-	    this.addLibDir( home );
-
+	
     }
 
-    addLibDir( rootdir ){
-	
+    getUserGames( out ){
+	let dirs, sketchDir = [os.homedir(), 'Arduino'].join(PATH.sep);
 	try{
-	    fs.readdirSync( rootdir )
-		.forEach( dir => {
-		    let fullDir = rootdir + PATH.sep + dir;
-		    if( !fs.lstatSync( fullDir ).isDirectory() )
-			return;
-		    
-		    try{
-			if( fs.lstatSync( fullDir + PATH.sep + 'src' ).isDirectory() )
-			    fullDir += PATH.sep + 'src';
-		    }catch(ex){}
-			
-		    this.libraries[dir] = fullDir;		    
-		});		    
-	}catch(ex){}
-	
+	    dirs = fs.readdirSync( sketchDir );
+	}catch(ex){
+	    console.log("Sketch dir not found in " + sketchDir);
+	    return;
+	}
+
+	dirs.forEach( p => {
+	    let fp = sketchDir + PATH.sep + p;
+	    
+	    try{
+		fp = fs.readlinkSync( fp );
+		fp = PATH.resolve( sketchDir, fp );
+	    }catch(ex){}
+
+	    try{
+		let isDir = fs.lstatSync(fp).isDirectory();
+		if( isDir && fs.existsSync(fp + PATH.sep + p + '.ino' ) )
+		    out.push({
+			title:p,
+			localSourcePath:fp
+		    });
+	    }catch(ex){}
+	    
+	} );
     }
 
     findCompiler(){
 	if( this.compilerPath )
-	    return;
+	    return this.compilerPath;
 
-	console.log("Looking for avr-gcc.");
+	console.log("Looking for arduino IDE.");
 	
 	let ext = process.platform == 'win32' ? '.exe' : '';
 
@@ -94,40 +69,19 @@ class LocalCompiler {
 	let path = undefined;
 	
 	queue.find( x => {
-
-	    let arduino = false;
 	    
-	    if( fs.existsSync( x + PATH.sep + 'avr-gcc' + ext ) ){
-		x = x + PATH.sep + 'avr-gcc' + ext;
-		this.compilerExec = x;
-	    }else if( fs.existsSync( x + PATH.sep + 'arduino' + ext ) ){
-		x = x + PATH.sep + 'arduino' + ext;
-		arduino = true;
-	    }else return false;
+	    if( !fs.existsSync( x + PATH.sep + 'arduino' + ext ) )
+		return false;
+	    
+	    let exec = x + PATH.sep + 'arduino' + ext;
 	    
 	    try{
-		x = fs.readlinkSync( x );
+		exec = fs.readlinkSync( exec );
+		exec = PATH.resolve( x, exec );
 	    }catch(ex){}
 
-	    x = PATH.dirname( x );
-
-	    if( arduino ){
-		let gcc = [x, 'hardware', 'tools', 'avr', 'bin', 'avr-gcc' + ext].join(PATH.sep);
-		if( !fs.existsSync( gcc ) )
-		    return false;
-
-		this.addLibDir( [x, 'libraries'].join( PATH.sep ) );
-		this.addLibDir( [x, 'hardware', 'arduino', 'avr', 'cores'].join( PATH.sep ) );
-		this.addLibDir( [x, 'hardware', 'arduino', 'avr', 'libraries'].join( PATH.sep ) );
-		this.libraries['__leonardo'] = [x, 'hardware', 'arduino', 'avr', 'variants', 'leonardo'].join( PATH.sep );
-
-		this.compilerExec = gcc;
-		
-		x = PATH.dirname( gcc );
-
-	    }
-
-	    path = x;
+	    this.compilerExec = exec;
+	    path = PATH.dirname( exec );
 
 	    return true;
 	    
@@ -136,117 +90,66 @@ class LocalCompiler {
 	return this.compilerPath = path;
     }
     
-    build( srcdata ){
+    build( srcdata, main ){
 
 	return new Promise( (ok, nok) => {
 
-	    let gccpath = this.findCompiler();
+	    if( !this.findCompiler() )
+		return nok("No Arduino IDE found");
 
-	    if( !gccpath ) return nok("No Arduino IDE found");
+	    let lsp = this.model.getItem("ram.localSourcePath");
+	    let lbp = this.model.getItem("ram.localBuildPath");
 
-	    let data = {};
-	    for( let k in srcdata )
-		data[ normalize(k) ] = srcdata[k];
+	    if( !lsp ){
+		lsp = fs.mkdtempSync("ProjectABE_src");
+		console.log("LSP: ", lsp); 
+		this.model.setItem("ram.localSourcePath", lsp);
+		for( let k in srcdata )
+		    fs.writeFileSync(lsp + PATH.sep + k, srcdata[k]);
+	    }
+	    if( !lbp )
+		lbp = fs.mkdtempSync("ProjectABE_build");
+
+	    console.log("LBP: ", lbp);
 	    
-	    let ino =
-		'#include <Arduino.h>\n' +
-		Object
-		.keys( data )
-		.filter( name => /\.ino$/i.test(name) )
-		.reduce( (acc, name) => acc + data[name], '' );
-
-	    let libs = this.getLibList(ino, data);
-
-	    let flags = [];
-
-	    for( var lib in this.libraries )
-		flags.push( '-I', this.libraries[lib] );
-
-	    let args = [...flags, ...this.flags, '-E','-o','build.ii', '-'];
+	    let args = [
+		'--board', 'arduino:avr:leonardo',
+		'--pref', 'build.path=' + lbp,
+		'--verify', PATH.resolve(lsp, main)
+	    ];
 
 	    let child = chproc.spawn(
 		this.compilerExec,
 		args
 	    );
 
-	    let acc = args.join(" ") + '\n';
+	    let acc = args.join(" ") + '\n', hex;
 
 	    child.stdout.on('data', data => {
-		console.log("STDOUT: ", data);
+		for( let i=0, l=data.length; i<l; ++i )
+		    acc += String.fromCharCode(data[i]);
 	    });
 
 	    child.stderr.on('data', data => {
 		for( let i=0, l=data.length; i<l; ++i )
 		    acc += String.fromCharCode(data[i]);
 	    });
+	    
+	    child.on('close', code => {
+		if( code ) return nok(acc);
 
-	    
-	    child.stdin.setEncoding('utf-8');
-	    child.stdin.write( ino );
-	    child.stdin.end();
-	    
-	    child.on('close', code => code ? nok(acc) : ok() );
+		let hexpath = fs.readdirSync(lbp).find( f => /.*\.hex/i.test(f) && f.indexOf("with_bootloader") == -1 );
+		
+		hex = fs.readFileSync( PATH.resolve(lbp, hexpath), 'utf-8' );
+
+		ok({
+		    hex,
+		    stdout:acc
+		});
+	    });
 
 	});
 	
-    }
-
-    getLibList( ino, files ){
-	let libs = {};
-	let state = 0;
-	
-	for( let i=0, l=ino.length; i<l; ++i ){
-	    let ch = ino[i];
-	    switch( state ){
-	    case 0:
-		switch( ch ){
-		case '"': state = 1; break;
-		case '/': state = 2; break;
-		case '#': state = 3; break;
-		}
-		break;
-	    case 1:
-		switch( ch ){
-		case '"': state = 0; break;
-		case '\\': ++i; break;
-		}
-		break;
-	    case 2:
-		switch( ch ){
-		case '*': state = 4; break;
-		case '/': state = 6; break;
-		default: state = 0; break;
-		}
-		break;
-	    case 3:
-		{
-		    let exp = /include\s*(["<])([^">]+)[">]/yi;
-		    exp.lastIndex = i;
-		    let match = exp.exec( ino );
-		    if( match ){
-			i += match[0].length;
-			let path = normalize(match[2]);
-			if( match[1] == "<" || !(path in files) )
-			    libs[path] = "";
-		    }
-		    state = 0;
-		    break;
-		}
-	    case 4:
-		if( ch == '*' ) state = 5;
-		break;
-	    case 5:
-		if( ch == '/' ) state = 0;
-		else if( ch != '*' ) state = 4;
-		break;
-	    case 6:
-		if( ch == '\n' ) state = 0;
-		break;
-	    }
-	}
-
-	return libs;
-
     }
     
 };
