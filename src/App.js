@@ -16,6 +16,18 @@ class App {
         root: [Model, {scope:"root"}]
     }
 
+    keySequences = {
+	'Konami':[
+	    'ArrowUp', 'ArrowUp',
+	    'ArrowDown', 'ArrowDown',
+	    'ArrowLeft', 'ArrowRight',
+	    'ArrowLeft', 'ArrowRight',
+	    'KeyA', 'KeyB'
+	]
+    }
+
+    activeSequences = []
+
     iemap = {
 	"Up":"ArrowUp",
 	"Down":"ArrowDown",
@@ -58,12 +70,12 @@ class App {
     }
 
     remapKey( i, o ){
-		if( i && typeof i == "object" ){
-			for( let k in i )
-				this.mappings[k] = i[k];
-			return;
-		}
-		this.mappings[i] = o;
+	if( i && typeof i == "object" ){
+	    for( let k in i )
+		this.mappings[k] = i[k];
+	    return;
+	}
+	this.mappings[i] = o;
     }
 
     init(){
@@ -194,7 +206,29 @@ class App {
     }
 
     inputDown( code ){
-	return this.pool.call("onPress" + (this.mappings[ code ] || code) );	
+	code = this.mappings[ code ] || code;
+	for( let i=0; i<this.activeSequences.length; ++i ){
+	    let obj = this.activeSequences[i];
+	    let next = obj.seq[ obj.pos++ ];
+	    
+	    if( next !== code || obj.pos >= obj.seq.length ){
+		if( next == code )
+		    this.pool.call( obj.name );
+		this.activeSequences.splice(i--, 1);
+	    }
+	}
+
+	for( let k in this.keySequences ){
+	    let seq = this.keySequences[k];
+	    if( seq[0] == code )
+		this.activeSequences.push({
+		    name:k,
+		    pos:1,
+		    seq
+		});
+	}
+	
+	return this.pool.call("onPress" + code );	
     }
 
     inputUp( code ){

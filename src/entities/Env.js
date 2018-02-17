@@ -167,6 +167,14 @@ class Env extends IController {
 	else
 	    window.open( this.model.getItem("ram.preview.aburl") );
     }
+
+    Konami(){
+	if( !self.core )
+	    this.play({element:{dataset:{
+		title:'',
+		url:''
+	    }}});
+    }
     
     play( opt ){
 	this.load( opt, _ => this.pool.call("runSim") );

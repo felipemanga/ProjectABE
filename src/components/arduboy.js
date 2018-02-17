@@ -279,7 +279,7 @@ class Arduboy {
     }
 
     setActiveView(){
-		this.pool.remove(this);
+	this.pool.remove(this);
     }
 
     powerOff(){
@@ -287,6 +287,7 @@ class Arduboy {
 	document.body.setAttribute("style", "");
 	console.error = this._error;
 	this.dead = true;
+	self.core = null;
 	this.DOM.element.dispatchEvent( new Event("poweroff", {bubbles:true}) );
     }
 
