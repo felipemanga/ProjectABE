@@ -106,7 +106,8 @@ module.exports = {
 	intCOMPC: "TIMER3C"
     }),
 
-    USART:require('./At328P-USART.js'),
+    // USART:require('./At328P-USART.js'),
+    SERIAL:require('./At32u4-USBSerial.js'),
 
     PLL:{
 	read:{
