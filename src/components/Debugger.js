@@ -55,7 +55,32 @@ class Debugger {
 	    "GPIOR1", "GPIOR2", "SPCR", "SPSR", "SPDR", "Reserved",
 	    "ACSR", "OCDR / MONDR", "PLLFRQ", "SMCR", "MCUSR", "MCUCR",
 	    "Reserved", "SPMCSR", "Reserved", "Reserved", "Reserved", "RAMPZ",
-	    "Reserved", "SPL", "SPH", "SREG", "WDTCSR", "CLKPR"
+	    "Reserved", "SPL", "SPH", "SREG", "WDTCSR", "CLKPR",
+	    "Reserved", "Reserved", "PRR0", "PRR1", "OSCCAL", "RCCTRL",
+	    "PCICR", "EICRA", "EICRB", "PCMSK0", "Reserved", "Reserved",
+	    "TIMSK0", "TIMSK1", "Reserved", "TIMSK3", "TIMSK4",
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved",
+	    "ADCL", "ADCH", "ADCSRA", "ADCSRB", "ADMUX", "DIDR2", "DIDR0",
+	    "DIDR1", "TCCR1A", "TCCR1B", "TCCR1C", "Reserved", "TCNT1L",
+	    "TCNT1H", "ICR1L", "ICR1H", "OCR1AL", "OCR1AH", "OCR1BL", "OCR1BH",
+	    "OCR1CL", "OCR1CH", "Reserved", "Reserved", "TCCR3A", "TCCR3B", "TCCR3C",
+	    "Reserved", "TCNT3L", "TCNT3H", "ICR3L","ICR3H", "OCR3AL", "OCR3AH", "OCR3BL", "OCR3BH",
+	    "OCR3CL", "OCR3CH","Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved",
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 
+	    "TWBR", "TWSR", "TWAR", "TWDR", "TWCR", "TWAMR", "TCNT4",
+	    "TC4H", "TCCR4A", "TCCR4B", "TCCR4C", "TCCR4D", "TCCR4E",
+	    "CLKSEL0", "CLKSEL1", "CLKSTA", "UCSR1A", "UCSR1B", "UCSR1C",
+	    "Reserved", "UBRR1L", "UBRR1H", "UDR1", "OCR4A", "OCR4B", "OCR4C", "OCR4D",
+	    "Reserved", "DT4", "Reserved", "Reserved", "UHWCON", "USBCON",
+	    "USBSTA", "USBINT", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", 
+	    "UDCON", "UDINT", "UDIEN", "UDADDR", "UDFNUML", "UDFNUMH", "UDMFN",
+	    "Reserved", "UEINTX", "UENUM", "UERST", "UECONX", "UECFG0X",
+	    "UECFG1X", "UESTA0X", "UESTA1X", "UEIENX", "UEDATX", "UEBCLX", "UEBCHX", "UEINT",
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved",
+	    "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved"
 	].forEach( (name, i)=>this.ramComments[i+0x20] = name );
 
 	this.code = null;
