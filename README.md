@@ -35,7 +35,8 @@ You can also drag-and-drop a hex/arduboy file into the game list to play it.
 | Feature | Browser | Windows | Linux | OS X  | Android |
 | ------- | :-----: | :-----: | :---: | :---: | :---: |
 | Emulator | Yes | Yes | Yes | Yes | Yes |
-| IDE | Yes | No | No | No | Yes |
+| IDE | Yes | Yes | Yes | Yes | Yes |
+| Compiler | Cloud | Local | Local | Local | Cloud |
 | Uploader | No | Yes | Yes | Yes | No |
 
 
@@ -53,7 +54,7 @@ Some games look/play better on a vertical screen, like [1942](https://felipemang
 
 Aside from the standard Arduboy and Microcard, other skins are available. Press **F3** to cycle through them. You can specify which skin to load by adding a parameter to the URL (`?hex=game.hex&skin=Tama`) or the commandline (`ProjectABE --skin=Tama game.hex`).
 
-If you want to debug the game you're currently playing, click on the **USB port** (bottom-center, online version only, for now).
+If you want to debug the game you're currently playing, click on the **USB port** (bottom-center).
 To upload the game to your Arduboy, press **U** (offline version only).
 
 ### Keyboard bindings:
@@ -77,6 +78,8 @@ ProjectABE includes an IDE (based on the awesome [Ace](https://ace.c9.io) editor
 
 If you have an existing project, you can drag-and-drop code (or a zip file containing code) into the editor. If your project is on github or bitbucket, the IDE can load your code from there by pointing ProjectABE to your repository like this:
 https://felipemanga.github.io/ProjectABE/?url=https://github.com/felipemanga/HelloCommander
+
+To use the IDE in the Windows, Linux, and OS X builds, you need to have the Arduino IDE installed. You will also need to install the necessary libraries. Projects will be loaded from the Arduino Sketchbook folder.
 
 You can also drag-and-drop images to have them converted into source code, ready to be used with the Arduboy2 library, with an ascii-art preview (dashes are transparent, spaces are black, and sharps white):
 
