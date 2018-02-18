@@ -21,6 +21,7 @@ class LocalCompiler {
 	
 	this.compilerPath = "";
 	this.compilerExec = "";
+	this.prefixArgs = [];
 	
     }
 
@@ -69,8 +70,13 @@ class LocalCompiler {
 	    PATH.resolve('.'),
 	    ...process.env.PATH.split(PATH.delimiter)
 	];
-	if( process.env.programfiles )
+	if( process.env.programfiles ){
 	    queue.push( process.env.programfiles + PATH.sep + 'arduino');
+	}else if( process.platform == 'darwin' ){
+	    queue.push('/Applications');
+	    queue.push(os.homedir() + '/Applications');
+	    ext = '.app';
+	}
 
 	let path = undefined;
 	
@@ -81,16 +87,22 @@ class LocalCompiler {
 	    
 	    let exec = x + PATH.sep + 'arduino_debug' + ext;
 
-	    if( !fs.existsSync(exec) ){
+	    // windows, mostly
+	    if( !fs.existsSync(exec) )
 		exec = x + PATH.sep + 'arduino' + ext;
-	    }
 	    
+	    // linux, mostly
 	    try{
 		exec = fs.readlinkSync( exec );
 		exec = PATH.resolve( x, exec );
 	    }catch(ex){}
 
 	    this.compilerExec = exec;
+	    
+	    // derpy, mostly
+	    if( process.platform == 'darwin' )
+		this.compilerExec += '/Contents/MacOS/Arduino';
+	    
 	    path = PATH.dirname( exec );
 
 	    return true;
@@ -111,22 +123,22 @@ class LocalCompiler {
 	    let lbp = this.model.getItem("ram.localBuildPath");
 
 	    if( !lsp ){
-		lsp = fs.mkdtempSync("ProjectABE_src");
+		lsp = fs.mkdtempSync( PATH.resolve(this.store.root, "src_") );
 		console.log("LSP: ", lsp); 
 		this.model.setItem("ram.localSourcePath", lsp);
 		for( let k in srcdata )
 		    this.store.saveFile( lsp + PATH.sep + k, srcdata[k] );
 	    }
 	    if( !lbp )
-		lbp = fs.mkdtempSync("ProjectABE_build");
+		lbp = fs.mkdtempSync( PATH.resolve(this.store.root, "build_") );
 
 	    console.log("LBP: ", lbp);
 	    
-	    let args = [
+	    let args = [ ...this.prefixArgs,
 		'--board', 'arduino:avr:leonardo',
 		'--pref', 'build.path=' + lbp,
 		'--verify', PATH.resolve(lsp, main)
-	    ];
+			];
 
 	    let child = chproc.spawn(
 		this.compilerExec,
@@ -136,8 +148,11 @@ class LocalCompiler {
 	    let acc = args.join(" ") + '\n', hex;
 
 	    child.stdout.on('data', data => {
+		    let tmp = '';
 		for( let i=0, l=data.length; i<l; ++i )
-		    acc += String.fromCharCode(data[i]);
+		    tmp += String.fromCharCode(data[i]);
+		    acc += tmp;
+		    console.log(tmp);
 	    });
 
 	    child.stderr.on('data', data => {
