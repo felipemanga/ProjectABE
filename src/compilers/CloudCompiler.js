@@ -26,7 +26,14 @@ class CloudCompiler {
 	
 	return p;
     }
+    
+    getSketchDir(){
+	return '';
+    }
 
+    getUserGames( out ){
+    }
+    
     pollCompilerService( src, ok, nok ){
 	
 	fetch( compiler + "poll?id=" + this.compileId )
