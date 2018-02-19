@@ -33,7 +33,7 @@ module.exports = {
 	[UEDATX]:function(v){
 //	    if( this.EP[this.UENUM].UECFG0X & 1 == 0 )
 
-	    this.core.pins.serial0Out = v;
+	    this.core.pins.serial0Out.push(v);
 	    
 	    // this.EP[this.UENUM].write(v);
 //	    return v;

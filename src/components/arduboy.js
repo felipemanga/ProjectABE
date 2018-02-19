@@ -33,8 +33,33 @@ class Arduboy {
 
 	DOM.element.addEventListener( "addperiferal", evt => this.addPeriferal( evt.target.controller ) );
 
+	let serial0OUTBuffer = '';
+	this.periferals = [
+	    {
+		logger:{
+		    connect:"cpu.0",
+		    serial0:function(v){
+			
+			let str = String.fromCharCode(v);
+			// str = (str || "").replace(/\r/g,'');
+			serial0OUTBuffer += str;
 
-	this.periferals = [];
+			var br = serial0OUTBuffer.indexOf("\n");
+			if( br != -1 ){
+
+			    var parts = serial0OUTBuffer.split("\n");
+			    while( parts.length>1 )
+				self.core.history.push(
+				    parts.shift().replace(/\r/g, '')
+				);
+
+			    serial0OUTBuffer = parts[0];
+
+			}
+		    }
+		}
+	    }
+	];
 
 	this.update = this._update.bind( this );
 
@@ -307,8 +332,6 @@ class Arduboy {
 	let core = this.core,
 	    oldValues = {},
 	    DDRB,
-	    serial0OUTBuffer = "",
-	    serial0INBuffer  = "",
 	    callbacks = {
 		DDRB:{},
 		DDRC:{},
@@ -395,25 +418,14 @@ class Arduboy {
 		}
 	    },
 
-	    
             serial0Out:{
-		set:function( v ){
-		    let str = String.fromCharCode(v);
-                    // str = (str || "").replace(/\r/g,'');
-                    serial0OUTBuffer += str;
-
-                    var br = serial0OUTBuffer.indexOf("\n");
-                    if( br != -1 ){
-
-                        var parts = serial0OUTBuffer.split("\n");
-                        while( parts.length>1 )
-                            self.core.history.push(
-				parts.shift().replace(/\r/g, '')
-			    );
-
-                        serial0OUTBuffer = parts[0];
-
-                    }
+		value:{
+		    listeners:[],
+		    push( data ){
+			let i=0, listeners=this.listeners, l=listeners.length;
+			for(;i<l;++i)
+			    listeners[i]( data );
+		    }
                     
 		}
             },
@@ -543,6 +555,9 @@ class Arduboy {
 
 		if( v.MOSI )
 		    pins.spiOut.listeners.push( v.MOSI.bind( ctrl ) );
+
+		if( v.serial0 )
+		    pins.serial0Out.listeners.push( v.serial0.bind(ctrl) );
 
 		if( !tobj ){
 		    console.warn("Could not attach wire from ", k, " to ", target);
