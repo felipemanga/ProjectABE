@@ -66,7 +66,7 @@ module.exports = {
 		    this.EORSTI = 1;
 		    let ep0 = this.EP[0];
 		    ep0.UECONX  = 1;
-		    ep0.UECFG1X = (4<<4) | (1<<1);
+		    ep0.UECFG1X = (3<<4) | (1<<1);
 		    ep0.configure();
 		    ep0.UEIENX = 1<<3;
 		    ep0.UEINTX = 1<<3;
@@ -225,7 +225,7 @@ module.exports = {
 		    end:0,
 		    
 		    configure:function(){
-			let size = 8 << ((this.UECFG1X >> 4) & 3);
+			let size = 8 << ((this.UECFG1X >> 4) & 7);
 			let alloc = (this.UECFG1X >> 1) & 1;
 			if( alloc && (!this.buffer || size < this.buffer.length) ){
 			    this.buffer = new Uint8Array( size );
