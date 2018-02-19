@@ -246,7 +246,7 @@ module.exports = {
 			this.buffer[this.end] = v;
 			this.end = nextEnd;
 			this.length++;
-			this.UEBCLX = this.length & 0xF;
+			this.UEBCLX = this.length & 0xFF;
 			this.UEBCHX = (this.length>>8) & 0x7;
 						
 			this.UEDATX = v;
@@ -266,7 +266,7 @@ module.exports = {
 			let v = this.buffer[this.start];
 			this.start = nextStart;
 			this.length--;
-			this.UEBCLX = this.length & 0xF;
+			this.UEBCLX = this.length & 0xFF;
 			this.UEBCHX = (this.length>>8) & 0x7;
 			
 			this.UEDATX = v;
