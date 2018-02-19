@@ -60,7 +60,7 @@ module.exports = {
 	    
 	    if( this.USBE ){
 		this.VBUSTI = 1;
-		this.timeout = 1000;
+		this.timeout = 100;
 		this.timeoutCB = _ => {
 		    
 		    this.EORSTI = 1;
@@ -82,7 +82,7 @@ module.exports = {
 
 		    ].forEach( b => ep0.write(b) );
 
-		    this.timeout = 1000;
+		    this.timeout = 100;
 		    this.timeoutCB = _ => {
 			ep0.UEINTX = 1<<3;
 			
