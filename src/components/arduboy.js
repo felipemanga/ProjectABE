@@ -30,36 +30,10 @@ class Arduboy {
 	this.height = 0;
 	this.dead = false;
 	this.skipResize = 0;
+	this.firstInit = true;
+	this.periferals = [];
 
 	DOM.element.addEventListener( "addperiferal", evt => this.addPeriferal( evt.target.controller ) );
-
-	let serial0OUTBuffer = '';
-	this.periferals = [
-	    {
-		logger:{
-		    connect:"cpu.0",
-		    serial0:function(v){
-			
-			let str = String.fromCharCode(v);
-			// str = (str || "").replace(/\r/g,'');
-			serial0OUTBuffer += str;
-
-			var br = serial0OUTBuffer.indexOf("\n");
-			if( br != -1 ){
-
-			    var parts = serial0OUTBuffer.split("\n");
-			    while( parts.length>1 )
-				self.core.history.push(
-				    parts.shift().replace(/\r/g, '')
-				);
-
-			    serial0OUTBuffer = parts[0];
-
-			}
-		    }
-		}
-	    }
-	];
 
 	this.update = this._update.bind( this );
 
@@ -317,7 +291,10 @@ class Arduboy {
     }
 
     initCore( preserve ){
-	
+	if( this.firstInit ){
+	    this.pool.call("pollForPeriferals", this.periferals);
+	    this.firstInit = false;
+	}
 	window.onerror = evt => {
 	    self.core.history.push( "ERROR: " + evt.toString() );
 	};

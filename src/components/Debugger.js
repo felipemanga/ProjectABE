@@ -1543,11 +1543,40 @@ void loop() {
 	this.pool.call("step");
     }
 
+    pollForPeriferals( periferals ){
+	let serial0OUTBuffer = '';
+	
+	periferals.push({
+	    logger:{
+		connect:"cpu.0",
+		serial0:(v) => {
+		    
+		    let str = String.fromCharCode(v);
+		    // str = (str || "").replace(/\r/g,'');
+		    serial0OUTBuffer += str;
+
+		    var br = serial0OUTBuffer.indexOf("\n");
+		    if( br != -1 ){
+
+			var parts = serial0OUTBuffer.split("\n");
+			while( parts.length>1 )
+			    self.core.history.push(
+				parts.shift().replace(/\r/g, '')
+			    );
+
+			this.refreshHistory();
+
+			serial0OUTBuffer = parts[0];
+
+		    }
+		}
+	    }
+	});
+	
+    }
+
     refreshHistory(){
-	
-	if( this.DOM.autoRefreshHistory.checked )
-	    setTimeout( _ => this.refreshHistory(), 1000 );
-	
+		
 	while( core.history.length > this.history.length )
 	    this.history.push(
 		this.DOM.create(

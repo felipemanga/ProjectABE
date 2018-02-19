@@ -68,9 +68,6 @@
     <div class="verticalContainer" id="historyContainer">
       <div class="horizontalContainer tabs">
 	<button click-call="refreshHistory">Refresh</button>
-	<label>
-	  <input type="checkbox" id="autoRefreshHistory" change-call="refreshHistory"> auto
-	</label>
       </div>
       <ul id="history"></ul>
       <input onchange="pins.serial0In = event.target.value; event.target.value = ''">
