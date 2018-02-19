@@ -33,7 +33,7 @@ module.exports = {
 	[UEDATX]:function(v){
 //	    if( this.EP[this.UENUM].UECFG0X & 1 == 0 )
 
-	    this.core.pins.serial0 = (this.core.pins.serial0||"") + String.fromCharCode(v);
+	    this.core.pins.serial0Out = v;
 	    
 	    // this.EP[this.UENUM].write(v);
 //	    return v;
@@ -163,9 +163,7 @@ module.exports = {
 	},
 	[UEDATX ]:function(){
 	    let ep = this.EP[this.UENUM];
-	    // if( (ep.UECFG0X & 1) == 1 )
 	    return ep.read();
-	    // return ep.UEDATX;
 	},
 
 	[UDINT]:function(){
@@ -191,6 +189,20 @@ module.exports = {
     },
     
     init:function(){
+	
+	let serial0INBuffer = this.serial0INBuffer = [];
+
+	Object.defineProperty( this.core.pins, 'serial0In', {
+	    set:function( v ){
+		if( typeof v == 'string' ){
+		    for( let i=0, l=v.length; i<l; ++i )
+			serial0INBuffer.push(v.charCodeAt(i));
+		}else
+		    serial0INBuffer.push(v);
+	    }
+	});
+	
+	
 	this.timeout = 0;
 	this.timeoutCB = null;
 	this.DPRAM = new Uint8Array(832);
@@ -226,7 +238,7 @@ module.exports = {
 			    return v;
 			
 			let nextEnd = (this.end+1) % this.buffer.length;
-			if( nextEnd == this.start ){
+			if( this.end == this.start && this.length ){
 			    // overflow
 			    return v;
 			}
@@ -246,7 +258,7 @@ module.exports = {
 			    return 0;
 			
 			let nextStart = (this.start+1) % this.buffer.length;
-			if( this.start == this.end ){
+			if( !this.length ){
 			    // underflow
 			    return 0;
 			}
@@ -295,6 +307,12 @@ module.exports = {
     },
     
     update:function( tick, ie ){
+
+	let ep0 = this.EP[0];
+	while( ep0.buffer && this.serial0INBuffer.length && ep0.length < ep0.buffer.length ){
+	    ep0.write( this.serial0INBuffer.shift() );
+	}
+	
 
 	if( this.timeout && !--this.timeout )
 	    this.timeoutCB();

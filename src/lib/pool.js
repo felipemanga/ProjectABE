@@ -220,13 +220,13 @@ function Pool() {
             c = listeners[keys[count]];
 
             // DEBUG
-            if (debug && (method == debug || c.THIS.constructor.name == debug)) console.log(c.THIS, method, args);
+            // if (debug && (method == debug || c.THIS.constructor.name == debug)) console.log(c.THIS, method, args);
             // END-DEBUG
 
             var lret = c && c.method.apply(c.THIS, args);
             if (lret !== undefined) ret = lret;
         }
-        if (!(method in silence)) console.log(method + ": " + count);
+        // if (!(method in silence)) console.log(method + ": " + count);
         return ret;
     };
 }

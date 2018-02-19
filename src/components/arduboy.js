@@ -304,16 +304,21 @@ class Arduboy {
 	
 	this.root.setItem("ram.core", self.core);
 	
-	let core = this.core, oldValues = {}, DDRB, serial0Buffer = "", callbacks = {
-            DDRB:{},
-            DDRC:{},
-            DDRD:{},
-            PORTB:{},
-            PORTC:{},
-            PORTD:{},
-            PORTE:{},
-            PORTF:{}
-	};
+	let core = this.core,
+	    oldValues = {},
+	    DDRB,
+	    serial0OUTBuffer = "",
+	    serial0INBuffer  = "",
+	    callbacks = {
+		DDRB:{},
+		DDRC:{},
+		DDRD:{},
+		PORTB:{},
+		PORTC:{},
+		PORTD:{},
+		PORTE:{},
+		PORTF:{}
+	    };
 	
 	if( preserve ){
 	    core.enableDebugger();
@@ -389,20 +394,24 @@ class Arduboy {
 		    }
 		}
 	    },
-	    
-            serial0:{
-		set:function( str ){
-                    str = (str || "").replace(/\r/g,'');
-                    serial0Buffer += str;
 
-                    var br = serial0Buffer.indexOf("\n");
+	    
+            serial0Out:{
+		set:function( v ){
+		    let str = String.fromCharCode(v);
+                    // str = (str || "").replace(/\r/g,'');
+                    serial0OUTBuffer += str;
+
+                    var br = serial0OUTBuffer.indexOf("\n");
                     if( br != -1 ){
 
-                        var parts = serial0Buffer.split("\n");
+                        var parts = serial0OUTBuffer.split("\n");
                         while( parts.length>1 )
-                            self.core.history.push( parts.shift() );
+                            self.core.history.push(
+				parts.shift().replace(/\r/g, '')
+			    );
 
-                        serial0Buffer = parts[0];
+                        serial0OUTBuffer = parts[0];
 
                     }
                     
@@ -444,6 +453,8 @@ class Arduboy {
             }
 
 	});
+
+	self.pins = core.pins;
 
 	setTimeout( _ =>{
 	    this.setupPeriferals();
