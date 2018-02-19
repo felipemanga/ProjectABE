@@ -292,8 +292,6 @@ class Arduboy {
     }
 
     initCore( preserve ){
-
-	self.core.history.push("Initializing core" + (preserve?" with debugger enabled":"") );
 	
 	window.onerror = evt => {
 	    self.core.history.push( "ERROR: " + evt.toString() );
@@ -394,7 +392,7 @@ class Arduboy {
 	    
             serial0:{
 		set:function( str ){
-                    str = (str || "").replace(/\r\n?/,'\n');
+                    str = (str || "").replace(/\r/g,'');
                     serial0Buffer += str;
 
                     var br = serial0Buffer.indexOf("\n");
@@ -402,7 +400,7 @@ class Arduboy {
 
                         var parts = serial0Buffer.split("\n");
                         while( parts.length>1 )
-                            self.core.history.push( 'SERIAL: ', parts.shift() );
+                            self.core.history.push( parts.shift() );
 
                         serial0Buffer = parts[0];
 

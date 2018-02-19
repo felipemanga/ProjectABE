@@ -28,18 +28,29 @@ module.exports = {
 	    return this.UENUM;
 	},
 
-	[UEBCHX]:function(v){ return this.EP[this.UENUM].UEBCHX = v; },
-	[UEBCLX]:function(v){ return this.EP[this.UENUM].UEBCLX = v; },
-	[UEDATX]:function(v){ return this.EP[this.UENUM].UEDATX = v; },
+	[UEBCHX]:function(v){ return this.EP[this.UENUM].UEBCHX; },
+	[UEBCLX]:function(v){ return this.EP[this.UENUM].UEBCLX; },
+	[UEDATX]:function(v){
+//	    if( this.EP[this.UENUM].UECFG0X & 1 == 0 )
+
+	    this.core.pins.serial0 = (this.core.pins.serial0||"") + String.fromCharCode(v);
+	    
+	    // this.EP[this.UENUM].write(v);
+//	    return v;
+	},
 	[UEIENX]:function(v){ return this.EP[this.UENUM].UEIENX = v; },
 	[UESTA1X]:function(v){ return this.EP[this.UENUM].UESTA1X = v; },
 	[UESTA0X]:function(v){ return this.EP[this.UENUM].UESTA0X = v; },
-	[UECFG1X]:function(v){ return this.EP[this.UENUM].UECFG1X = v; },
+	[UECFG1X]:function(v){
+	    this.EP[this.UENUM].UECFG1X = v;
+	    this.EP[this.UENUM].configure();
+	    return v;
+	},
 	[UECFG0X]:function(v){ return this.EP[this.UENUM].UECFG0X = v; },
 	[UECONX]:function(v){ return this.EP[this.UENUM].UECONX = v; },
 	[UERST]:function(v){ return this.EP[this.UENUM].UERST = v; },
 	[UENUM]:function(v){ return this.EP[this.UENUM].UENUM = v; },
-	[UEINTX]:function(v){ return this.EP[this.UENUM].UEINTX = v; },
+	[UEINTX]:function(v){ return this.EP[this.UENUM].UEINTX &= v; },
 	
 	[USBCON]:function(v){
 	    this.VBUSTE = v & 1;
@@ -49,17 +60,44 @@ module.exports = {
 	    
 	    if( this.USBE ){
 		this.VBUSTI = 1;
-		this.timeout = 10000;
+		this.timeout = 1000;
 		this.timeoutCB = _ => {
 		    
 		    this.EORSTI = 1;
 		    let ep0 = this.EP[0];
-		    ep0.EPEN = 1;
-		    ep0.EPTYPE = 0;
-		    ep0.EPSIZE = 0x32;
-		    ep0.CFGOK = 1;
-		    ep0.UEINTX = 1<<3;
+		    ep0.UECONX  = 1;
+		    ep0.UECFG1X = (4<<4) | (1<<1);
+		    ep0.configure();
 		    ep0.UEIENX = 1<<3;
+		    ep0.UEINTX = 1<<3;
+
+		    [
+			
+			0, // uint8_t bmRequestType;
+			9, // uint8_t bRequest;
+			1, // uint8_t wValueL;
+			0, // uint8_t wValueH;
+			0, 0, // uint16_t wIndex;
+			0, 0  // uint16_t wLength;
+
+		    ].forEach( b => ep0.write(b) );
+
+		    this.timeout = 1000;
+		    this.timeoutCB = _ => {
+			ep0.UEINTX = 1<<3;
+			
+			[
+			    
+			    0x21, // uint8_t bmRequestType;
+			    0x22, // uint8_t bRequest;
+			    3, // uint8_t wValueL;
+			    0, // uint8_t wValueH;
+			    0, 0, // uint16_t wIndex;
+			    0, 64 // uint16_t wLength;
+
+			].forEach( b => ep0.write(b) );
+			
+		    };
 		    
 		}
 		
@@ -105,7 +143,6 @@ module.exports = {
 
 	[UEBCHX ]:function(){ return this.EP[this.UENUM].UEBCHX; },
 	[UEBCLX ]:function(){ return this.EP[this.UENUM].UEBCLX; },
-	[UEDATX ]:function(){ return this.EP[this.UENUM].UEDATX; },
 	[UEIENX ]:function(){ return this.EP[this.UENUM].UEIENX; },
 	[UESTA1X]:function(){ return this.EP[this.UENUM].UESTA1X; },
 	[UESTA0X]:function(){ return this.EP[this.UENUM].UESTA0X; },
@@ -114,20 +151,37 @@ module.exports = {
 	[UECONX ]:function(){ return this.EP[this.UENUM].UECONX; },
 	[UERST  ]:function(){ return this.EP[this.UENUM].UERST; },
 	[UENUM  ]:function(){ return this.EP[this.UENUM].UENUM; },
-	[UEINTX ]:function(){ return this.EP[this.UENUM].UEINTX; },
+	[UEINTX ]:function(){
+	    let ep = this.EP[this.UENUM];
+	    let ret = ep.UEINTX;
+
+	    let rwal = (ep.buffer && ep.buffer.length > ep.length) | 0;
+	    
+	    this.UEINTX = ret = (ret & ~(1<<5)) | (rwal<<5);
+
+	    return ret;
+	},
+	[UEDATX ]:function(){
+	    let ep = this.EP[this.UENUM];
+	    // if( (ep.UECFG0X & 1) == 1 )
+	    return ep.read();
+	    // return ep.UEDATX;
+	},
 
 	[UDINT]:function(){
-	    return this.SUSPI |
-		(this.MSOFI<<1) |
-		(this.SOFI<<2) |
-		(this.EORSTI<<3) |
+	    return this.SUSPI     |
+		(this.MSOFI<<1)   |
+		(this.SOFI<<2)    |
+		(this.EORSTI<<3)  |
 		(this.WAKEUPI<<4) |
-		(this.EORSMI<<5) |
+		(this.EORSMI<<5)  |
 		(this.UPRSMI<<6);
 	},
+	
 	[USBINT]:function(){
 	    return this.VBUSTI;
 	},
+	
 	[USBCON]:function(){
 	    return this.VBUSTE |
 		(this.OTGPADE<<4) |
@@ -146,18 +200,67 @@ module.exports = {
 	    this.UENUM = 0;
 	    for( let i=0; i<8; ++i ){
 		this.EP[i] = {
-		    EPEN:0,
-		    EPDIR:0,
-		    EPTYPE:0,
-		    ALLOC:0,
-		    EPSIZE:0,
-		    EPBK:0,
-		    CFGOK:0,
-		    ADDEN:0,
-		    UADD:0,
+		    buffer:null,
+		    UECONX:0,
 		    UEIENX:0,
 		    UEINTX:0,
-		    ptr:0
+		    UEDATX:0,
+		    UEBCX:0,
+		    UEBCLX:0,
+		    UEBCHX:0,
+		    length:0,
+		    start:0,
+		    end:0,
+		    
+		    configure:function(){
+			let size = 8 << ((this.UECFG1X >> 4) & 3);
+			let alloc = (this.UECFG1X >> 1) & 1;
+			if( alloc && (!this.buffer || size < this.buffer.length) ){
+			    this.buffer = new Uint8Array( size );
+			    this.start = this.end = 0;
+			}
+		    },
+		    
+		    write:function( v ){
+			if( !this.buffer )
+			    return v;
+			
+			let nextEnd = (this.end+1) % this.buffer.length;
+			if( nextEnd == this.start ){
+			    // overflow
+			    return v;
+			}
+
+			this.buffer[this.end] = v;
+			this.end = nextEnd;
+			this.length++;
+			this.UEBCLX = this.length & 0xF;
+			this.UEBCHX = (this.length>>8) & 0x7;
+						
+			this.UEDATX = v;
+			return v;
+		    },
+		    
+		    read:function(){
+			if( !this.buffer )
+			    return 0;
+			
+			let nextStart = (this.start+1) % this.buffer.length;
+			if( this.start == this.end ){
+			    // underflow
+			    return 0;
+			}
+
+			let v = this.buffer[this.start];
+			this.start = nextStart;
+			this.length--;
+			this.UEBCLX = this.length & 0xF;
+			this.UEBCHX = (this.length>>8) & 0x7;
+			
+			this.UEDATX = v;
+			
+			return this.UEDATX;
+		    }
 		};
 	    }
 
@@ -238,10 +341,10 @@ module.exports = {
 		let epi = ep.UEINTX & ep.UEIENX;
 		if( epi ){
 		    this.UEINT = i;
-		    // return "USBEND";
-		}
-		
+		    return "USBEND";
+		}		
 	    }
+	    
 	}
 
     }

@@ -476,8 +476,9 @@ t1 === undefined ? t2 : t1
             var inst = this.identify();
             if( !inst ){
                 // inst = nop;
-				this.history.push( this.error );
-				this.pc++;
+		if( execute )
+		    this.history.push( this.error );
+		this.pc++;
                 return;
             }
 
@@ -674,11 +675,13 @@ t1 === undefined ? t2 : t1
         this.memory[0x5F] &= ~(1<<7); // disable interrupts
         this.pc = addr;
 	this.tick += 5;
-	
+
+	/*
 	let log = "#" + (this.pc<<1).toString(16).padStart(4, "0") + " INT " + source;
 	if( this.history[this.history.length-1] != log )
 	    this.history.push( log );
-
+	*/
+	
     }
 
     parse( out ){
