@@ -110,6 +110,10 @@ class ChromeSerial {
 	this.app = app;
     }
 
+    flasherActive(){
+	return this.busy;
+    }
+
     init(){
 	
 	if( typeof document == "undefined" )

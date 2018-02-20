@@ -109,7 +109,7 @@ document.addEventListener( "DOMContentLoaded", () => {
     });
 
     app.pool.add(new Flasher( app ));
-    app.pool.add(new SerialRouter());
+    app.pool.add(new SerialRouter( app ));
     app.pool.add({
 	onSetSkin( skin ){
 	    nw.Window.get().resizeTo( skin.width, skin.height );
