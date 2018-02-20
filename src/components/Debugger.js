@@ -1549,6 +1549,7 @@ void loop() {
 	periferals.push({
 	    logger:{
 		connect:"cpu.0",
+		init: _ => serial0OUTBuffer = '',
 		serial0:(v) => {
 		    
 		    let str = String.fromCharCode(v);

@@ -36,7 +36,8 @@ setTimeout( function(){
 	    ram:{
 		skin: (location.search.match(/[?&]skin=([^&]+)/)||[])[1],
 		autoRun: url,
-		debuggerEnabled:true
+		debuggerEnabled:true,
+		isNativeBuild: false
 	    }
 	}
     }).pool.add({

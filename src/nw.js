@@ -14,7 +14,7 @@ import * as entities from './entities/*.js';
 import * as components from './components/*.js';
 
 import Flasher from './flashers/ChromeSerial.js';
-
+import SerialRouter from './lib/SerialRouter.js';
 const fs = window.require("fs");
 
 document.addEventListener( "DOMContentLoaded", () => {
@@ -102,12 +102,14 @@ document.addEventListener( "DOMContentLoaded", () => {
 		skin,
 		autoRun: url,
 		hasFlasher: true,
-		debuggerEnabled: /* * / undefined /*/ true /* */
+		debuggerEnabled: /* * / undefined /*/ true /* */,
+		isNativeBuild: true
 	    }
 	}
     });
 
     app.pool.add(new Flasher( app ));
+    app.pool.add(new SerialRouter());
     app.pool.add({
 	onSetSkin( skin ){
 	    nw.Window.get().resizeTo( skin.width, skin.height );
