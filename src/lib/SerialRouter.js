@@ -183,9 +183,12 @@ class SerialRouter {
 	if( !this.clients[id-1] )
 	    return;
 
+	if( this.clients[id-1] == local )
+	    local = null;
+
 	this.clients[id-1] = null;
 
-	this.broadcast( 0, [CMD_REMOVE, id] );
+	this.broadcast( 0, [2, CMD_REMOVE, id] );
     }
     
     addClient( opt ){
@@ -225,7 +228,7 @@ class SerialRouter {
 	console.log("BC: ", from, buffer);
 	
 	for( let i=0, c; c=this.clients[i++]; )
-	    if( i+1 != from ) c.write( [from, buffer.length, ...buffer] );
+	    if( i+1 != from ) c.write( [from, ...buffer] );
 
 	buffer.length = 0;
 
@@ -235,7 +238,12 @@ class SerialRouter {
 	connect:"cpu.0",
 
 	init:function(){
+	    
+	    if( local )
+		local.disconnect();
+
 	    this.addLocalClient();
+	    
 	},
 
 	serial0:function( v ){
