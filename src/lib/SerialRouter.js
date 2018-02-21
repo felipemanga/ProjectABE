@@ -86,7 +86,7 @@ function writeSerial( v ){
 	v = tmp;
     }else v = new Uint8Array(v);
 
-    console.log( "writing", id, v );
+    // console.log( "writing", id, v );
 
     resend();
     return;
@@ -225,10 +225,13 @@ class SerialRouter {
 
     broadcast( from, buffer ){
 
-	console.log("BC: ", from, buffer);
+	// console.log("BC: ", from, buffer);
+
+	let clients = this.clients;
 	
-	for( let i=0, c; c=this.clients[i++]; )
-	    if( i+1 != from ) c.write( [from, ...buffer] );
+	for( let i=0; i<clients.length; ++i )
+	    if( i+1 != from && clients[i] )
+		clients[i].write( [from, ...buffer] );
 
 	buffer.length = 0;
 
