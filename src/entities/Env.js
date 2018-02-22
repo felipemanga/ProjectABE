@@ -182,8 +182,8 @@ class Env extends IController {
     Konami(){
 	if( !self.core )
 	    this.play({element:{dataset:{
-		title:'',
-		url:''
+		title:'Sky Knights',
+		url:'ArduboyProject.hex'
 	    }}});
     }
     

@@ -445,7 +445,7 @@ void loop() {
 	if( !this.initSource() ) return;
 
 	if( typeof target !== "string" )
-	    target = prompt("File name:").trim();
+	    target = (prompt("File name:") || "").trim();
 	
 	if( target == "" ) return;
 
