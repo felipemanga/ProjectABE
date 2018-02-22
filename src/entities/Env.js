@@ -183,7 +183,8 @@ class Env extends IController {
 	if( !self.core )
 	    this.play({element:{dataset:{
 		title:'Sky Knights',
-		url:'ArduboyProject.hex'
+		url:'ArduboyProject.hex',
+		proxy:false
 	    }}});
     }
     
@@ -193,13 +194,14 @@ class Env extends IController {
     
     load( opt, cb ){
 
-	let url, srcurl, localsrc, title;
+	let url, srcurl, localsrc, title, useProxy = true;
 
 	if( opt.element.dataset.url ){
 	    url = opt.element.dataset.url;
 	    srcurl = opt.element.dataset.source;
 	    localsrc = opt.element.dataset.lsp;
 	    title = opt.element.dataset.title;
+	    useProxy = opt.element.dataset.proxy || opt.element.dataset.proxy == undefined;
 	    if( !title ){
 		title = opt.element.querySelector && opt.element.querySelector('.gameName');
 		if( title ) title = title.dataset.name;
@@ -224,7 +226,10 @@ class Env extends IController {
 
 	let build = source.getItem(["build.hex"]);
 
-	let finalURL, proxy = this.model.getItem("app.proxy");
+	let finalURL, proxy = "";
+	if( useProxy )
+	    proxy = this.model.getItem("app.proxy");
+
 	let github = url.match(/^https:\/\/raw.githubusercontent.com\/(.*)$/i);
 	if( github && proxy )
 	    finalURL = 'https://gitcdn.xyz/repo/' + github[1];
