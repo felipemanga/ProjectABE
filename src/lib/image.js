@@ -184,7 +184,7 @@ function loadImage( img, cleanName, isPNG ){
 
     let src = '', ascii = "/*";
     
-    src += "\n\nconst unsigned char PROGMEM " + cleanName + "[] = ";
+    src += "\n\nconst unsigned char PROGMEM " + cleanName + "_bitmap[] = ";
     
     src += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
     spmasksrc += "{\n// width, height,\n" + width + ", " + img.naturalHeight;
@@ -232,9 +232,6 @@ function loadImage( img, cleanName, isPNG ){
 
 	    src += ",";
 	    spmasksrc += ",";
-
-	    if( currentByte != 0 )
-		masksrc += ",";
 	    
 	    if( currentByte%width == 0 ){
 		src += "\n"; masksrc += "\n";
@@ -246,11 +243,13 @@ function loadImage( img, cleanName, isPNG ){
 	    spmasksrc += byte;
 	    	    
 	    if( isPNG ){
+		if( currentByte != 0 )
+		    masksrc += ",";
 		byte = "0x" + maskByte.toString(16).padStart(2, "0");
 		masksrc += byte;
-		spmasksrc += ", " + byte;
 	    }
-
+	    spmasksrc += ", " + byte;
+	    
 	    currentByte++;
 	}
     }
@@ -262,7 +261,7 @@ function loadImage( img, cleanName, isPNG ){
     src += spmasksrc + "\n";    
 	
     let headers = [
-	cleanName + "[]",
+	cleanName + "_bitmap[]",
 	cleanName + "_mask[]",
 	cleanName + "_plus_mask[]"
     ]

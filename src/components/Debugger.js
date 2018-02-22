@@ -151,7 +151,7 @@ class Debugger {
 			if( /.*\.(h|hpp|c|cpp|ino)$/i.test(file) )
 			    fs.readFile( ffp, 'utf-8', (err,txt) => {
 				if( !err )
-				    this.addNewFile( ffp, txt );
+				    this.addNewFile( ffp, txt, true );
 			    });
 		    } );
 		    
@@ -378,7 +378,7 @@ void loop() {
 	if( !confirm("Are you sure you want to delete " + this.DOM.currentFile.value + "?") )
 	    return;
 
-	if( local( file => {
+	if( this.local( file => {
 	    try{
 		fs.unlinkSync(file);
 	    }catch( err ){
@@ -441,7 +441,7 @@ void loop() {
 	this.DOM.currentFile.value = target;
     }
 
-    addNewFile( target, content ){
+    addNewFile( target, content, disableSave ){
 	if( !this.initSource() ) return;
 
 	if( typeof target !== "string" )
@@ -449,11 +449,15 @@ void loop() {
 	
 	if( target == "" ) return;
 
-	if( typeof content !== "string" )
-	    content = "";
+	content += "";
+
+	let old = this.source.getItem([target], undefined);
 	
 	this.source.setItem( [target], content );
 	this.DOM.currentFile.value = target;
+
+	if( !disableSave && old !== content )
+	    this.saveFile( target, content, true );
 	
 	this.changeSourceFile();
 	
@@ -543,7 +547,7 @@ void loop() {
 
 	for (var i = 0; i < files.length; i++) {
 	    let file = files[i];
-	    if( /.*\.(png|jpg)$/i.test(file.name) )
+	    if( /.*\.(png|jpg|gif|bmp)$/i.test(file.name) )
 		loadImageFile.call( this, file );
 	    if( /.*\.zip$/i.test(file.name) )
 		loadZipFile.call( this, file );
@@ -586,6 +590,7 @@ void loop() {
 	    fr.onload = evt => {
 		
 		let cleanName = file.name.replace(/^.*?([^\/\\.]+)\..+$/,'$1');
+		cleanName = cleanName.replace(/^([0-9])/, "_$1");
     
 		let img = DOM.create("img", {
 		    src:fr.result,
@@ -606,6 +611,7 @@ void loop() {
 			    bmpcpp += "\n#include \"" + headerPath + "\"\n";
 
 			this.source.setItem(["bmp.cpp"], bmpcpp);
+			this.saveFile( "bmp.cpp", bmpcpp );
 
 			var bmph = this.source.getItem(["bmp.h"], "");
 			var hasExtern = false;
@@ -618,6 +624,7 @@ void loop() {
 			    bmph = src.h + bmph;
 
 			this.source.setItem(["bmp.h"], bmph);
+			this.saveFile( "bmp.h", bmph );
 			
 			this.addNewFile( headerPath, src.cpp );
 			
@@ -1161,12 +1168,19 @@ void loop() {
 	let old = this.source.getItem( [this.DOM.currentFile.value] );
 
 	this.source.setItem( [this.DOM.currentFile.value], code );
+
+	if( force || old !== code )
+	    this.saveFile( this.DOM.currentFile.value, code, force );
+
+    }
+
+    saveFile( name, code, force ){
 	let lsp = this.model.getItem("ram.localSourcePath", "");
 	
-	if( (old === code && !force) || !lsp || !fs )
+	if( !lsp || !fs )
 	    return;
-
-	let filePath = path.resolve( lsp, this.DOM.currentFile.value );
+	
+	let filePath = path.resolve( lsp, name );
 
 	if( this.saveHandles[filePath] )
 	    clearTimeout( this.saveHandles[filePath] );

@@ -725,6 +725,7 @@ log {
 #leftBar {
     min-width: 230px;
     background-color: #234;
+    overflow-y: auto;
 }
 
 #leftBar ul {

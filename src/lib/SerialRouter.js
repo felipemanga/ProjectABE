@@ -4,6 +4,12 @@ const CMD_SETID  = 0,
       CMD_ADD    = 1,
       CMD_REMOVE = 2;
 
+function log( ...args ){
+    console.log.apply(console, args);
+    if( typeof core != "undefined" && core && core.history )
+	core.history.push(args.join(" "));
+}
+
 class Client {
     buffer = [];
 
@@ -19,7 +25,7 @@ class Client {
 	if( this.state == -1 )
 	    return;
 	if( this.state <= 9 && "ROUTERv1\r\n".charCodeAt(this.state++) != data ){
-	    console.log( "Mismatch: ", this.state, data );
+	    log( "Mismatch: ", this.state, data );
 	    this.state = -1;
 	    return;
 	}
@@ -30,8 +36,10 @@ class Client {
 	    this.command( CMD_SETID, this.id );
 	    
 	    for( let i=0; i<router.clients.length; ++i ){
-		if( i+1 !== this.id )
+		if( i+1 !== this.id && router.clients[i] ){
 		    router.clients[i].command( CMD_ADD, this.id );
+		    this.command( CMD_ADD, i+1 );
+		}
 	    }
 	    
 	    break;
@@ -51,6 +59,7 @@ class Client {
     }
 
     command( c, ...data ){
+	log( this.id, "<-: ", ["SetID", "ADD", "REMOVE"][c], data );
 	this.write(0);
 	this.write(data.length+1);
 	this.write(c);
@@ -80,25 +89,36 @@ function writeSerial( v ){
     let id = this.connectionId;
     if( !id ) return;
 
+    if( !this.queue )
+	this.queue = [];
+
+    let queue = this.queue;
+
     if( typeof v == 'number' ){
 	let tmp = new Uint8Array(1);
 	tmp[0] = v;
 	v = tmp;
     }else v = new Uint8Array(v);
 
-    // console.log( "writing", id, v );
-
-    resend();
+    queue.push(v);
+    
+    if( queue.length==1 )
+	resend( queue[0] );
+    
     return;
 
-    function resend(){
+    function resend( v ){
 	chrome.serial.send( id, v, ret => {
 	    if( ret.error == "pending" ){
-		console.log( "Resending ", id, v );
-		return setTimeout( _=>resend(), 1 );
+		log( "Resending ", id, v );
+		return setTimeout( _=>resend(v), 1 );
 	    }else if( ret.error ){
-		console.log( "Send Error", ret.error );
+		log( "Send Error", ret.error );
 		that.disconnect();
+	    }else{
+		queue.shift();
+		if( queue.length )
+		    resend(queue[0]);
 	    }
 	});
     }
@@ -151,11 +171,11 @@ class SerialRouter {
 		return;
 	    
 	    pathClientMap[ dev.path ] = true;
-	    console.log("new device", dev.path);
+	    log("new device", dev.path);
 	    
 	    chrome.serial.connect( dev.path, con => {
 		if( con.connectionId ){
-		    console.log("connected", dev.path, con.connectionId);
+		    log("connected", dev.path, con.connectionId);
 		    
 		    let client = this.addClient({
 			connectionId:con.connectionId,
@@ -166,7 +186,7 @@ class SerialRouter {
 		    idPathMap[con.connectionId] = dev.path;
 		    
 		}else{
-		    console.log("could not connect", con);
+		    log("could not connect", con);
 		    delete pathClientMap[ dev.path ];
 		}
 		    
@@ -177,22 +197,24 @@ class SerialRouter {
     }
 
     removeClient( id ){
+	let clients = this.clients;
 
-	console.log( "removing client", id );
+	log( "removing client", id );
 	
-	if( !this.clients[id-1] )
+	if( !clients[id-1] )
 	    return;
 
-	if( this.clients[id-1] == local )
+	if( clients[id-1] == local )
 	    local = null;
 
-	this.clients[id-1] = null;
-
-	this.broadcast( 0, [2, CMD_REMOVE, id] );
+	clients[id-1] = null;
+	
+	for( let i=0; i<clients.length; ++i )
+	    if( clients[i] ) clients[i].command(CMD_REMOVE, id);
     }
     
     addClient( opt ){
-	console.log( "adding client" );
+	log( "adding client" );
 	
 	let id, c;
 	for( id=0; this.clients[id]; id++ );
@@ -225,7 +247,7 @@ class SerialRouter {
 
     broadcast( from, buffer ){
 
-	// console.log("BC: ", from, buffer);
+	// log("BC: ", from, buffer);
 
 	let clients = this.clients;
 	
