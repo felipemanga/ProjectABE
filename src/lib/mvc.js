@@ -609,9 +609,9 @@ function prepareDOM( dom, controller, _model, viewdom ){
         for( var key in arr ){
 
             var childModel = new Model();
-            childModel.load( _model.data );
-            childModel.setItem("key", key);
-            childModel.setItem("value", arr[key]);
+            childModel.load( _model.data, false );
+            childModel.setItem("key", key, false );
+            childModel.setItem("value", arr[key], false );
             childModel.root = _model.root;
 
             [...template.cloneNode(true).children].forEach(child => {

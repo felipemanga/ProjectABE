@@ -15,6 +15,8 @@ import * as components from './components/*.js';
 
 import Flasher from './flashers/ChromeSerial.js';
 import SerialRouter from './lib/SerialRouter.js';
+import * as plugins from './nw/*.js';
+
 const fs = window.require("fs");
 
 document.addEventListener( "DOMContentLoaded", () => {
@@ -23,6 +25,10 @@ document.addEventListener( "DOMContentLoaded", () => {
     
     bind(Store).to(IStore).singleton();
     bind(LocalCompiler).to('Compiler').singleton();
+    bind(Flasher).to('Plugin').singleton();
+    bind(SerialRouter).to('Plugin').singleton();
+    for( let k in plugins )
+	bind( plugins[k] ).to('Plugin').singleton();
 
     let url, file = argv._[0], skin=argv.skin, app, width = 1024;
 
@@ -92,7 +98,7 @@ document.addEventListener( "DOMContentLoaded", () => {
     if( !url )
 	nw.Window.get().resizeTo( width, 600 );
 
-    app = boot({
+    boot({
         main:App,
         element:document.body,
         components,
@@ -105,30 +111,6 @@ document.addEventListener( "DOMContentLoaded", () => {
 		debuggerEnabled: /* * / undefined /*/ true /* */,
 		isNativeBuild: true
 	    }
-	}
-    });
-
-    app.pool.add(new Flasher( app ));
-    app.pool.add(new SerialRouter( app ));
-    app.pool.add({
-	onSetSkin( skin ){
-	    nw.Window.get().resizeTo( skin.width, skin.height );
-	},
-	
-	embed(url){
-	    
-	    let parent = document.getElementById("embed");
-	    let wv = parent.children[0];
-
-	    document.getElementById("main").classList.add("embed");
-
-	    if( !wv ){
-		wv = document.createElement("webview");
-		parent.appendChild( wv );
-	    }
-
-	    wv.src = url;
-
 	}
     });
 

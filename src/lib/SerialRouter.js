@@ -137,18 +137,21 @@ chrome.serial.onReceive.addListener( info => {
 });
 
 class SerialRouter {
+
+    static "@inject" = {
+	pool:"pool"
+    }
     
     state = 0;
     clients = [];
 
     constructor( app ){
-	this.app = app;
 	router = this;
 	hnd = setInterval( _ => this.pollSerialPort(), 1000 );
     }
 
     pollSerialPort(){
-	if( this.app.pool.call("flasherActive") )
+	if( this.pool.call("flasherActive") )
 	    return;
 
 	chrome.serial.getConnections( cons => {

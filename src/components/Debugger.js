@@ -92,7 +92,8 @@ class Debugger {
 
     setActiveView(){
 	this.pool.remove(this);
-    }    
+    }
+
 
     initSource(){
 	if( this.source )
@@ -129,6 +130,7 @@ class Debugger {
 		.then( z => this.importZipSourceFiles(z) );
 
 	}else if( lsp && fs ){
+	    this.pool.call("initWatches");
 	    
 	    let readDir = ( d ) => {
 		fs.readdir( d, (err, files) => {
@@ -147,12 +149,21 @@ class Debugger {
 			let ffp = d + path.sep + file;
 			if( fs.lstatSync(ffp).isDirectory() )
 			    return readDir( ffp );
-			
-			if( /.*\.(h|hpp|c|cpp|ino)$/i.test(file) )
-			    fs.readFile( ffp, 'utf-8', (err,txt) => {
-				if( !err )
-				    this.addNewFile( ffp.substr( lsp.length+1 ), txt, true );
+
+			let ext = file.match(/.*\.(h|hpp|c|cpp|ino)$/i);
+			if( ext )
+			    this.pool.call("watchFile", ffp, (name,txt) => {
+				if( txt === undefined ) return;
+				this.addNewFile( name, txt, true );
+				
+				if( ext[1].toLowerCase() == 'ino' ){
+				    this.DOM.currentFile.value = name;
+				    this.changeSourceFile();
+				    ext = ["",""];
+				}
+				
 			    });
+			
 		    } );
 		    
 		} );
@@ -361,14 +372,20 @@ void loop() {
 
     }
 
-    local( cb ){
+    local( str, cb ){
+	if( !cb ) cb = str;
+	if( typeof str != "string" ) str = this.DOM.currentFile.value;
+	if( typeof cb != "function" ) cb = null;
+	
 	let lsp = this.model.getItem("ram.localSourcePath", "");
 	
 	if( !lsp || !fs )
 	    return;
 	
-	let filePath = path.resolve( lsp, this.DOM.currentFile.value );
+	let filePath = path.resolve( lsp, str );
 	
+	if( !cb ) return filePath;
+
 	return cb( filePath, lsp );
     }
 
@@ -411,7 +428,19 @@ void loop() {
 	
 	let src = this.source.getItem([current]);
 
+	this.pool.call("saveFile", target, src);
+
 	if( this.local( file => {
+	    
+	    let del = _ => {
+		try{
+		    fs.unlinkSync(file);
+		}catch( ex ){
+		    alert("Error: " + ex);
+		    return false;
+		}
+	    };
+
 	    target = lsp + path.sep + target;
 	    
 	    let fulltarget = path.resolve( target );
@@ -420,18 +449,15 @@ void loop() {
 		return false;
 	    }
 
-	    let err = this.store.saveFile( fulltarget, src );
-	    if( err ){
-		alert("Error: " + err);
-		return false;
+	    // if the only change was capitalization, delete first because of Windows / OS X
+	    if( target.toLowerCase() == shortCurrent.toLowerCase() ){
+		del();
+		save();
+	    }else{
+		save();
+		del();
 	    }
 
-	    try{
-		fs.unlinkSync(file);
-	    }catch( ex ){
-		alert("Error: " + ex);
-		return false;
-	    }
 	}) === false )
 	    return;
 	
@@ -454,13 +480,16 @@ void loop() {
 	let old = this.source.getItem([target], undefined);
 	
 	this.source.setItem( [target], content );
-	this.DOM.currentFile.value = target;
 
-	if( !disableSave && old !== content )
-	    this.saveFile( target, content, true );
+	this.local( target, ffp => clearTimeout(this.saveHandles[ ffp ]) );
 	
-	this.changeSourceFile();
-	
+	if( !disableSave && old !== content ){
+	    this.DOM.currentFile.value = target;
+	    this._saveFile( target, content, true );
+	}
+
+	if( this.DOM.currentFile.value == target )
+	    this.changeSourceFile();
     }
 
     zip(){
@@ -611,7 +640,7 @@ void loop() {
 			    bmpcpp += "\n#include \"" + headerPath + "\"\n";
 
 			this.source.setItem(["bmp.cpp"], bmpcpp);
-			this.saveFile( "bmp.cpp", bmpcpp );
+			this._saveFile( "bmp.cpp", bmpcpp );
 
 			var bmph = this.source.getItem(["bmp.h"], "");
 			var hasExtern = false;
@@ -624,7 +653,7 @@ void loop() {
 			    bmph = src.h + bmph;
 
 			this.source.setItem(["bmp.h"], bmph);
-			this.saveFile( "bmp.h", bmph );
+			this._saveFile( "bmp.h", bmph );
 			
 			this.addNewFile( headerPath, src.cpp );
 			
@@ -679,7 +708,7 @@ void loop() {
 
     updateFuzzyFind(){
 
-	let matches;
+	let matches, THIS = this;
 	let str = this.DOM.fuzzy.value.trim().replace();
 	
 	if( str.length > 1 ) matches = fuzzy( str, Object.keys(this.source.data) );
@@ -693,18 +722,31 @@ void loop() {
 	    if ( str === void 0 ) str = '';
 	    if ( args === void 0 ) args = [];
 
-	    var escaped = this.escapeRegex(str);
-	    var regex = new RegExp(((escaped.split(/(\\.|)/).filter( x=>x.length ).join('(.*)')) + ".*"), "i");
+	    var escaped = THIS.escapeRegex(str);
+	    var regex = new RegExp(((escaped.split(/(\\.|)/).filter( x=>x.length ).join('(.{0,3})')) ), "i");
 	    var length = str.length;
 
 	    return args.reduce(function (acc, possibleMatch) {
-		var result = regex.exec(possibleMatch);
+		var result = regex.exec(possibleMatch),
+		    obj;
 
-		if (result) {
-		    acc.push({
-			match: possibleMatch,
-			rank: result.index
-		    });
+		while( result ){
+		    let err = 0;
+		    for( let i=1; i<result.length; ++i ){
+			err += result[i].length;
+		    }
+
+		    if( !obj ){
+			obj = {
+			    match: possibleMatch,
+			    rank: err
+			}
+			acc.push(obj);
+		    }else if( obj.rank > err )
+			obj.rank = err;
+		    
+		    possibleMatch = possibleMatch.substr( result.index+1 );
+		    result = regex.exec(possibleMatch);
 		}
 		return acc
 	    }, []);
@@ -1001,7 +1043,7 @@ void loop() {
 		blockSizes[dep].dependants++;
 	    });
 	}
-	
+	/*
 	this.source.setItem(["dependencies.txt"],
 			    Object.keys(blockSizes)
 			    .filter( a => blockSizes[a].isFunc )
@@ -1022,7 +1064,7 @@ void loop() {
 					    .map( n => `\t\t${this.unmangle(n)} ${blockSizes[n].bytes}b ${block.deps[n]} of ${blockSizes[n].dependants}` )
 				    ].join("\n") + "\n\n"
 			    }, ""));
-
+	*/
 	
 	for( var k in blockSizes ){
 	    var block = blockSizes[k];
@@ -1186,11 +1228,11 @@ void loop() {
 	this.source.setItem( [this.DOM.currentFile.value], code );
 
 	if( force || old !== code )
-	    this.saveFile( this.DOM.currentFile.value, code, force );
+	    this._saveFile( this.DOM.currentFile.value, code, force );
 
     }
 
-    saveFile( name, code, force ){
+    _saveFile( name, code, force ){
 	let lsp = this.model.getItem("ram.localSourcePath", "");
 	
 	if( !lsp || !fs )
@@ -1201,19 +1243,13 @@ void loop() {
 	if( this.saveHandles[filePath] )
 	    clearTimeout( this.saveHandles[filePath] );
 
-	if( force ){
-	    let err = this.store.saveFile( filePath, code );
-	    if( err )
-		alert("Error saving " + filePath + ":\n" + err);
-	}else
-	    this.saveHandles[filePath] = setTimeout( write.bind(this, filePath, code), 3000 );
+	if( force )
+	    write.call(this);
+	else
+	    this.saveHandles[filePath] = setTimeout( write.bind(this), 10000 );
 
-	function write( filePath, code ){
-
-	    let err = this.store.saveFile( filePath, code );
-	    if( err )
-		alert("Error saving " + filePath + ":\n" + err);
-	    
+	function write( ){
+	    this.pool.call("saveFile", filePath, code);	    
 	}
 	
     }

@@ -13,7 +13,8 @@ class App {
         store:IStore,
         pool:"pool",
         controllers:[IController,[]],
-        root: [Model, {scope:"root"}]
+        root: [Model, {scope:"root"}],
+	plugins: ["Plugin",[]]
     }
 
     keySequences = {
@@ -79,6 +80,10 @@ class App {
     }
 
     init(){
+
+	this.plugins.forEach( p => {
+	    this.pool.add(p);
+	});
 
 	this.initKeyboard();
 	this.initControllers();

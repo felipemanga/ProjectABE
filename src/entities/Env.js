@@ -220,7 +220,9 @@ class Env extends IController {
 	
 	this.model.removeItem("app.AT32u4");
 	this.model.removeItem("ram.srcpath");
+	this.model.removeItem("ram.localSourcePath");
 	this.model.setItem("ram.localSourcePath", localsrc);
+	this.model.removeItem("ram.localBuildPath");
 	this.model.setItem('ram.srcpath', ["app", "sources", localsrc||url]);
 	let source = this.model.getModel( this.model.getItem("ram.srcpath"), true);
 

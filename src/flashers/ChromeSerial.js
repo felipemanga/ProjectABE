@@ -1,5 +1,6 @@
 // import Hex from '../atcore/Hex.js';
 import DOM from '../lib/dry-dom.js';
+import {Model} from '../lib/mvc.js';
 
 var Hex = require('intel-hex');
 
@@ -106,12 +107,13 @@ function active(){
 }
 
 class ChromeSerial {
-    constructor( app ){
-	this.app = app;
-    }
 
+    static "@inject" = {
+	root:[Model, {scope:"root"}]
+    }
+    
     flasherActive(){
-	return this.busy;
+	return busy;
     }
 
     init(){
@@ -205,9 +207,9 @@ class ChromeSerial {
 
     doFlash( mustConfirm ){
 	if( busy ) return;
-	let path = this.app.root.getItem("ram.srcpath");
+	let path = this.root.getItem("ram.srcpath");
 	if( !path ) return;
-	let source = this.app.root.getModel( path, false );
+	let source = this.root.getModel( path, false );
 	if( !source ) return;
 	let build = source.getItem(["build.hex"]);
 	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?")) ) return;
