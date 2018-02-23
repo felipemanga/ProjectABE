@@ -21,6 +21,7 @@ class LocalCompiler {
 	
 	this.compilerPath = "";
 	this.compilerExec = "";
+	this.compilerExt = process.platform == 'win32' ? '.exe' : '';
 	this.prefixArgs = [];
 	
     }
@@ -39,6 +40,8 @@ class LocalCompiler {
 	}
 
 	dirs.forEach( p => {
+	    if( p.toLowerCase() == 'libraries' ) return;
+	    
 	    let fp = sketchDir + PATH.sep + p;
 	    
 	    try{
@@ -48,7 +51,7 @@ class LocalCompiler {
 
 	    try{
 		let isDir = fs.lstatSync(fp).isDirectory();
-		if( isDir && fs.existsSync(fp + PATH.sep + p + '.ino' ) )
+		if( isDir /* && fs.existsSync(fp + PATH.sep + p + '.ino' ) */ )
 		    out.push({
 			title:p,
 			localSourcePath:fp
@@ -64,7 +67,7 @@ class LocalCompiler {
 
 	console.log("Looking for arduino IDE.");
 	
-	let ext = process.platform == 'win32' ? '.exe' : '';
+	let ext = this.compilerExt;
 
 	let queue = [
 	    PATH.resolve('.'),
@@ -129,8 +132,11 @@ class LocalCompiler {
 		for( let k in srcdata )
 		    this.store.saveFile( lsp + PATH.sep + k, srcdata[k] );
 	    }
-	    if( !lbp )
+	    
+	    if( !lbp ){
 		lbp = fs.mkdtempSync( PATH.resolve(this.store.root, "build_") );
+		this.model.setItem("ram.localBuildPath", lbp);
+	    }
 
 	    console.log("LBP: ", lbp);
 	    
@@ -148,11 +154,10 @@ class LocalCompiler {
 	    let acc = args.join(" ") + '\n', hex;
 
 	    child.stdout.on('data', data => {
-		    let tmp = '';
+		let tmp = '';
 		for( let i=0, l=data.length; i<l; ++i )
 		    tmp += String.fromCharCode(data[i]);
-		    acc += tmp;
-		    console.log(tmp);
+		acc += tmp;
 	    });
 
 	    child.stderr.on('data', data => {
@@ -163,16 +168,62 @@ class LocalCompiler {
 	    child.on('close', code => {
 		if( code ) return nok(acc);
 
-		let hexpath = fs.readdirSync(lbp).find( f => /.*\.hex/i.test(f) && f.indexOf("with_bootloader") == -1 );
+		let hexpath, elfpath;
+		fs.readdirSync(lbp).forEach( f => {
+		    if( /.*\.hex$/i.test(f) && f.indexOf("with_bootloader") == -1 ){
+			hexpath = f;
+		    }else if(/.*\.elf$/i.test(f) ){
+			elfpath = f;
+		    }
+		});
 		
 		hex = fs.readFileSync( PATH.resolve(lbp, hexpath), 'utf-8' );
 
-		ok({
+		this._disassemble({
+		    lbp,
+		    elfpath,
 		    hex,
 		    stdout:acc
-		});
+		}, ok, nok);
+		
 	    });
 
+	});
+	
+    }
+
+    _disassemble( obj, ok, nok ){
+	let elfpath = PATH.resolve(obj.lbp, obj.elfpath);
+	let cmd = PATH.resolve.apply(PATH, [
+	    this.compilerPath,
+	    ... 'hardware/tools/avr/bin/avr-objdump'.split('/')
+	]) + this.compilerExt;
+
+	if( !fs.existsSync(cmd) )
+	    return ok(obj);
+	
+	let acc = '';	
+	let child = chproc.spawn( cmd, [
+	    '-dl',
+	    elfpath
+	]);
+
+	child.stdout.on('data', data => {
+	    let tmp = '';
+	    for( let i=0, l=data.length; i<l; ++i )
+		tmp += String.fromCharCode(data[i]);
+	    acc += tmp;	    
+	});
+
+	child.stderr.on('data', data => {
+	    for( let i=0, l=data.length; i<l; ++i )
+		acc += String.fromCharCode(data[i]);	    
+	});
+
+	child.on('close', code => {
+	    if( code ) ok(obj);
+	    obj.disassembly = acc;
+	    ok( obj );
 	});
 	
     }

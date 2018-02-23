@@ -151,7 +151,7 @@ class Debugger {
 			if( /.*\.(h|hpp|c|cpp|ino)$/i.test(file) )
 			    fs.readFile( ffp, 'utf-8', (err,txt) => {
 				if( !err )
-				    this.addNewFile( ffp, txt, true );
+				    this.addNewFile( ffp.substr( lsp.length+1 ), txt, true );
 			    });
 		    } );
 		    
@@ -169,7 +169,7 @@ class Debugger {
 	    }
 
 	    this.addNewFile(
-		`${lsp}/${name}.ino`,
+		`${name}.ino`,
 `
 
 // See: https://mlxxxp.github.io/documents/Arduino/libraries/Arduboy2/Doxygen/html/
@@ -673,6 +673,10 @@ void loop() {
 	this.updateFuzzyFind();
     }
 
+    escapeRegex( str ){
+	return str.replace(/[|\\{}()\[\]^$+*?.]/g, '\\$&');
+    }
+
     updateFuzzyFind(){
 
 	let matches;
@@ -689,7 +693,7 @@ void loop() {
 	    if ( str === void 0 ) str = '';
 	    if ( args === void 0 ) args = [];
 
-	    var escaped = str.replace(/[|\\{}()\[\]^$+*?.]/g, '\\$&');
+	    var escaped = this.escapeRegex(str);
 	    var regex = new RegExp(((escaped.split(/(\\.|)/).filter( x=>x.length ).join('(.*)')) + ".*"), "i");
 	    var length = str.length;
 
@@ -1061,18 +1065,30 @@ void loop() {
 	this.rsrcmap = {};
 
 	this.initSpacebar( txt );
+
+	let lsp = this.model.getItem("ram.localSourcePath", "");
+	let lbp = this.model.getItem("ram.localBuildPath", "");
+	let root = lsp || /^\/app\/builds\/[0-9]+\//;
+	let sketchExp;
+
+	if( lsp ){
+	    sketchExp = new RegExp( this.escapeRegex(lbp) + path.sep + "sketch" + path.sep + "(.*)" );
+	}else
+	    sketchExp = /^\/app\/public\/builds\/[0-9]+\/sketch\/(.*)/;
 	
 	txt.replace(
 		/\n([\/a-zA-Z0-9._\- ]+):([0-9]+)\n([\s\S]+?)(?=$|\n[0-9a-f]+ <[^>]+>:|\n(?:[\/a-zA-Z0-9._\-<> ]+:[0-9]+\n))/g,
 	    (m, file, line, code)=>{
-
-		file = file.replace(/^\/app\/builds\/[0-9]+\//, '');
+		if( !lsp )
+		    file = file.replace( root, '');
 		
-		file = file.replace(/^\/app\/public\/builds\/[0-9]+\/sketch\/(.*)/, (match,name) => {
+		file = file.replace( sketchExp, (match,name) => {
+		    name = name.replace(/\\/g, '/');
 		    for( let candidate in source ){
-			candidate = '/' + candidate;
+			let key = candidate;
+			candidate = '/' + candidate.replace(/\\/g, '/');
 			if( candidate.substr(candidate.length-name.length-1) == "/" + name ){
-			    return candidate.substr(1);
+			    return key;
 			}			  
 		    }
 		    
