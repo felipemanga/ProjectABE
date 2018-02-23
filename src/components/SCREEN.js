@@ -260,6 +260,7 @@ class SCREEN {
 	this.col = 0;
 	this.page = 0;
 	this.fb.data.fill(0xFF);
+	this.inverted = 0;
 	this.dirty = true;
     }
 
@@ -276,12 +277,13 @@ class SCREEN {
 	let y = (ps + this.page) * 8;
 	let fbdata = this.fb.data;
 	let iOffset = (y*128 + x) * 4;
+	let inverted = this.inverted;
 
 	if( !this.fade ){
 	    
 	    for( let i=0; i<8; ++i, iOffset += 128*4 ){
 		let offset = iOffset; // ((y+i)*128 + x) * 4;
-		let bit = ((data >>> i) & 1) * 0xFF;
+		let bit = (((data >>> i) & 1) ^ inverted) * 0xFF ;
 		// fbdata[ offset++ ] = bit;
 		// fbdata[ offset++ ] = bit;
 		// fbdata[ offset++ ] = bit;
@@ -292,7 +294,7 @@ class SCREEN {
 
 	    for( let i=0; i<8; ++i, iOffset += 128*4 ){
 		let offset = iOffset; // ((y+i)*128 + x) * 4;
-		let bit = ((data >>> i) & 1) * 0xFF;
+		let bit = (((data >>> i) & 1) ^ inverted) * 0xFF;
 		if( !bit )
 		    bit = fbdata[ offset+3 ] >> 1;
 		fbdata[ offset+3 ] = bit;
@@ -469,16 +471,32 @@ class SCREEN {
 	this.activeBuffer = this.fb;
 	this.dirty = true;
     }
+
+    _invert(){
+	this.dirty = true;
+	let fbdata = this.fb.data;
+	for( let i=3; i<fbdata.length; i += 4 ){
+	    fbdata[i] ^= 0xFF;
+	}
+    }
     
   // Set normal/inverse display
     cmdA6(){
+	if( !this.inverted ) return;
+	this.inverted = 0;
+	this._invert();
+	/*
 	this.canvas.style.filter = "";
 	this.canvas.style.background = "";
+	*/
     }
 
     cmdA7(){
-	this.canvas.style.filter = "invert(100%)";
-	this.canvas.style.background = "black";
+	if( this.inverted ) return;
+	this.inverted = 1;
+	this._invert();
+	// this.canvas.style.filter = "invert(100%)";
+	// this.canvas.style.background = "black";
     }
 
   // Display On
