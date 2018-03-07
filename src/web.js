@@ -18,6 +18,9 @@ setTimeout( function(){
     bind(Store).to(IStore).singleton();
     bind(CloudCompiler).to('Compiler').singleton();
 
+    class Dud {};
+    bind(Dud).to('Plugin').singleton();
+
     let url;
     let match = location.search.match(/[?&](?:file|hex|url)=([^&]+)/);
     if( match ){
