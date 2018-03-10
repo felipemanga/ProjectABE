@@ -1,4 +1,5 @@
 {
     "name":"ProjectABE",
-    "main":"index.html"
+    "main":"index.html",
+    "chromium-args": "--password-store=basic"
 }
