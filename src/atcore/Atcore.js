@@ -426,10 +426,14 @@ t1 === undefined ? t2 : t1
         var now = performance.now();
         var delta = now - this.time;
 
+	/* * /
 	if( this.debuggerEnabled )
 	    delta = 16;
 	else
             delta = Math.max( 0, Math.min( 33, delta ) );
+	    /*/
+	delta = 13.5;
+	/* */
 
         this.exec( delta/1000 );
 
