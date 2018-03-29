@@ -151,7 +151,8 @@ module.exports = {
 	    }
 	},
 	init:function(){
-	    this.eeprom = [];
+	    this.eeprom = new Uint8Array( 1024 );
+	    this.eeprom.fill(0xFF);
 	    if( typeof window !== "undefined" )
 		window.EEPROM = this.eeprom;
 	}
