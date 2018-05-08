@@ -18,6 +18,8 @@ import SerialRouter from './lib/SerialRouter.js';
 import * as plugins from './nw/*.js';
 
 const fs = window.require("fs");
+const path = window.require('path');
+const process = window.require('process');
 
 document.addEventListener( "DOMContentLoaded", () => {
     
@@ -38,10 +40,20 @@ document.addEventListener( "DOMContentLoaded", () => {
 	let hnd = 0, hex;
 	let watcher;
 
+	let cwd = process.env.PWD || '';
+
+	if( cwd )
+	    cwd += path.sep;
+
+	if( !path.isAbsolute(file) )
+	    file = cwd + file;
+
+	file = path.resolve(file);
+
 	try{
 	    hex = fs.readFileSync(file);
 	}catch( ex ){
-	    alert("Could not open file: " + JSON.stringify(argv));
+	    alert("Could not open file: " + JSON.stringify(nw.App.argv));
 	    nw.App.quit();
 	    return;
 	}
@@ -98,7 +110,7 @@ document.addEventListener( "DOMContentLoaded", () => {
     if( !url )
 	nw.Window.get().resizeTo( width, 600 );
 
-    boot({
+    app = boot({
         main:App,
         element:document.body,
         components,

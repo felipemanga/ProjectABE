@@ -95,9 +95,14 @@ class Arduboy {
 	    this.core = Atcore.ATmega32u4();
 	    if( !/.*\/?null$/.test(url) ){
 		core.history.push("Loading hex from URL");
-		Hex.parseURL( url, this.core.flash, success => {
-		    if( success ) this.initCore( preserve );
+		Hex.parseURL( url, this.core.flash, (success, hex) => {
+
+		    if( success ){
+			this.initCore( preserve );
+			core.hex = hex;
+		    }
 		    else this.pool.call("showDebugger");
+
 		});
 	    }else{
 		this.pool.call("showDebugger");
@@ -183,7 +188,8 @@ class Arduboy {
     }
 
     onPressEscape(){
-	this.powerOff();
+	if( !this.pool.call("hideFlasher") )
+	    this.powerOff();
     }
 
     onPressF3(){

@@ -200,18 +200,31 @@ class ChromeSerial {
 	setTimeout( _ => this.doFlash( true ), 10 );
     }
 
-    onPressEscape(){
-	if( _logcontainer )
+    hideFlasher(){
+	if( _logcontainer && _logcontainer.style.display != "none" ){
 	    _logcontainer.style.display = "none";
+	    return true;
+	}
+	return false;
     }
 
     doFlash( mustConfirm ){
 	if( busy ) return;
-	let path = this.root.getItem("ram.srcpath");
-	if( !path ) return;
-	let source = this.root.getModel( path, false );
-	if( !source ) return;
-	let build = source.getItem(["build.hex"]);
+
+	let build = window.core && window.core.hex;
+
+	if( !build ){
+	    
+	    let path = this.root.getItem("ram.srcpath");
+	    if( !path ) return;
+	
+	    let source = this.root.getModel( path, false );
+	    if( !source ) return;
+	    
+	    build = source.getItem(["build.hex"]);
+	    
+	}
+	
 	if( !build || (mustConfirm && !confirm("Upload game to Arduboy?")) ) return;
 
 	this.init();
@@ -385,7 +398,13 @@ class ChromeSerial {
 			serial.write( id, [d('g'), 0, 0, 0])
 			    .then( ok => serial.wait(1000) )
 			    .then( ok => {
-				ping();
+				if( active() )
+				    ping();
+				else{
+				    serial.write( id, 'E' )
+					.then( ok => forget( this ) )
+					.catch( err => forget( this ) );
+				}
 			    })
 			    .catch( err => {
 				// log( `#${id}[${this.path}]: `, "Expected error", err );

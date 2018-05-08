@@ -15,7 +15,7 @@ const Hex = {
 			cb(false);
 			return;
                     }
-                    cb( true );
+                    cb( true, xhr.responseText );
 		    
 		}else cb( false );
 		

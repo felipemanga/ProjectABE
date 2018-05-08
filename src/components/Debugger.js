@@ -1309,7 +1309,7 @@ void loop() {
 	
 	let src = {}, main = null, base = null;
 	for( let key in this.source.data ){
-	    if( /.*\.(?:hpp|h|c|cpp|ino)$/i.test(key) )
+	    if( /.*\.(?:hpp|h|c|cpp|ino|S)$/i.test(key) )
 		src[key] = this.source.data[key];
 	    if( /.*\.ino$/i.test(key) ){
 		let mainParts = key.split(/[/\\]/);
