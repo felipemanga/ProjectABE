@@ -377,12 +377,12 @@ class App {
 
 	model.setItem("proxy", this.root.getItem("proxy", ""));
 
-	if( !repoURLs )
-	    model.setItem("repoList", {
-		Eried:"http://arduboy.ried.cl/repo.json",
-		Crait:"http://www.crait.net/arduboy/repo2.json",
-		TeamARG:"repo.json"
-	    });
+	model.setItem("repoList", {
+	    GameJam3:"https://www.arduboy.com/a/GameJam3.json",
+	    Eried:"http://arduboy.ried.cl/repo.json",
+	    Crait:"http://www.crait.net/arduboy/repo2.json",
+	    TeamARG:"repo.json"
+	});
 	
 	cb();
 	

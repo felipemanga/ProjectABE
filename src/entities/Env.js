@@ -84,21 +84,22 @@ class Env extends IController {
 	json.items.forEach( item => {
 	    
 	    item.author = item.author || "<<unknown>>";
+	    item.title = item.title || item.name || "Untitled";
 	    
 	    if(
-		item.banner && (
+		(item.banner||item.cover) && (
 		    !item.screenshots ||
 			!item.screenshots[0] ||
 			!item.screenshots[0].filename
 		))
-		item.screenshots = [{filename:item.banner}];
+		item.screenshots = [{filename:(item.banner||item.cover)}];
 	    
-	    if( item.arduboy && (
+	    if( (item.arduboy||item.hex) && (
 		!item.binaries ||
 		    !item.binaries[0] ||
 		    !item.binaries[0].filename
 	    ))
-		item.binaries = [{filename:item.arduboy}]
+		item.binaries = [{filename:(item.arduboy||item.hex)}];
 
 	    if( !item.sourceUrl && item.url )
 		item.sourceUrl = item.url;
