@@ -1178,7 +1178,7 @@ void loop() {
 		    startAddr -= off;
 		    return name;
 		});
-		if( startAddr < 0 )
+		if( startAddr < 0 || name == "__bss_end" )
 		    return;
 
 		let offset = 0;
@@ -1457,6 +1457,9 @@ void loop() {
 
 	if( !this.RAM || !this.RAM.length )
 	    this.refreshRAM( true );
+
+	if( !this.RAM[ this.ttAddr || 0 ] )
+	    return;
 	
 	this.ramComments[ this.ttAddr ] = value;
 
