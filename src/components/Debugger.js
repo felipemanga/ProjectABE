@@ -1114,7 +1114,7 @@ void loop() {
 	let sketchExp;
 
 	if( lsp ){
-	    sketchExp = new RegExp( this.escapeRegex(lbp) + path.sep + "sketch" + path.sep + "(.*)" );
+	    sketchExp = new RegExp( this.escapeRegex(lbp) + this.escapeRegex(path.sep) + "sketch" + this.escapeRegex(path.sep) + "(.*)" );
 	}else
 	    sketchExp = /^\/app\/public\/builds\/[0-9]+\/sketch\/(.*)/;
 	
