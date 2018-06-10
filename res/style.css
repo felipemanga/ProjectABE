@@ -453,6 +453,8 @@ canvas:fullscreen{
 #history li, #da li, #state li {
     cursor: pointer;
     padding: 0 25px;
+    font-family: monospace;
+    font-size: 12px;
 }
 
 #history li:hover, #da li:hover {

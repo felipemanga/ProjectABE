@@ -14,7 +14,7 @@ import * as entities from './entities/*.js';
 import * as components from './components/*.js';
 
 import Flasher from './flashers/ChromeSerial.js';
-import SerialRouter from './lib/SerialRouter.js';
+// import SerialRouter from './lib/SerialRouter.js';
 import * as plugins from './nw/*.js';
 
 const fs = window.require("fs");
@@ -28,7 +28,7 @@ document.addEventListener( "DOMContentLoaded", () => {
     bind(Store).to(IStore).singleton();
     bind(LocalCompiler).to('Compiler').singleton();
     bind(Flasher).to('Plugin').singleton();
-    bind(SerialRouter).to('Plugin').singleton();
+    // bind(SerialRouter).to('Plugin').singleton();
     for( let k in plugins )
 	bind( plugins[k] ).to('Plugin').singleton();
 
