@@ -3,18 +3,18 @@ ArduBoyEmulator and IDE in HTML5
 
 ## Want to contribute?
 
-     npm install -g gulp-cli
-     npm install -g serve
-     npm install -g cordova   # optional, for android build only
-     git clone https://github.com/felipemanga/ProjectABE.git
-     cd ProjectABE
-     npm install
-     mkdir build
-     gulp copy
-     gulp web-build
-     serve build
+    npm install -g gulp-cli
+    npm install -g serve
+    npm install -g cordova   # optional, for android build only
+    git clone https://github.com/felipemanga/ProjectABE.git
+    cd ProjectABE
+    npm install
+    mkdir build
+    gulp copy
+    gulp web-build
+    serve build
 
-     
+
 # Running the emulator
 
 The emulator can be used in one of the following ways:
@@ -25,7 +25,8 @@ If you want to use the online emulator, you can run a HEX/Arduboy directly by ad
 https://felipemanga.github.io/ProjectABE/?url=https://site/file.hex
 
 Offline is similar, if you have the executable in your PATH:
-ProjectABE /path/to/file.hex
+
+    ProjectABE /path/to/file.hex
 
 You can also drag-and-drop a hex/arduboy file into the game list to play it.
 
@@ -42,35 +43,35 @@ You can also drag-and-drop a hex/arduboy file into the game list to play it.
 
 # Emulator interface
 
-You can play by touching the buttons, if you have a touchscreen. If your device has a keyboard, use the **arrow keys** and Ctrl/**A**/Z for button A and Alt/**B**/S/X for button B. Joysticks/pads are also supported, if your browser supports the gamepad API.
+You can play by touching the buttons, if you have a touchscreen. If your device has a keyboard, use the **arrow keys** and <kbd>Ctrl</kbd>/<kbd>**A**</kbd>/<kbd>Z</kbd> for button A and <kbd>Alt</kbd>/<kbd>**B**</kbd>/<kbd>S</kbd>/<kbd>X</kbd> for button B. Joysticks/pads are also supported, if your browser supports the gamepad API.
 
-Press **F** to toggle fullscreen mode.
+Press <kbd>**F**</kbd> to toggle fullscreen mode.
 
-You can start/stop recording a GIF of the game by pressing **R**. If you want a PNG screenshot, press **P**.
+You can start/stop recording a GIF of the game by pressing <kbd>**R**</kbd>. If you want a PNG screenshot, press <kbd>**P**</kbd>.
 
-To exit a game and go back to the list, press **Esc** or click on the **power button** above the screen.
+To exit a game and go back to the list, press <kbd>**Esc**</kbd> or click on the **power button** above the screen.
 
 Some games look/play better on a vertical screen, like [1942](https://felipemanga.github.io/ProjectABE/?url=https://raw.githubusercontent.com/eried/ArduboyCollection/master/Arcade%2F1943%2F1943.hex) or [Breakout-V](https://felipemanga.github.io/ProjectABE/?url=http://www.crait.net/arduboy/breakoutv/app.hex). The emulator can be put in vertical mode by clicking on the **chip in the lower-right** of the Arduboy's screen.
 
-Aside from the standard Arduboy and Microcard, other skins are available. Press **F3** to cycle through them. You can specify which skin to load by adding a parameter to the URL (`?hex=game.hex&skin=Tama`) or the commandline (`ProjectABE --skin=Tama game.hex`).
+Aside from the standard Arduboy and Microcard, other skins are available. Press <kbd>**F3**</kbd> to cycle through them. You can specify which skin to load by adding a parameter to the URL (`?hex=game.hex&skin=Tama`) or the commandline (`ProjectABE --skin=Tama game.hex`).
 
 If you want to debug the game you're currently playing, click on the **USB port** (bottom-center).
-To upload the game to your Arduboy, press **U** (offline version only).
+To upload the game to your Arduboy, press <kbd>**U**</kbd> (offline version only).
 
 ### Keyboard bindings:
 
 | Key | Function |
 | :---: | -------- |
 | Arrow keys | Arrow keys |
-| Ctrl/A/Z | Button A |
-| Alt/B/S/X | Button B |
-| F | Fullscreen |
-| R | Record GIF |
-| P | PNG screenshot |
-| Esc | Exit game |
-| F3 | Change skin |
-| U | Upload to physical device |
-| F6 | Reset game |
+| <kbd>Ctrl</kbd>/<kbd>A</kbd>/<kbd>Z</kbd> | Button A |
+| <kbd>Alt</kbd>/<kbd>B</kbd>/<kbd>S</kbd>/<kbd>X</kbd> | Button B |
+| <kbd>F</kbd> | Fullscreen |
+| <kbd>R</kbd> | Record GIF |
+| <kbd>P</kbd> | PNG screenshot |
+| <kbd>Esc</kbd> | Exit game |
+| <kbd>F3</kbd> | Change skin |
+| <kbd>U</kbd> | Upload to physical device |
+| <kbd>F6</kbd> | Reset game |
 
 # IDE / Debugger
 
@@ -91,8 +92,8 @@ Simply ignore the arrays you do not need and GCC will not add them to the final 
 
 | Key | Function |
 | :---: | --- |
-| Ctrl-Enter | Build and run |
-| Ctrl-P | Jump to file |
-| F6 | Reset |
-| F7 | Step-In |
-| F8 | Resume |
+| <kbd>Ctrl</kbd>-<kbd>Enter</kbd> | Build and run |
+| <kbd>Ctrl</kbd>-<kbd>P</kbd> | Jump to file |
+| <kbd>F6</kbd> | Reset |
+| <kbd>F7</kbd> | Step-In |
+| <kbd>F8</kbd> | Resume |
