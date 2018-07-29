@@ -391,6 +391,11 @@ canvas:fullscreen{
     flex-basis: 0;
 }
 
+#ramContainer .stack {
+    border-bottom: 1px solid white;
+    margin-bottom: -1px;
+}
+
 #ideContainer[data-tab=history] #historyContainer,
 #ideContainer[data-tab=da] #daContainer,
 #ideContainer[data-tab=source] #sourceContainer,
@@ -453,6 +458,8 @@ canvas:fullscreen{
 #history li, #da li, #state li {
     cursor: pointer;
     padding: 0 25px;
+    font-family: monospace;
+    font-size: 12px;
 }
 
 #history li:hover, #da li:hover {
