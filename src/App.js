@@ -380,7 +380,7 @@ class App {
 	model.setItem("repoList", {
 	    GameJam3:"https://www.arduboy.com/a/GameJam3.json",
 	    Eried:"http://arduboy.ried.cl/repo.json",
-	    Crait:"http://www.crait.net/arduboy/repo2.json",
+	    crait:"http://www.crait.net/arduboy/repo2.json",
 	    TeamARG:"repo.json"
 	});
 	

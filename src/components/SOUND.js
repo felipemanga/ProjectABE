@@ -2,7 +2,9 @@ class SOUND {
     
     static "@inject" = {
 	pool:"pool"
-    }
+    };
+
+    static context = null;
     
     constructor( DOM ){
 	this.DOM = DOM;
@@ -15,7 +17,7 @@ class SOUND {
 	
 	this.pool.add(this);
 
-	this.ctx = new AudioContext();
+	this.ctx = SOUND.context || new AudioContext();
 	this.processor = null;
 	let size = 4*1024;
 	this.ch1Buffer = new Float32Array( size );

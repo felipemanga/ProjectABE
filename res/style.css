@@ -391,6 +391,11 @@ canvas:fullscreen{
     flex-basis: 0;
 }
 
+#ramContainer .stack {
+    border-bottom: 1px solid white;
+    margin-bottom: -1px;
+}
+
 #ideContainer[data-tab=history] #historyContainer,
 #ideContainer[data-tab=da] #daContainer,
 #ideContainer[data-tab=source] #sourceContainer,

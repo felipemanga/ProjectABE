@@ -28,7 +28,7 @@ class SCREEN {
 	this.fb = this.createBuffer();
 	this.fbON = this.createBuffer();
 	this.fbOFF = this.createBuffer();
-	this.activeBuffer = this.fbON;
+	this.activeBuffer = this.createBuffer(); // this.fbON;
 	this.dirty = true;
 	this.fade = false;
 
@@ -152,6 +152,20 @@ class SCREEN {
 	this.pool.remove(this);
     }
 
+    onPressF2(){
+	if( this.canvas.width == 128 ){
+	    this.canvas.width = 256;
+	    this.canvas.height = 128;
+	    this.activeBuffer = this.createBuffer();
+	    this.activeBuffer.data.fill(0xFF);
+	}else{
+	    this.canvas.width = 128;
+	    this.canvas.height = 64;
+	    this.activeBuffer = this.createBuffer();
+	    this.activeBuffer.data.fill(0xFF);
+	}
+    }
+
     onPressKeyP(){
 	let c = document.createElement("canvas");
 	c.width = this.canvas.width * 4;
@@ -212,13 +226,64 @@ class SCREEN {
 			else cancelFullScreen.call(doc);
 		}
     }
-    
+
+    blit( src, auto ){
+	this.autoBlit = auto;
+	
+	if( src.data.length == this.activeBuffer.data.length ){
+	    this.activeBuffer.data.set( src.data );
+	    return;
+	}
+
+	let inp = src.data, out = this.activeBuffer.data;
+
+	for( let y=0; y<src.height; ++y ){
+	    for( let x=0; x<src.width; ++x ){
+
+		let Pi = (y*src.width + x);
+		let P = inp[ Pi*4 + 3 ] || 0;
+		let A = inp[ Pi*4 - src.width * 4 + 3 ] || 0;
+		let B = inp[ Pi*4 + 4 + 3 ] || 0;
+		let C = inp[ Pi*4 - 4 + 3 ] || 0;
+		let D = inp[ Pi*4 + src.width * 4 + 3 ] || 0;
+		
+		let O1 = P, O2 = P, O3 = P, O4 = P;
+
+		if( C==A && C!=D && A!=B ) O1=A;
+		if( A==B && A!=C && B!=D ) O2=B;
+		if( D==C && D!=B && C!=A ) O3=C;
+		if( B==D && B!=A && D!=C ) O4=D;
+
+		let Di = ((y<<1)*(src.width<<1) + (x<<1)) << 2;
+		out[ Di + 3 ] = O1;
+		out[ Di + 4 + 3 ] = O2;
+		out[ Di+(src.width<<3) + 3 ] = O3;
+		out[ Di+(src.width<<3) + 4 + 3 ] = O4;
+		
+	    }
+	}
+
+    }
     
     tick(){
 	if( !this.dirty ) //|| (this.activeBuffer == this.fb && !(this.col == 0 && this.page == 0) ) )
 	    return;
 
-	this.ctx.putImageData( this.activeBuffer, 0, 0 );
+	if( this.autoBlit ){
+	    
+	    if( this.fb.data.length != this.activeBuffer.data.length ){
+		this.blit( this.fb, true );
+		this.ctx.putImageData( this.activeBuffer, 0, 0 );
+	    }else{
+		this.ctx.putImageData( this.fb, 0, 0 );
+	    }
+	    
+	}else{
+	
+	    this.ctx.putImageData( this.activeBuffer, 0, 0 );
+	    
+	}
+	
 	this.dirty = false;
 	
 	let now = performance.now();
@@ -262,6 +327,7 @@ class SCREEN {
 	this.fb.data.fill(0xFF);
 	this.inverted = 0;
 	this.dirty = true;
+	this.autoBlit = true;
     }
 
     state = function( data ){
@@ -314,7 +380,7 @@ class SCREEN {
 	}
 
 	this.dirty = true;
-		 
+	
     }
 
     sck = {
@@ -373,7 +439,7 @@ class SCREEN {
 
     // Display Off
     cmdAE(){
-	this.activeBuffer = this.fbOFF;
+	this.blit( this.fbOFF, 0 );
 	this.dirty = true;
     }
 
@@ -392,7 +458,7 @@ class SCREEN {
     cmdA1(){ this.segmentRemap = 1; }
 
     cmdA5(){
-	this.activeBuffer = this.fbON;
+	this.blit( this.fbON, 0 );
 	this.dirty = true;
     };
 
@@ -468,7 +534,7 @@ class SCREEN {
 
   // Entire Display ON
     cmdA4(){
-	this.activeBuffer = this.fb;
+	this.autoBlit = 1;
 	this.dirty = true;
     }
 
@@ -501,7 +567,7 @@ class SCREEN {
 
   // Display On
     cmdAF(){
-	this.activeBuffer = this.fb;
+	this.autoBlit = 1;
     }
 
   // set display mode = horizontal addressing mode (0x00)

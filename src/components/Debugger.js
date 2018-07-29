@@ -1361,10 +1361,12 @@ void loop() {
 
     }
     
-    refreshRAM( ignoreAuto ){
+    refreshRAM(  ){
 
-	if( !ignoreAuto && this.DOM.autoRefreshRAM.checked )
-	    setTimeout( _ => this.refreshRAM(), 1000 );
+	if( this.DOM.autoRefreshRAM.checked && this.DOM.element.getAttribute("data-tab") == "ram"  ){
+	    if( this.refreshRAMHND ) clearTimeout( this.refreshRAMHND );
+	    this.refreshRAMHND = setTimeout( _ => this.refreshRAM(), 1000 );
+	}
 	
 	let src = core.memory;
 	
@@ -1388,6 +1390,10 @@ void loop() {
 
 	this.RAM.forEach( (li, idx) => {
 	    li.textContent = src[idx].toString(16).padStart(2, "0");
+	    if( idx >= self.core.minStack )
+		li.classList.add("stack");
+	    else
+		li.classList.remove("stack");
 	});
 	
     }
@@ -1469,8 +1475,10 @@ void loop() {
 
     refreshState( ignoreAuto ){
 
-	if( !ignoreAuto && this.DOM.autoRefreshState.checked )
-	    setTimeout( _ => this.refreshState(), 1000 );
+	if( this.DOM.autoRefreshState.checked && this.DOM.element.getAttribute("data-tab") == "state"  ){
+	    if( this.refreshStateHND ) clearTimeout( this.refreshStateHND );
+	    this.refreshStateHND = setTimeout( _ => this.refreshState(), 500 );
+	}
 	
 	let src = core.state().replace(/\t/g, "    ").replace(/ /g, "&nbsp;").split("\n");
 	

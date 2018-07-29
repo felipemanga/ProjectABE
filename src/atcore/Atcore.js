@@ -46,6 +46,7 @@ class Atcore {
 	this.readBreakpoints = {};
 	this.writeBreakpoints = {};
 	this.breakpointHit = false;
+	this.minStack = 0xFFFFFFFF;
 	this.lastReadValue = 0;
 	this.lastReadAddr = 0;
 	this.lastWriteValue = 0;
@@ -90,6 +91,8 @@ class Atcore {
     }
 
     initInterface(){
+
+	let THIS = this;
 	
 	self.core = {
 	    
@@ -100,6 +103,8 @@ class Atcore {
 	    writeBreakpoints: this.writeBreakpoints,
 	    enableDebugger:() => { this.enableDebugger(); },
 	    memory: this.memory,
+	    
+	    get minStack(){ return THIS.minStack },
 	    
 	    da: (a=null, l=20) => {
 		let opc = this.pc;
@@ -162,6 +167,7 @@ class Atcore {
 		'PC: #'+(this.pc<<1).toString(16)+
 		'\nSR: ' + this.memory[0x5F].toString(2).padStart(8, '0')+
 		'\nSP: #' + this.sp.toString(16) +
+		'\nStack: #' + (this.sram.length + 0xFF - this.minStack).toString(16) +
 		'\n' + 
 		Array.prototype.map.call( this.reg, 
 					  (v,i) => 'R'+(i+'')+' '+(i<10?' ':'')+'=\t#'+v.toString(16).padStart(2,"0") + '\t' + v 
@@ -299,6 +305,12 @@ t1 === undefined ? t2 : t1
 	return `memory[${addr}]`;
     }
 
+    writeStack( addr, value ){
+	this.write( addr, value );
+	if( addr < this.minStack )
+	    this.minStack = addr;
+    }
+
     writeBit( addr, bit, bvalue ){
 	bvalue = (!!bvalue) | 0;
 	var value = this.memory[ addr ];
@@ -330,6 +342,7 @@ t1 === undefined ? t2 : t1
 	
 	if( this.debuggerEnabled )
 	    return;
+	
 	
 	this.debuggerEnabled = true;
 	this.native = {};
@@ -896,14 +909,14 @@ t1 === undefined ? t2 : t1
         str = str.replace(/\(([XYZ])(\+[0-9]+)?\)/g, (m, n, off) => 'read( wreg[' + (n.charCodeAt(0)-87) + ']' + (off||'') + ', this.pc )');
 
 	if( !this.debuggerEnabled ){
-            str = str.replace(/\(STACK\)\s*←/g, 'memory[sp--] =');
+            str = str.replace(/\(STACK\)\s*←(.*)/g, 'memory[sp--] = $1; if(sp<this.minStack) this.minStack = sp; ');
             str = str.replace(/\((STACK)\)/g, 'memory[++sp]');
-            str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nmemory[sp--] = t1>>8;\nmemory[sp--] = t1;\n');
+            str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nmemory[sp--] = t1>>8;\nmemory[sp--] = t1;\n if(sp<this.minStack) this.minStack = sp;\n');
             str = str.replace(/\((STACK2)\)/g, '(memory[++sp] + (memory[++sp]<<8))');
 	}else{
-            str = str.replace(/\(STACK\)\s*←(.*)/g, 'write(sp--, $1)');
+            str = str.replace(/\(STACK\)\s*←(.*)/g, 'this.writeStack(sp--, $1)');
             str = str.replace(/\((STACK)\)/g, 'read(++sp)');
-            str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nwrite(sp--, t1>>8);\nwrite(sp--, t1);\n');
+            str = str.replace(/\(STACK2\)\s*←(.*)/g, 't1 = $1;\nthis.writeStack(sp--, t1>>8);\nthis.writeStack(sp--, t1);\n');
             str = str.replace(/\((STACK2)\)/g, '(read(++sp) + (read(++sp)<<8))');
 	}
 
