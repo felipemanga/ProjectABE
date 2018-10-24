@@ -105,7 +105,7 @@ class Atcore {
 	    memory: this.memory,
 	    
 	    get minStack(){ return THIS.minStack },
-	    
+	    set minStack(value) { THIS.minStack = value; },
 	    da: (a=null, l=20) => {
 		let opc = this.pc;
 		
