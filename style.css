@@ -30,6 +30,7 @@ html, body {
     image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
     filter: invert(100%);
+    opacity: 0.815;
 }
 
 .horizontalContainer {
