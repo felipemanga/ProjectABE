@@ -6,7 +6,7 @@ html, body {
     height: 100%;
     font-family: sans-serif;
     font-size: 1em;
-    background-color: #345;
+    background-color: black;
     color: #DEF;
 }
 
@@ -29,6 +29,7 @@ html, body {
     -ms-interpolation-mode: nearest-neighbor;
     image-rendering: -moz-crisp-edges;
     image-rendering: pixelated;
+    filter: invert(100%);
 }
 
 .horizontalContainer {
