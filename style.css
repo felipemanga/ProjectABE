@@ -218,6 +218,15 @@ nav button {
 	animation: blinker 1s linear infinite;
 }
 
+.pauseOverlay {
+    background: rgba(0,0,0,0.85);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+}
 
 #simBox{
     position: relative;
