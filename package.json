@@ -10,7 +10,7 @@
     "avrgirl-arduino": "^2.2.7",
     "cordova": "^8.0.0",
     "dry-di": "^0.5.9",
-    "electron": "^1.7.11",
+    "electron": "^9.4.0",
     "electron-builder": "^19.55.2",
     "electron-rebuild": "^1.7.3",
     "html5-fs": "^0.1.1",
