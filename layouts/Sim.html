@@ -121,7 +121,7 @@
       <canvas data-inject="SCREEN" id="screen" data-pixelated="true" pin-cs="cpu.12" pin-sck="cpu.15" pin-sda="cpu.16" pin-res="cpu.6" pin-dc="cpu.4">
       </canvas>
       <div class="pauseOverlay" data-inject="PAUSE" click-call="onClickToContinue" hidden><h2>Paused</h2><div>Click to play</div></div>
-      <spi data-inject="W25Q64" pin-cs="cpu.0" pin-di="cpu.16"></spi>
+      <spi data-inject="W25Q64" pin-cs="cpu.0" pin-csfx="cpu.2" pin-di="cpu.16"></spi>
       <btn data-inject="SOUND" pin-ch1="cpu.5" pin-ch2="cpu.13"></btn>
       <led data-inject="LED" style="background-color: #F00" pin-on="cpu.10"></led>
       <led data-inject="LED" style="background-color: #0F0" pin-on="cpu.11"></led>
