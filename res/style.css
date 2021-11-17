@@ -278,10 +278,10 @@ nav button {
 
 #simContainer canvas {
     position: absolute;
-    top: 8.7%;
-    height: 20.518%;
-    left: 18%;
-    width: 64.5%;
+    top: 19%;
+    height: 53%;
+    left: 30%;
+    width: 40%;
 }
 
 canvas:-webkit-full-screen{

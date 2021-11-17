@@ -39,10 +39,7 @@ class Arduboy {
 
 	this.loadFlash();
 
-	let skin = skins[
-	    this.root.getItem("ram.skin", null) ||
-	    this.root.getItem("app.skinName", "Arduboy")
-	] || skins.Arduboy;
+	let skin = skins.EightBitcade
 
 	this.initSkin( skin );
 	this.resize();
@@ -276,7 +273,7 @@ class Arduboy {
     }
 
     arduboyMode(){
-	this.initSkin( skins.Arduboy );
+	this.initSkin( skins.EightBitcade );
     }
 
     microcardMode(){
