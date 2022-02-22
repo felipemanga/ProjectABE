@@ -633,7 +633,7 @@ class Arduboy {
 	this.width = maxWidth;
 	this.height = maxHeight;
 
-	let ratio = this.skin.width / this.skin.height;
+	let ratio = 2.8;
 
 	if( this.height * ratio >= this.width ){
 	    
